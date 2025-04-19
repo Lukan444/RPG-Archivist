@@ -1,0 +1,1 @@
+# Security Measures\n\n## Overview\n\nThis document outlines the security measures implemented in the RPG Archivist web application. These measures are designed to protect user data, prevent common web vulnerabilities, and ensure the overall security of the application.
