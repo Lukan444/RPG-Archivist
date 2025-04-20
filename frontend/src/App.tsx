@@ -34,6 +34,12 @@ const SessionDetailPage = lazy(() => import('./pages/sessions/SessionDetailPage'
 const SessionCreatePage = lazy(() => import('./pages/sessions/SessionCreatePage'));
 const SessionEditPage = lazy(() => import('./pages/sessions/SessionEditPage'));
 
+// Character pages
+const CharacterListPage = lazy(() => import('./pages/characters/CharacterListPage'));
+const CharacterDetailPage = lazy(() => import('./pages/characters/CharacterDetailPage'));
+const CharacterCreatePage = lazy(() => import('./pages/characters/CharacterCreatePage'));
+const CharacterEditPage = lazy(() => import('./pages/characters/CharacterEditPage'));
+
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -107,17 +113,17 @@ const AppRoutes: React.FC = () => {
           <Route path=/sessions/:id element={<SessionDetailPage />} />
           <Route path=/sessions/:id/edit element={<SessionEditPage />} />
           
+          {/* Character routes */}
+          <Route path=/characters element={<CharacterListPage />} />
+          <Route path=/characters/create element={<CharacterCreatePage />} />
+          <Route path=/characters/:id element={<CharacterDetailPage />} />
+          <Route path=/characters/:id/edit element={<CharacterEditPage />} />
+          
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Dashboard</Typography>
               <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/characters element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Characters</Typography>
-              <Typography variant=body1>Characters content will be implemented soon.</Typography>
             </Box>
           } />
           <Route path=/locations element={
