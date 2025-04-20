@@ -22,6 +22,12 @@ const RPGWorldDetailPage = lazy(() => import('./pages/rpg-worlds/RPGWorldDetailP
 const RPGWorldCreatePage = lazy(() => import('./pages/rpg-worlds/RPGWorldCreatePage'));
 const RPGWorldEditPage = lazy(() => import('./pages/rpg-worlds/RPGWorldEditPage'));
 
+// Campaign pages
+const CampaignListPage = lazy(() => import('./pages/campaigns/CampaignListPage'));
+const CampaignDetailPage = lazy(() => import('./pages/campaigns/CampaignDetailPage'));
+const CampaignCreatePage = lazy(() => import('./pages/campaigns/CampaignCreatePage'));
+const CampaignEditPage = lazy(() => import('./pages/campaigns/CampaignEditPage'));
+
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -83,17 +89,17 @@ const AppRoutes: React.FC = () => {
           <Route path=/rpg-worlds/:id element={<RPGWorldDetailPage />} />
           <Route path=/rpg-worlds/:id/edit element={<RPGWorldEditPage />} />
           
+          {/* Campaign routes */}
+          <Route path=/campaigns element={<CampaignListPage />} />
+          <Route path=/campaigns/create element={<CampaignCreatePage />} />
+          <Route path=/campaigns/:id element={<CampaignDetailPage />} />
+          <Route path=/campaigns/:id/edit element={<CampaignEditPage />} />
+          
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Dashboard</Typography>
               <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/campaigns element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Campaigns</Typography>
-              <Typography variant=body1>Campaigns content will be implemented soon.</Typography>
             </Box>
           } />
           <Route path=/sessions element={
