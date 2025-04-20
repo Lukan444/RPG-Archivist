@@ -15,16 +15,12 @@ const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const ProfilePage = lazy(() => import('./pages/user/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/user/SettingsPage'));
-// const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-// const RPGWorldsPage = lazy(() => import('./pages/RPGWorldsPage'));
-// const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
-// const SessionsPage = lazy(() => import('./pages/SessionsPage'));
-// const CharactersPage = lazy(() => import('./pages/CharactersPage'));
-// const LocationsPage = lazy(() => import('./pages/LocationsPage'));
-// const MindMapPage = lazy(() => import('./pages/MindMapPage'));
-// const TranscriptionPage = lazy(() => import('./pages/TranscriptionPage'));
-// const BrainPage = lazy(() => import('./pages/BrainPage'));
-// const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+// RPG World pages
+const RPGWorldListPage = lazy(() => import('./pages/rpg-worlds/RPGWorldListPage'));
+const RPGWorldDetailPage = lazy(() => import('./pages/rpg-worlds/RPGWorldDetailPage'));
+const RPGWorldCreatePage = lazy(() => import('./pages/rpg-worlds/RPGWorldCreatePage'));
+const RPGWorldEditPage = lazy(() => import('./pages/rpg-worlds/RPGWorldEditPage'));
 
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
@@ -81,27 +77,17 @@ const AppRoutes: React.FC = () => {
           <Route path=/profile element={<ProfilePage />} />
           <Route path=/settings element={<SettingsPage />} />
           
-          {/* <Route path=/dashboard element={<DashboardPage />} />
-          <Route path=/rpg-worlds element={<RPGWorldsPage />} />
-          <Route path=/campaigns element={<CampaignsPage />} />
-          <Route path=/sessions element={<SessionsPage />} />
-          <Route path=/characters element={<CharactersPage />} />
-          <Route path=/locations element={<LocationsPage />} />
-          <Route path=/mind-map element={<MindMapPage />} />
-          <Route path=/transcription element={<TranscriptionPage />} />
-          <Route path=/brain element={<BrainPage />} /> */}
+          {/* RPG World routes */}
+          <Route path=/rpg-worlds element={<RPGWorldListPage />} />
+          <Route path=/rpg-worlds/create element={<RPGWorldCreatePage />} />
+          <Route path=/rpg-worlds/:id element={<RPGWorldDetailPage />} />
+          <Route path=/rpg-worlds/:id/edit element={<RPGWorldEditPage />} />
           
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Dashboard</Typography>
               <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/rpg-worlds element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>RPG Worlds</Typography>
-              <Typography variant=body1>RPG Worlds content will be implemented soon.</Typography>
             </Box>
           } />
           <Route path=/campaigns element={
