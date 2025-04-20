@@ -385,3 +385,6 @@ Only when all relevant questions can be answered positively should the task be m
 - [x] 6.7. Add relationship management endpoints
   - Verification: Created Relationship model, controller, routes, and tests for CRUD operations
   - Notes: Implemented generic relationship management between different entity types (characters, locations, etc.)
+- [x] 6.8. Write tests for all core endpoints
+  - Verification: Created comprehensive test files for all core endpoints (auth, user, rpg-world, campaign, session, character, location, relationship)
+  - Notes: Implemented tests for success and error scenarios, mocked repositories for testing
