@@ -376,3 +376,6 @@ Only when all relevant questions can be answered positively should the task be m
 - [x] 6.4. Implement Session endpoints (CRUD)
   - Verification: Created Session controller, routes, and tests for CRUD operations
   - Notes: Implemented validation, error handling, and comprehensive testing
+- [x] 6.5. Create Character endpoints (CRUD)
+  - Verification: Created Character controller, routes, and tests for CRUD operations
+  - Notes: Implemented validation, error handling, and comprehensive testing for character relationships
