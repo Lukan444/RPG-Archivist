@@ -28,6 +28,12 @@ const CampaignDetailPage = lazy(() => import('./pages/campaigns/CampaignDetailPa
 const CampaignCreatePage = lazy(() => import('./pages/campaigns/CampaignCreatePage'));
 const CampaignEditPage = lazy(() => import('./pages/campaigns/CampaignEditPage'));
 
+// Session pages
+const SessionListPage = lazy(() => import('./pages/sessions/SessionListPage'));
+const SessionDetailPage = lazy(() => import('./pages/sessions/SessionDetailPage'));
+const SessionCreatePage = lazy(() => import('./pages/sessions/SessionCreatePage'));
+const SessionEditPage = lazy(() => import('./pages/sessions/SessionEditPage'));
+
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -95,17 +101,17 @@ const AppRoutes: React.FC = () => {
           <Route path=/campaigns/:id element={<CampaignDetailPage />} />
           <Route path=/campaigns/:id/edit element={<CampaignEditPage />} />
           
+          {/* Session routes */}
+          <Route path=/sessions element={<SessionListPage />} />
+          <Route path=/sessions/create element={<SessionCreatePage />} />
+          <Route path=/sessions/:id element={<SessionDetailPage />} />
+          <Route path=/sessions/:id/edit element={<SessionEditPage />} />
+          
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Dashboard</Typography>
               <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/sessions element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Sessions</Typography>
-              <Typography variant=body1>Sessions content will be implemented soon.</Typography>
             </Box>
           } />
           <Route path=/characters element={
