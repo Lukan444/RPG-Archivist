@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { 
   Box, 
   AppBar, 
@@ -14,7 +14,11 @@ import {
   Divider,
   useMediaQuery,
   Container,
-  Tooltip
+  Tooltip,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemButton
 } from '@mui/material';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import { 
@@ -31,9 +35,12 @@ import {
   Psychology as PsychologyIcon,
   Settings as SettingsIcon,
   Brightness4 as Brightness4Icon,
-  Brightness7 as Brightness7Icon
+  Brightness7 as Brightness7Icon,
+  Logout as LogoutIcon,
+  AccountCircle as AccountCircleIcon
 } from '@mui/icons-material';
 import { useTheme } from '../../theme';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Drawer width
 const DRAWER_WIDTH = 240;
@@ -42,9 +49,17 @@ const MainLayout: React.FC = () => {
   // Get theme and theme toggle function
   const { mode, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
+  const navigate = useNavigate();
+  
+  // Get auth state
+  const { user, logout } = useAuth();
   
   // State for drawer open/closed
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  // State for user menu
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const userMenuOpen = Boolean(userMenuAnchorEl);
   
   // Check if screen is mobile size
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
@@ -55,10 +70,35 @@ const MainLayout: React.FC = () => {
   };
   
   // Close drawer when clicking a link on mobile
-  const handleNavClick = () => {
+  const handleNavClick = (path: string) => {
     if (isMobile) {
       setDrawerOpen(false);
     }
+    navigate(path);
+  };
+  
+  // User menu handlers
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+  
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+  
+  const handleLogout = async () => {
+    handleUserMenuClose();
+    await logout();
+  };
+  
+  const handleProfile = () => {
+    handleUserMenuClose();
+    navigate('/profile');
+  };
+  
+  const handleSettings = () => {
+    handleUserMenuClose();
+    navigate('/settings');
   };
   
   // Navigation items
@@ -95,21 +135,27 @@ const MainLayout: React.FC = () => {
       <List>
         {navItems.map((item) => (
           <ListItem 
-            button 
-            key={item.text} 
-            onClick={handleNavClick}
-            component=a 
-            href={item.path}
+            disablePadding
+            key={item.text}
             sx={{ 
-              borderRadius: 1,
-              m: 0.5,
-              '&:hover': {
-                backgroundColor: mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-              }
+              display: 'block',
+              my: 0.5,
+              px: 1,
             }}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemButton
+              onClick={() => handleNavClick(item.path)}
+              sx={{
+                minHeight: 48,
+                px: 2.5,
+                borderRadius: 1,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
@@ -150,11 +196,70 @@ const MainLayout: React.FC = () => {
           <Typography variant=h6 noWrap component=div sx={{ flexGrow: 1 }}>
             RPG Archivist
           </Typography>
+          
+          {/* Theme toggle */}
           <Tooltip title={Switch to  mode}>
-            <IconButton color=inherit onClick={toggleTheme}>
+            <IconButton color=inherit onClick={toggleTheme} sx={{ mr: 1 }}>
               {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
           </Tooltip>
+          
+          {/* User menu */}
+          <Box>
+            <Tooltip title=Account settings>
+              <IconButton
+                onClick={handleUserMenuOpen}
+                size=small
+                aria-controls={userMenuOpen ? 'account-menu' : undefined}
+                aria-haspopup=true
+                aria-expanded={userMenuOpen ? 'true' : undefined}
+                color=inherit
+              >
+                {user?.username ? (
+                  <Avatar 
+                    sx={{ 
+                      width: 32, 
+                      height: 32,
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                    }}
+                  >
+                    {user.username.charAt(0).toUpperCase()}
+                  </Avatar>
+                ) : (
+                  <AccountCircleIcon />
+                )}
+              </IconButton>
+            </Tooltip>
+            <Menu
+              id=account-menu
+              anchorEl={userMenuAnchorEl}
+              open={userMenuOpen}
+              onClose={handleUserMenuClose}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem onClick={handleProfile}>
+                <ListItemIcon>
+                  <AccountCircleIcon fontSize=small />
+                </ListItemIcon>
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleSettings}>
+                <ListItemIcon>
+                  <SettingsIcon fontSize=small />
+                </ListItemIcon>
+                Settings
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize=small />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBar>
       

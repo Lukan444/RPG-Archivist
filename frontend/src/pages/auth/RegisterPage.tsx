@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import {
@@ -23,6 +23,8 @@ import {
 } from '@mui/icons-material';
 import { TextField2 } from '../../components/ui';
 import { authSchemas } from '../../utils/forms/validation';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { register, clearError } from '../../store/slices/authSlice';
 
 interface RegisterFormValues {
   username: string;
@@ -34,10 +36,14 @@ interface RegisterFormValues {
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registerError, setRegisterError] = useState<string | null>(null);
+  
+  // Get auth state from Redux
+  const { isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
 
+  // Initial form values
   const initialValues: RegisterFormValues = {
     username: '',
     email: '',
@@ -46,28 +52,37 @@ const RegisterPage: React.FC = () => {
     agreeToTerms: false,
   };
 
-  const handleSubmit = async (values: RegisterFormValues) => {
-    try {
-      setRegisterError(null);
-      
-      // TODO: Implement actual registration logic with API
-      console.log('Register form submitted:', values);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For now, just navigate to login on successful registration
-      navigate('/login', { state: { registered: true } });
-    } catch (error) {
-      console.error('Registration error:', error);
-      setRegisterError('An error occurred during registration. Please try again.');
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
     }
+  }, [isAuthenticated, navigate]);
+
+  // Handle form submission
+  const handleSubmit = async (values: RegisterFormValues) => {
+    await dispatch(register({
+      username: values.username,
+      email: values.email,
+      password: values.password,
+    }));
+    
+    // If registration is successful, the auth state will update and the useEffect above will redirect
   };
 
+  // Toggle password visibility
   const handleTogglePasswordVisibility = () => {
     setShowPassword(prevShowPassword => !prevShowPassword);
   };
 
+  // Toggle confirm password visibility
   const handleToggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(prevShowConfirmPassword => !prevShowConfirmPassword);
   };
@@ -81,9 +96,9 @@ const RegisterPage: React.FC = () => {
         Sign up to start managing your RPG campaigns
       </Typography>
 
-      {registerError && (
+      {error && (
         <Alert severity=error sx={{ mb: 3 }}>
-          {registerError}
+          {error}
         </Alert>
       )}
 
@@ -219,10 +234,10 @@ const RegisterPage: React.FC = () => {
                   color=primary
                   fullWidth
                   size=large
-                  disabled={isSubmitting || !values.agreeToTerms}
+                  disabled={isSubmitting || isLoading || !values.agreeToTerms}
                   sx={{ mt: 1 }}
                 >
-                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </Grid>
             </Grid>

@@ -1,10 +1,11 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Box, Container, Typography } from '@mui/material';
 
 // Import components
 import { MainLayout, AuthLayout } from './components/layouts';
 import { LoadingScreen } from './components/ui';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Lazy load pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -33,10 +34,28 @@ const HomePageComponent: React.FC = () => (
   </Box>
 );
 
-const App: React.FC = () => {
-  // Mock authentication state
-  const isAuthenticated = false;
+// Protected route component
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingScreen fullScreen />;
+  }
+
+  if (!isAuthenticated) {
+    // Redirect to login page with return url
+    return <Navigate to=/login state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<LoadingScreen fullScreen />}>
       <Routes>
@@ -52,7 +71,11 @@ const App: React.FC = () => {
         </Route>
 
         {/* Protected routes */}
-        <Route element={<MainLayout />}>
+        <Route element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
           {/* <Route path=/dashboard element={<DashboardPage />} />
           <Route path=/rpg-worlds element={<RPGWorldsPage />} />
           <Route path=/campaigns element={<CampaignsPage />} />
@@ -141,6 +164,14 @@ const App: React.FC = () => {
         } />
       </Routes>
     </Suspense>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 };
 

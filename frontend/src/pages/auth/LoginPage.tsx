@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import {
   Box,
@@ -20,6 +20,8 @@ import {
 } from '@mui/icons-material';
 import { TextField2 } from '../../components/ui';
 import { authSchemas } from '../../utils/forms/validation';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { login, clearError } from '../../store/slices/authSlice';
 
 interface LoginFormValues {
   email: string;
@@ -29,33 +31,46 @@ interface LoginFormValues {
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  
+  // Get auth state from Redux
+  const { isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  
+  // Get return URL from location state
+  const from = (location.state as any)?.from?.pathname || '/dashboard';
 
+  // Initial form values
   const initialValues: LoginFormValues = {
     email: '',
     password: '',
     rememberMe: false,
   };
 
-  const handleSubmit = async (values: LoginFormValues) => {
-    try {
-      setLoginError(null);
-      
-      // TODO: Implement actual login logic with API
-      console.log('Login form submitted:', values);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For now, just navigate to dashboard on successful login
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-      setLoginError('Invalid email or password. Please try again.');
+  // Clear error on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
     }
+  }, [isAuthenticated, navigate, from]);
+
+  // Handle form submission
+  const handleSubmit = async (values: LoginFormValues) => {
+    await dispatch(login({
+      email: values.email,
+      password: values.password,
+    }));
   };
 
+  // Toggle password visibility
   const handleTogglePasswordVisibility = () => {
     setShowPassword(prevShowPassword => !prevShowPassword);
   };
@@ -69,9 +84,15 @@ const LoginPage: React.FC = () => {
         Sign in to access your RPG campaigns and sessions
       </Typography>
 
-      {loginError && (
+      {error && (
         <Alert severity=error sx={{ mb: 3 }}>
-          {loginError}
+          {error}
+        </Alert>
+      )}
+
+      {location.state?.registered && (
+        <Alert severity=success sx={{ mb: 3 }}>
+          Registration successful! Please sign in with your new account.
         </Alert>
       )}
 
@@ -145,10 +166,10 @@ const LoginPage: React.FC = () => {
                   color=primary
                   fullWidth
                   size=large
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isLoading}
                   sx={{ mt: 1 }}
                 >
-                  {isSubmitting ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </Grid>
             </Grid>
