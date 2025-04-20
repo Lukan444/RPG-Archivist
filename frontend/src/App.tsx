@@ -13,6 +13,8 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const ProfilePage = lazy(() => import('./pages/user/ProfilePage'));
+const SettingsPage = lazy(() => import('./pages/user/SettingsPage'));
 // const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 // const RPGWorldsPage = lazy(() => import('./pages/RPGWorldsPage'));
 // const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
@@ -22,7 +24,6 @@ const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 // const MindMapPage = lazy(() => import('./pages/MindMapPage'));
 // const TranscriptionPage = lazy(() => import('./pages/TranscriptionPage'));
 // const BrainPage = lazy(() => import('./pages/BrainPage'));
-// const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 // const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Create a simple HomePage component
@@ -76,6 +77,10 @@ const AppRoutes: React.FC = () => {
             <MainLayout />
           </ProtectedRoute>
         }>
+          {/* User routes */}
+          <Route path=/profile element={<ProfilePage />} />
+          <Route path=/settings element={<SettingsPage />} />
+          
           {/* <Route path=/dashboard element={<DashboardPage />} />
           <Route path=/rpg-worlds element={<RPGWorldsPage />} />
           <Route path=/campaigns element={<CampaignsPage />} />
@@ -84,8 +89,7 @@ const AppRoutes: React.FC = () => {
           <Route path=/locations element={<LocationsPage />} />
           <Route path=/mind-map element={<MindMapPage />} />
           <Route path=/transcription element={<TranscriptionPage />} />
-          <Route path=/brain element={<BrainPage />} />
-          <Route path=/settings element={<SettingsPage />} /> */}
+          <Route path=/brain element={<BrainPage />} /> */}
           
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
@@ -140,12 +144,6 @@ const AppRoutes: React.FC = () => {
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Brain</Typography>
               <Typography variant=body1>Brain content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/settings element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Settings</Typography>
-              <Typography variant=body1>Settings content will be implemented soon.</Typography>
             </Box>
           } />
         </Route>
