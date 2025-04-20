@@ -8,6 +8,7 @@ import { TranscriptionRepository } from './transcription.repository';
 import { UserRepository } from './user.repository';
 import { PowerRepository } from './power.repository';
 import { ItemRepository } from './item.repository';
+import { EventRepository } from './event.repository';
 
 /**
  * Repository factory
@@ -95,5 +96,12 @@ export class RepositoryFactory {
    */
   public getItemRepository(): ItemRepository {
     return this.getRepository('item', () => new ItemRepository(this.dbService));
+  }
+
+  /**
+   * Get Event repository
+   */
+  public getEventRepository(): EventRepository {
+    return this.getRepository('event', () => new EventRepository(this.dbService));
   }
 }
