@@ -382,3 +382,6 @@ Only when all relevant questions can be answered positively should the task be m
 - [x] 6.6. Implement Location endpoints (CRUD)
   - Verification: Created Location controller, routes, and tests for CRUD operations
   - Notes: Implemented validation, error handling, and comprehensive testing for location hierarchy
+- [x] 6.7. Add relationship management endpoints
+  - Verification: Created Relationship model, controller, routes, and tests for CRUD operations
+  - Notes: Implemented generic relationship management between different entity types (characters, locations, etc.)
