@@ -11,6 +11,7 @@ import { ItemRepository } from './item.repository';
 import { EventRepository } from './event.repository';
 import { AudioRecordingRepository } from './audio-recording.repository';
 import { SessionAnalysisRepository } from './session-analysis.repository';
+import { GraphRepository } from './graph.repository';
 
 /**
  * Repository factory
@@ -119,5 +120,12 @@ export class RepositoryFactory {
    */
   public getSessionAnalysisRepository(): SessionAnalysisRepository {
     return this.getRepository('sessionAnalysis', () => new SessionAnalysisRepository(this.dbService));
+  }
+
+  /**
+   * Get Graph repository
+   */
+  public getGraphRepository(): GraphRepository {
+    return this.getRepository('graph', () => new GraphRepository(this.dbService));
   }
 }

@@ -17,6 +17,7 @@ import { eventRoutes } from './routes/event.routes';
 import { audioRecordingRoutes } from './routes/audio-recording.routes';
 import { transcriptionRoutes } from './routes/transcription.routes';
 import { sessionAnalysisRoutes } from './routes/session-analysis.routes';
+import { graphRoutes } from './routes/graph.routes';
 import path from 'path';
 
 // Initialize database service
@@ -51,6 +52,7 @@ app.use('/api/events', eventRoutes(repositoryFactory));
 app.use('/api/audio-recordings', audioRecordingRoutes(repositoryFactory));
 app.use('/api/transcriptions', transcriptionRoutes(repositoryFactory));
 app.use('/api/session-analyses', sessionAnalysisRoutes(repositoryFactory));
+app.use('/api/graph', graphRoutes(repositoryFactory));
 
 // Health check
 app.get('/health', (req, res) => {
