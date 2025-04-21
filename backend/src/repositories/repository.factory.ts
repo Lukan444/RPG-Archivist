@@ -9,6 +9,8 @@ import { UserRepository } from './user.repository';
 import { PowerRepository } from './power.repository';
 import { ItemRepository } from './item.repository';
 import { EventRepository } from './event.repository';
+import { AudioRecordingRepository } from './audio-recording.repository';
+import { SessionAnalysisRepository } from './session-analysis.repository';
 
 /**
  * Repository factory
@@ -103,5 +105,19 @@ export class RepositoryFactory {
    */
   public getEventRepository(): EventRepository {
     return this.getRepository('event', () => new EventRepository(this.dbService));
+  }
+
+  /**
+   * Get Audio Recording repository
+   */
+  public getAudioRecordingRepository(): AudioRecordingRepository {
+    return this.getRepository('audioRecording', () => new AudioRecordingRepository(this.dbService));
+  }
+
+  /**
+   * Get Session Analysis repository
+   */
+  public getSessionAnalysisRepository(): SessionAnalysisRepository {
+    return this.getRepository('sessionAnalysis', () => new SessionAnalysisRepository(this.dbService));
   }
 }

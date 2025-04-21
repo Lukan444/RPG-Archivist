@@ -1,49 +1,42 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios from \ axios\;
 
-// Define base API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api/v1';
-
-// Create Axios instance
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL,
+// Create axios instance
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || \http://localhost:3001/api\,
   headers: {
-    'Content-Type': 'application/json',
+    \Content-Type\: \application/json\,
   },
-  timeout: 10000, // 10 seconds
 });
 
-// Request interceptor for adding auth token
+// Add request interceptor
 apiClient.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token');
-    if (token && config.headers) {
+  (config) => {
+    // Get token from local storage
+    const token = localStorage.getItem(\token\);
+    
+    // Add token to headers if it exists
+    if (token) {
       config.headers.Authorization = Bearer ;
     }
+    
     return config;
   },
-  (error: AxiosError) => {
+  (error) => {
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for handling errors
+// Add response interceptor
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
+  (response) => {
     return response;
   },
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
-    
-    // Handle token expiration (401 Unauthorized)
-    if (error.response?.status === 401 && originalRequest) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-      
-      // Redirect to login page if not already there
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+  (error) => {
+    // Handle unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Clear token and redirect to login
+      localStorage.removeItem(\token\);
+      window.location.href = \/login\;
     }
     
     return Promise.reject(error);

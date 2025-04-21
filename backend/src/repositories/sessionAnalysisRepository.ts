@@ -1,5 +1,5 @@
 import { Driver } from 'neo4j-driver';
-import { SessionAnalysis } from '../models/sessionAnalysis';
+import { SessionAnalysis } from '../models/session-analysis.model';
 import { v4 as uuidv4 } from 'uuid';
 
 export class SessionAnalysisRepository {
@@ -16,13 +16,13 @@ export class SessionAnalysisRepository {
    */
   async create(sessionAnalysis: SessionAnalysis): Promise<SessionAnalysis> {
     const session = this.driver.session();
-    
+
     try {
       // Generate ID if not provided
       if (!sessionAnalysis.analysis_id) {
         sessionAnalysis.analysis_id = uuidv4();
       }
-      
+
       // Create session analysis node
       const result = await session.run(
         `
@@ -36,17 +36,17 @@ export class SessionAnalysisRepository {
           updated_at: $updated_at,
           status: $status
         })
-        
+
         WITH a
-        
+
         MATCH (s:Session {session_id: $session_id})
         MATCH (t:Transcription {transcription_id: $transcription_id})
         MATCH (r:AudioRecording {recording_id: $recording_id})
-        
+
         CREATE (a)-[:ANALYZES]->(s)
         CREATE (a)-[:BASED_ON]->(t)
         CREATE (a)-[:FOR_RECORDING]->(r)
-        
+
         RETURN a
         `,
         {
@@ -60,13 +60,13 @@ export class SessionAnalysisRepository {
           status: sessionAnalysis.status
         }
       );
-      
+
       // Return created session analysis
       const record = result.records[0];
       if (!record) {
         throw new Error('Failed to create session analysis');
       }
-      
+
       return {
         ...sessionAnalysis,
         analysis_id: sessionAnalysis.analysis_id
@@ -83,7 +83,7 @@ export class SessionAnalysisRepository {
    */
   async getById(analysisId: string): Promise<SessionAnalysis | null> {
     const session = this.driver.session();
-    
+
     try {
       // Get session analysis
       const result = await session.run(
@@ -94,16 +94,16 @@ export class SessionAnalysisRepository {
         `,
         { analysis_id: analysisId }
       );
-      
+
       // Return session analysis
       const record = result.records[0];
       if (!record) {
         return null;
       }
-      
+
       const analysisNode = record.get('a').properties;
       const transcriptionNode = record.get('t')?.properties;
-      
+
       return {
         ...analysisNode,
         transcription: transcriptionNode ? {
@@ -123,7 +123,7 @@ export class SessionAnalysisRepository {
    */
   async getBySessionId(sessionId: string): Promise<SessionAnalysis | null> {
     const session = this.driver.session();
-    
+
     try {
       // Get session analysis
       const result = await session.run(
@@ -136,16 +136,16 @@ export class SessionAnalysisRepository {
         `,
         { session_id: sessionId }
       );
-      
+
       // Return session analysis
       const record = result.records[0];
       if (!record) {
         return null;
       }
-      
+
       const analysisNode = record.get('a').properties;
       const transcriptionNode = record.get('t')?.properties;
-      
+
       return {
         ...analysisNode,
         transcription: transcriptionNode ? {
@@ -165,7 +165,7 @@ export class SessionAnalysisRepository {
    */
   async getByTranscriptionId(transcriptionId: string): Promise<SessionAnalysis | null> {
     const session = this.driver.session();
-    
+
     try {
       // Get session analysis
       const result = await session.run(
@@ -177,16 +177,16 @@ export class SessionAnalysisRepository {
         `,
         { transcription_id: transcriptionId }
       );
-      
+
       // Return session analysis
       const record = result.records[0];
       if (!record) {
         return null;
       }
-      
+
       const analysisNode = record.get('a').properties;
       const transcriptionNode = record.get('t')?.properties;
-      
+
       return {
         ...analysisNode,
         transcription: transcriptionNode ? {
@@ -206,13 +206,13 @@ export class SessionAnalysisRepository {
    */
   async update(sessionAnalysis: SessionAnalysis): Promise<SessionAnalysis> {
     const session = this.driver.session();
-    
+
     try {
       // Update session analysis
       const result = await session.run(
         `
         MATCH (a:SessionAnalysis {analysis_id: $analysis_id})
-        
+
         SET a.status = $status,
             a.updated_at = $updated_at,
             a.summary = $summary,
@@ -223,7 +223,7 @@ export class SessionAnalysisRepository {
             a.topics = $topics,
             a.metadata = $metadata,
             a.error = $error
-        
+
         RETURN a
         `,
         {
@@ -240,13 +240,13 @@ export class SessionAnalysisRepository {
           error: sessionAnalysis.error || null
         }
       );
-      
+
       // Return updated session analysis
       const record = result.records[0];
       if (!record) {
         throw new Error('Failed to update session analysis');
       }
-      
+
       return sessionAnalysis;
     } finally {
       await session.close();
@@ -260,7 +260,7 @@ export class SessionAnalysisRepository {
    */
   async delete(analysisId: string): Promise<boolean> {
     const session = this.driver.session();
-    
+
     try {
       // Delete session analysis
       const result = await session.run(
@@ -270,7 +270,7 @@ export class SessionAnalysisRepository {
         `,
         { analysis_id: analysisId }
       );
-      
+
       return true;
     } finally {
       await session.close();

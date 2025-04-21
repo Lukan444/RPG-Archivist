@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { SessionAnalysisService } from '../services/sessionAnalysisService';
+import { SessionAnalysisService } from '../services/session-analysis.service';
 
 export class SessionAnalysisController {
   private sessionAnalysisService: SessionAnalysisService;
 
   constructor(sessionAnalysisService: SessionAnalysisService) {
     this.sessionAnalysisService = sessionAnalysisService;
-    
+
     // Bind methods to ensure 'this' context
     this.createSessionAnalysis = this.createSessionAnalysis.bind(this);
     this.getSessionAnalysisById = this.getSessionAnalysisById.bind(this);
@@ -24,7 +24,7 @@ export class SessionAnalysisController {
   async createSessionAnalysis(req: Request, res: Response): Promise<void> {
     try {
       const { session_id, transcription_id } = req.body;
-      
+
       // Validate required fields
       if (!session_id || !transcription_id) {
         res.status(400).json({
@@ -35,17 +35,17 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Get user ID from request
       const userId = req.user?.id;
-      
+
       // Create session analysis
       const sessionAnalysis = await this.sessionAnalysisService.createSessionAnalysis(
         session_id,
         transcription_id,
         userId
       );
-      
+
       // Return success response
       res.status(201).json({
         success: true,
@@ -53,7 +53,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error creating session analysis:', error);
-      
+
       // Return error response
       res.status(500).json({
         success: false,
@@ -73,10 +73,10 @@ export class SessionAnalysisController {
   async getSessionAnalysisById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       // Get session analysis
       const sessionAnalysis = await this.sessionAnalysisService.getSessionAnalysisById(id);
-      
+
       // Return success response
       res.status(200).json({
         success: true,
@@ -84,7 +84,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error getting session analysis:', error);
-      
+
       // Check if analysis not found
       if (error.message === 'Session analysis not found') {
         res.status(404).json({
@@ -95,7 +95,7 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Return error response
       res.status(500).json({
         success: false,
@@ -115,10 +115,10 @@ export class SessionAnalysisController {
   async getSessionAnalysisBySessionId(req: Request, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
-      
+
       // Get session analysis
       const sessionAnalysis = await this.sessionAnalysisService.getSessionAnalysisBySessionId(sessionId);
-      
+
       // Return success response
       res.status(200).json({
         success: true,
@@ -126,7 +126,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error getting session analysis by session ID:', error);
-      
+
       // Check if analysis not found
       if (error.message === 'No analysis found for this session') {
         res.status(404).json({
@@ -137,7 +137,7 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Return error response
       res.status(500).json({
         success: false,
@@ -157,10 +157,10 @@ export class SessionAnalysisController {
   async getSessionAnalysisByTranscriptionId(req: Request, res: Response): Promise<void> {
     try {
       const { transcriptionId } = req.params;
-      
+
       // Get session analysis
       const sessionAnalysis = await this.sessionAnalysisService.getSessionAnalysisByTranscriptionId(transcriptionId);
-      
+
       // Return success response
       res.status(200).json({
         success: true,
@@ -168,7 +168,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error getting session analysis by transcription ID:', error);
-      
+
       // Check if analysis not found
       if (error.message === 'No analysis found for this transcription') {
         res.status(404).json({
@@ -179,7 +179,7 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Return error response
       res.status(500).json({
         success: false,
@@ -200,10 +200,10 @@ export class SessionAnalysisController {
     try {
       const { id } = req.params;
       const options = req.body;
-      
+
       // Process session analysis
       const sessionAnalysis = await this.sessionAnalysisService.processSessionAnalysis(id, options);
-      
+
       // Return success response
       res.status(200).json({
         success: true,
@@ -211,7 +211,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error processing session analysis:', error);
-      
+
       // Check if analysis not found
       if (error.message === 'Session analysis not found') {
         res.status(404).json({
@@ -222,7 +222,7 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Return error response
       res.status(500).json({
         success: false,
@@ -242,10 +242,10 @@ export class SessionAnalysisController {
   async deleteSessionAnalysis(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       // Delete session analysis
       await this.sessionAnalysisService.deleteSessionAnalysis(id);
-      
+
       // Return success response
       res.status(200).json({
         success: true,
@@ -255,7 +255,7 @@ export class SessionAnalysisController {
       });
     } catch (error) {
       console.error('Error deleting session analysis:', error);
-      
+
       // Check if analysis not found
       if (error.message === 'Session analysis not found') {
         res.status(404).json({
@@ -266,7 +266,7 @@ export class SessionAnalysisController {
         });
         return;
       }
-      
+
       // Return error response
       res.status(500).json({
         success: false,
