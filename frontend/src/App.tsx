@@ -79,7 +79,7 @@ const SearchPage = lazy(() => import('./pages/search/SearchPage'));
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-    <Typography variant= h2 component=h1 align=center>
+    <Typography variant="h2" component="h1" align="center">
       Welcome to RPG Archivist Web
     </Typography>
   </Box>
@@ -100,7 +100,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!isAuthenticated) {
     // Redirect to login page with return url
-    return <Navigate to=/login state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
@@ -111,14 +111,14 @@ const AppRoutes: React.FC = () => {
     <Suspense fallback={<LoadingScreen fullScreen />}>
       <Routes>
         {/* Public routes */}
-        <Route path=/ element={<HomePageComponent />} />
+        <Route path="/" element={<HomePageComponent />} />
 
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
-          <Route path=/login element={<LoginPage />} />
-          <Route path=/register element={<RegisterPage />} />
-          <Route path=/forgot-password element={<ForgotPasswordPage />} />
-          <Route path=/reset-password element={<ResetPasswordPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
         {/* Protected routes */}
@@ -128,99 +128,99 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }>
           {/* User routes */}
-          <Route path=/profile element={<ProfilePage />} />
-          <Route path=/settings element={<SettingsPage />} />
-          <Route path=/settings/llm element={<LLMSettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/llm" element={<LLMSettingsPage />} />
 
           {/* RPG World routes */}
-          <Route path=/rpg-worlds element={<RPGWorldListPage />} />
-          <Route path=/rpg-worlds/create element={<RPGWorldCreatePage />} />
-          <Route path=/rpg-worlds/:id element={<RPGWorldDetailPage />} />
-          <Route path=/rpg-worlds/:id/edit element={<RPGWorldEditPage />} />
+          <Route path="/rpg-worlds" element={<RPGWorldListPage />} />
+          <Route path="/rpg-worlds/create" element={<RPGWorldCreatePage />} />
+          <Route path="/rpg-worlds/:id" element={<RPGWorldDetailPage />} />
+          <Route path="/rpg-worlds/:id/edit" element={<RPGWorldEditPage />} />
 
           {/* Campaign routes */}
-          <Route path=/campaigns element={<CampaignListPage />} />
-          <Route path=/campaigns/create element={<CampaignCreatePage />} />
-          <Route path=/campaigns/:id element={<CampaignDetailPage />} />
-          <Route path=/campaigns/:id/edit element={<CampaignEditPage />} />
+          <Route path="/campaigns" element={<CampaignListPage />} />
+          <Route path="/campaigns/create" element={<CampaignCreatePage />} />
+          <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+          <Route path="/campaigns/:id/edit" element={<CampaignEditPage />} />
 
           {/* Session routes */}
-          <Route path=/sessions element={<SessionListPage />} />
-          <Route path=/sessions/create element={<SessionCreatePage />} />
-          <Route path=/sessions/:id element={<SessionDetailPage />} />
-          <Route path=/sessions/:id/edit element={<SessionEditPage />} />
-          <Route path=/sessions/:sessionId/recordings element={<SessionRecordingsPage />} />
-          <Route path=/sessions/:sessionId/analysis element={<SessionAnalysisPage />} />
-          <Route path=/sessions/:sessionId/analysis/:transcriptionId element={<SessionAnalysisPage />} />
+          <Route path="/sessions" element={<SessionListPage />} />
+          <Route path="/sessions/create" element={<SessionCreatePage />} />
+          <Route path="/sessions/:id" element={<SessionDetailPage />} />
+          <Route path="/sessions/:id/edit" element={<SessionEditPage />} />
+          <Route path="/sessions/:sessionId/recordings" element={<SessionRecordingsPage />} />
+          <Route path="/sessions/:sessionId/analysis" element={<SessionAnalysisPage />} />
+          <Route path="/sessions/:sessionId/analysis/:transcriptionId" element={<SessionAnalysisPage />} />
 
           {/* Character routes */}
-          <Route path=/characters element={<CharacterListPage />} />
-          <Route path=/characters/create element={<CharacterCreatePage />} />
-          <Route path=/characters/:id element={<CharacterDetailPage />} />
-          <Route path=/characters/:id/edit element={<CharacterEditPage />} />
+          <Route path="/characters" element={<CharacterListPage />} />
+          <Route path="/characters/create" element={<CharacterCreatePage />} />
+          <Route path="/characters/:id" element={<CharacterDetailPage />} />
+          <Route path="/characters/:id/edit" element={<CharacterEditPage />} />
 
           {/* Location routes */}
-          <Route path=/locations element={<LocationListPage />} />
-          <Route path=/locations/create element={<LocationCreatePage />} />
-          <Route path=/locations/:id element={<LocationDetailPage />} />
-          <Route path=/locations/:id/edit element={<LocationEditPage />} />
+          <Route path="/locations" element={<LocationListPage />} />
+          <Route path="/locations/create" element={<LocationCreatePage />} />
+          <Route path="/locations/:id" element={<LocationDetailPage />} />
+          <Route path="/locations/:id/edit" element={<LocationEditPage />} />
 
           {/* Event routes */}
-          <Route path=/events element={<EventListPage />} />
-          <Route path=/events/create element={<EventCreatePage />} />
-          <Route path=/events/:id element={<EventDetailPage />} />
-          <Route path=/events/:id/edit element={<EventEditPage />} />
+          <Route path="/events" element={<EventListPage />} />
+          <Route path="/events/create" element={<EventCreatePage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/events/:id/edit" element={<EventEditPage />} />
 
           {/* Timeline route */}
-          <Route path=/timeline element={<TimelinePage />} />
+          <Route path="/timeline" element={<TimelinePage />} />
 
           {/* Mind Map route */}
-          <Route path=/mind-map element={<MindMapPage />} />
+          <Route path="/mind-map" element={<MindMapPage />} />
 
           {/* Search route */}
-          <Route path=/search element={<SearchPage />} />
+          <Route path="/search" element={<SearchPage />} />
 
           {/* Temporary placeholder routes */}
-          <Route path=/dashboard element={
+          <Route path="/dashboard" element={
             <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Dashboard</Typography>
-              <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
+              <Typography variant="h4" gutterBottom>Dashboard</Typography>
+              <Typography variant="body1">Dashboard content will be implemented soon.</Typography>
             </Box>
           } />
-          <Route path=/transcription element={
+          <Route path="/transcription" element={
             <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Transcription</Typography>
-              <Typography variant=body1>Transcription content will be implemented soon.</Typography>
+              <Typography variant="h4" gutterBottom>Transcription</Typography>
+              <Typography variant="body1">Transcription content will be implemented soon.</Typography>
             </Box>
           } />
-          <Route path=/brain element={<BrainPage />} />
+          <Route path="/brain" element={<BrainPage />} />
 
           {/* Proposals routes */}
-          <Route path=/proposals element={<ProposalManagementPage />} />
-          <Route path=/proposals/context/:contextId element={<ProposalManagementPage />} />
-          <Route path=/proposals/entity/:entityType/:entityId element={<ProposalManagementPage />} />
+          <Route path="/proposals" element={<ProposalManagementPage />} />
+          <Route path="/proposals/context/:contextId" element={<ProposalManagementPage />} />
+          <Route path="/proposals/entity/:entityType/:entityId" element={<ProposalManagementPage />} />
 
           {/* Storytelling routes */}
-          <Route path=/storytelling element={<StorytellingPage />} />
-          <Route path=/storytelling/campaign/:campaignId element={<StorytellingPage />} />
-          <Route path=/storytelling/session/:sessionId element={<StorytellingPage />} />
+          <Route path="/storytelling" element={<StorytellingPage />} />
+          <Route path="/storytelling/campaign/:campaignId" element={<StorytellingPage />} />
+          <Route path="/storytelling/session/:sessionId" element={<StorytellingPage />} />
 
           {/* Content Analysis routes */}
-          <Route path=/content-analysis element={<ContentAnalysisPage />} />
-          <Route path=/content-analysis/context/:contextId element={<ContentAnalysisPage />} />
-          <Route path=/content-analysis/entity/:entityType/:entityId element={<ContentAnalysisPage />} />
-          <Route path=/content-analysis/suggestion/:suggestionId element={<ContentAnalysisPage />} />
-          <Route path=/content-analysis/context/:contextId/suggestion/:suggestionId element={<ContentAnalysisPage />} />
-          <Route path=/content-analysis/entity/:entityType/:entityId/suggestion/:suggestionId element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis" element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis/context/:contextId" element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis/entity/:entityType/:entityId" element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis/suggestion/:suggestionId" element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis/context/:contextId/suggestion/:suggestionId" element={<ContentAnalysisPage />} />
+          <Route path="/content-analysis/entity/:entityType/:entityId/suggestion/:suggestionId" element={<ContentAnalysisPage />} />
         </Route>
 
         {/* 404 page */}
-        <Route path=* element={
+        <Route path="*" element={
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            <Container maxWidth=sm>
-              <Typography variant=h2 align=center gutterBottom>404</Typography>
-              <Typography variant=h5 align=center gutterBottom>Page Not Found</Typography>
-              <Typography variant=body1 align=center>
+            <Container maxWidth="sm">
+              <Typography variant="h2" align="center" gutterBottom>404</Typography>
+              <Typography variant="h5" align="center" gutterBottom>Page Not Found</Typography>
+              <Typography variant="body1" align="center">
                 The page you are looking for does not exist or has been moved.
               </Typography>
             </Container>
