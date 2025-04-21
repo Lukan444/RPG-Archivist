@@ -47,7 +47,7 @@ const SessionService = {
    * @returns List of Sessions
    */
   getSessionsByCampaignId: async (campaignId: string): Promise<Session[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Session[] }> = await apiClient.get(/campaigns//sessions);
+    const response: AxiosResponse<{ success: boolean; data: Session[] }> = await apiClient.get(`/campaigns/${campaignId}/sessions`);
     return response.data.data;
   },
 
@@ -57,7 +57,7 @@ const SessionService = {
    * @returns Session
    */
   getSessionById: async (id: string): Promise<Session> => {
-    const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.get(/sessions/);
+    const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.get(`/sessions/${id}`);
     return response.data.data;
   },
 
@@ -78,7 +78,7 @@ const SessionService = {
    * @returns Updated Session
    */
   updateSession: async (id: string, sessionData: Partial<SessionInput>): Promise<Session> => {
-    const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.put(/sessions/, sessionData);
+    const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.put(`/sessions/${id}`, sessionData);
     return response.data.data;
   },
 
@@ -88,7 +88,7 @@ const SessionService = {
    * @returns Success status
    */
   deleteSession: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/sessions/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/sessions/${id}`);
     return response.data.success;
   },
 
@@ -101,9 +101,9 @@ const SessionService = {
   uploadSessionImage: async (id: string, file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('image', file);
-    
+
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /sessions//image,
+      `/sessions/${id}/image`,
       formData,
       {
         headers: {
@@ -111,7 +111,7 @@ const SessionService = {
         },
       }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -123,10 +123,10 @@ const SessionService = {
    */
   generateSessionImage: async (id: string, prompt: string): Promise<string> => {
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /sessions//generate-image,
+      `/sessions/${id}/generate-image`,
       { prompt }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -136,7 +136,7 @@ const SessionService = {
    * @returns Success status
    */
   deleteSessionImage: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/sessions//image);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/sessions/${id}/image`);
     return response.data.success;
   },
 
@@ -146,7 +146,7 @@ const SessionService = {
    * @returns Transcription data
    */
   getSessionTranscription: async (id: string): Promise<any> => {
-    const response: AxiosResponse<{ success: boolean; data: any }> = await apiClient.get(/sessions//transcription);
+    const response: AxiosResponse<{ success: boolean; data: any }> = await apiClient.get(`/sessions/${id}/transcription`);
     return response.data.data;
   },
 };

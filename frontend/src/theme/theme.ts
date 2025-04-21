@@ -45,14 +45,14 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
       fontFamily: [
         '-apple-system',
         'BlinkMacSystemFont',
-        '\ Segoe UI\',
+        '"Segoe UI"',
         'Roboto',
-        '\Helvetica Neue\',
+        '"Helvetica Neue"',
         'Arial',
         'sans-serif',
-        '\Apple Color Emoji\',
-        '\Segoe UI Emoji\',
-        '\Segoe UI Symbol\',
+        '"Apple Color Emoji"',
+        '"Segoe UI Emoji"',
+        '"Segoe UI Symbol"',
       ].join(','),
       h1: {
         fontSize: '2.5rem',
@@ -106,8 +106,8 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
         styleOverrides: {
           root: {
             borderRadius: 8,
-            boxShadow: isDark 
-              ? '0px 3px 5px rgba(0, 0, 0, 0.5)' 
+            boxShadow: isDark
+              ? '0px 3px 5px rgba(0, 0, 0, 0.5)'
               : '0px 2px 4px rgba(0, 0, 0, 0.1)',
           },
         },
@@ -115,8 +115,8 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
       MuiAppBar: {
         styleOverrides: {
           root: {
-            boxShadow: isDark 
-              ? '0px 3px 5px rgba(0, 0, 0, 0.5)' 
+            boxShadow: isDark
+              ? '0px 3px 5px rgba(0, 0, 0, 0.5)'
               : '0px 2px 4px rgba(0, 0, 0, 0.1)',
           },
         },

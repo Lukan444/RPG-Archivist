@@ -49,7 +49,7 @@ const LocationService = {
    * @returns List of Locations
    */
   getLocationsByWorldId: async (worldId: string): Promise<Location[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(/worlds//locations);
+    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(`/worlds/${worldId}/locations`);
     return response.data.data;
   },
 
@@ -59,7 +59,7 @@ const LocationService = {
    * @returns List of Locations
    */
   getLocationsByCampaignId: async (campaignId: string): Promise<Location[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(/campaigns//locations);
+    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(`/campaigns/${campaignId}/locations`);
     return response.data.data;
   },
 
@@ -69,7 +69,7 @@ const LocationService = {
    * @returns List of Locations
    */
   getLocationsBySessionId: async (sessionId: string): Promise<Location[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(/sessions//locations);
+    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(`/sessions/${sessionId}/locations`);
     return response.data.data;
   },
 
@@ -79,7 +79,7 @@ const LocationService = {
    * @returns List of Child Locations
    */
   getChildLocationsByParentId: async (locationId: string): Promise<Location[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(/locations//children);
+    const response: AxiosResponse<{ success: boolean; data: Location[] }> = await apiClient.get(`/locations/${locationId}/children`);
     return response.data.data;
   },
 
@@ -89,7 +89,7 @@ const LocationService = {
    * @returns Location
    */
   getLocationById: async (id: string): Promise<Location> => {
-    const response: AxiosResponse<{ success: boolean; data: Location }> = await apiClient.get(/locations/);
+    const response: AxiosResponse<{ success: boolean; data: Location }> = await apiClient.get(`/locations/${id}`);
     return response.data.data;
   },
 
@@ -110,7 +110,7 @@ const LocationService = {
    * @returns Updated Location
    */
   updateLocation: async (id: string, locationData: Partial<LocationInput>): Promise<Location> => {
-    const response: AxiosResponse<{ success: boolean; data: Location }> = await apiClient.put(/locations/, locationData);
+    const response: AxiosResponse<{ success: boolean; data: Location }> = await apiClient.put(`/locations/${id}`, locationData);
     return response.data.data;
   },
 
@@ -120,7 +120,7 @@ const LocationService = {
    * @returns Success status
    */
   deleteLocation: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/locations/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/locations/${id}`);
     return response.data.success;
   },
 
@@ -133,9 +133,9 @@ const LocationService = {
   uploadLocationImage: async (id: string, file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('image', file);
-    
+
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /locations//image,
+      `/locations/${id}/image`,
       formData,
       {
         headers: {
@@ -143,7 +143,7 @@ const LocationService = {
         },
       }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -155,10 +155,10 @@ const LocationService = {
    */
   generateLocationImage: async (id: string, prompt: string): Promise<string> => {
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /locations//generate-image,
+      `/locations/${id}/generate-image`,
       { prompt }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -168,7 +168,7 @@ const LocationService = {
    * @returns Success status
    */
   deleteLocationImage: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/locations//image);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/locations/${id}/image`);
     return response.data.success;
   },
 
@@ -179,7 +179,7 @@ const LocationService = {
    * @returns Success status
    */
   addLocationToSession: async (locationId: string, sessionId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(/locations//sessions/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(`/locations/${locationId}/sessions/${sessionId}`);
     return response.data.success;
   },
 
@@ -190,7 +190,7 @@ const LocationService = {
    * @returns Success status
    */
   removeLocationFromSession: async (locationId: string, sessionId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/locations//sessions/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/locations/${locationId}/sessions/${sessionId}`);
     return response.data.success;
   },
 
@@ -200,7 +200,7 @@ const LocationService = {
    * @returns List of Characters
    */
   getCharactersAtLocation: async (locationId: string): Promise<any[]> => {
-    const response: AxiosResponse<{ success: boolean; data: any[] }> = await apiClient.get(/locations//characters);
+    const response: AxiosResponse<{ success: boolean; data: any[] }> = await apiClient.get(`/locations/${locationId}/characters`);
     return response.data.data;
   },
 };
