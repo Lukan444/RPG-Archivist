@@ -112,6 +112,22 @@ services:
     depends_on:
       - nginx
 
+  # Neo4j backup service
+  neo4j-backup:
+    image: neo4j:5.16.0
+    restart: unless-stopped
+    volumes:
+      - neo4j-data:/data:ro
+      - ./scripts:/scripts
+      - ./backups:/backups
+    environment:
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+    entrypoint: "/bin/sh -c 'chmod +x /scripts/backup-neo4j.sh && while :; do /scripts/backup-neo4j.sh; sleep 24h & wait $${!}; done;'"
+    depends_on:
+      - neo4j
+    networks:
+      - app-network
+
 volumes:
   neo4j-data:
   neo4j-logs:
