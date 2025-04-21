@@ -1,27 +1,13 @@
-# Current Task: AI-Powered Session Analysis Implementation
+# Current Task: AI-Assisted Storytelling Tools Implementation
 
 ## Current Objective
-Implement AI-powered session analysis for RPG session transcriptions, including summary generation, key points extraction, character insights, plot developments, sentiment analysis, and topic extraction.
+Implement AI-assisted storytelling tools for RPG sessions, including chat functionality with AI Brain for current sessions and tools for extracting information from past sessions to update the database through the proposal system.
 
 ## Context
-This task is part of Phase 4 (AI Integration) from the project roadmap. It builds upon the previously implemented audio recording and transcription functionality to provide valuable insights and analysis of RPG sessions. This helps game masters and players better understand and track their campaigns, character interactions, and plot developments.
+This task is part of Phase 4 (AI Integration) from the project roadmap. It builds upon the previously implemented AI-powered session analysis functionality to provide storytelling assistance for game masters and players. This helps enhance the RPG experience by providing real-time suggestions, lore extraction, and database updates based on session content.
 
-## Completed Steps
-1. ✅ Created data models for session analysis
-2. ✅ Implemented session analysis repository
-3. ✅ Created session analysis service with processing capabilities
-4. ✅ Implemented controllers and routes for session analysis API
-5. ✅ Created frontend components for displaying analysis results
-6. ✅ Implemented summary generation and key points extraction
-7. ✅ Added character insights and interaction analysis
-8. ✅ Implemented plot development extraction
-9. ✅ Added sentiment analysis with timeline visualization
-10. ✅ Implemented topic extraction and relevance scoring
-11. ✅ Created interactive analysis UI with synchronized audio playback
-12. ✅ Added integration with existing transcription functionality
-
-## Current Progress
-The AI-powered session analysis functionality has been fully implemented. The system now supports:
+## Previous Task Completion
+The previous task (AI-Powered Session Analysis) has been fully completed. The system now supports:
 
 - Automatic analysis of session transcriptions
 - Summary generation for quick session overview
@@ -32,45 +18,78 @@ The AI-powered session analysis functionality has been fully implemented. The sy
 - Sentiment analysis with distribution and timeline visualization
 - Topic extraction with keywords and relevance scoring
 - Interactive analysis UI with synchronized audio playback
-- Navigation between analysis insights and corresponding audio segments
+
+## Current Steps
+1. ⬜ Design storytelling interface architecture
+2. ⬜ Implement chat functionality with AI Brain for current sessions
+3. ⬜ Create tools for extracting information from past sessions
+4. ⬜ Implement proposal system for database updates
+5. ⬜ Add custom prompt templates for each entity type
+6. ⬜ Implement context-aware suggestions based on campaign/session
+7. ⬜ Create UI for storytelling tools
+8. ⬜ Add integration with existing session analysis functionality
 
 ## Technical Implementation Details
 - **Backend**: TypeScript with Express.js and Neo4j database
 - **Frontend**: React with Material UI
-- **Data Models**: Comprehensive models for session analysis, key points, character insights, plot developments, sentiment analysis, and topics
-- **Graph Database**: Neo4j for storing analysis results with relationships to transcriptions, sessions, characters, and other entities
-- **Analysis Processing**: NLP-based processing for extracting insights from transcriptions
-- **Visualization Components**: Interactive UI components for displaying analysis results
-- **Audio Integration**: Synchronized audio playback with analysis navigation
+- **LLM Integration**: OpenAI API for AI Brain functionality
+- **Data Models**: Storytelling interface, proposal system, prompt templates
+- **Graph Database**: Neo4j for storing and retrieving context information
+- **UI Components**: Chat interface, proposal review, context selection
 
-## Next Steps
-1. Test the AI-powered session analysis with real RPG sessions
-2. Optimize analysis algorithms for better accuracy and performance
-3. Implement AI-assisted note-taking (next task)
-   - Design and implement note suggestion service
-   - Create UI for displaying note suggestions
-   - Implement integration with session analysis
-   - Add real-time note generation during sessions
-4. Enhance analysis with more advanced NLP techniques
-5. Add support for cross-session analysis to track campaign-wide trends
+## Implementation Plan
 
-## Implementation Verification
-All tasks from the following sections in our implementation checklist have been completed:
-- 13. Session Analysis Models (5/5 tasks)
-- 14. Session Analysis Backend (6/6 tasks)
-- 15. Session Analysis Frontend (7/7 tasks)
+### 1. Storytelling Interface Architecture
+- Design modular architecture for storytelling tools
+- Create data models for chat messages, proposals, and context
+- Implement service layer for LLM integration
 
-The implementation has been thoroughly tested and documented, with all required components functioning as expected. The AI-powered session analysis feature is now fully integrated with the existing audio recording and transcription functionality.
+### 2. Chat Functionality with AI Brain
+- Implement chat interface for real-time interaction
+- Create context management for providing relevant information to LLM
+- Add support for different conversation modes (GM assistance, character roleplay, etc.)
+
+### 3. Information Extraction from Past Sessions
+- Create tools for analyzing past session transcriptions
+- Implement entity extraction for characters, locations, items, etc.
+- Add relationship identification between extracted entities
+
+### 4. Proposal System for Database Updates
+- Design proposal data model with status tracking
+- Implement proposal generation from extracted information
+- Create review interface for approving/rejecting proposals
+- Add transaction-based application of approved proposals
+
+### 5. Custom Prompt Templates
+- Create template system for different entity types
+- Implement template management UI
+- Add variable substitution for dynamic content
+
+### 6. Context-Aware Suggestions
+- Implement context selection for campaign/session
+- Create suggestion generation based on selected context
+- Add relevance scoring for suggestions
+
+### 7. Storytelling Tools UI
+- Design and implement chat interface
+- Create proposal review UI
+- Add context selection components
+- Implement suggestion display
+
+### 8. Integration with Session Analysis
+- Create connections between storytelling tools and session analysis
+- Implement data sharing between components
+- Add navigation between related features
 
 ## Dependencies
-- Neo4j graph database for storing analysis results
-- NLP libraries for text processing and analysis
+- Neo4j graph database for storing and retrieving context
+- OpenAI API for LLM integration
 - React and Material UI for frontend components
-- Existing audio recording and transcription functionality
+- Existing session analysis functionality
 
 ## Notes
-- The analysis quality depends on the quality of the transcription
-- More advanced NLP techniques could be implemented in the future for better analysis
-- Consider adding support for cross-session analysis to track campaign-wide trends
-- Real-time analysis during sessions could be implemented in the future
-- Integration with AI-assisted note-taking would provide a more comprehensive solution
+- The quality of suggestions depends on the quality of the context provided
+- Consider implementing caching for LLM responses to improve performance
+- Privacy considerations should be addressed for user-generated content
+- Rate limiting and error handling are important for API integration
+- Consider adding support for local LLM models in the future

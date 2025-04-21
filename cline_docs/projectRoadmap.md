@@ -8,7 +8,7 @@
 - [x] Implement relationship management between entities
 - [x] Create a responsive UI with Material UI
 - [x] Implement audio recording and transcription for RPG sessions
-- [ ] Add AI-powered analysis of session transcripts
+- [x] Add AI-powered analysis of session transcripts
 - [ ] Implement campaign timeline visualization
 - [ ] Add support for image uploads and gallery
 - [ ] Create a public sharing feature for campaign content
@@ -24,7 +24,7 @@
 - [x] Event logging
 - [x] Audio recording of sessions
 - [x] Transcription of session recordings with speaker identification
-- [ ] AI-powered session analysis and summary generation
+- [x] AI-powered session analysis and summary generation
 - [ ] Campaign timeline visualization
 - [ ] Image gallery for characters, locations, and items
 - [ ] Public sharing of campaign content
