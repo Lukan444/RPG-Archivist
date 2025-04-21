@@ -1,29 +1,37 @@
 version: '3.8'
 
 services:
+  # Frontend service
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
-    ports:
-      - "80:80"
+    restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
+  # Backend service
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
       target: production
-    ports:
-      - "4000:4000"
+    restart: unless-stopped
     volumes:
-      - ./uploads:/app/uploads
+      - backend-uploads:/app/uploads
     environment:
       - NODE_ENV=production
       - PORT=4000
-      - FRONTEND_URL=http://localhost
+      - FRONTEND_URL=https://${DOMAIN_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION=15m
       - JWT_REFRESH_EXPIRATION=7d
@@ -35,25 +43,82 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - neo4j
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
+  # Neo4j database service
   neo4j:
-    image: neo4j:5.9.0
-    ports:
-      - "7474:7474"
-      - "7687:7687"
+    image: neo4j:5.16.0
+    restart: unless-stopped
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - neo4j_import:/import
-      - neo4j_plugins:/plugins
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+      - neo4j-import:/import
+      - neo4j-plugins:/plugins
     environment:
       - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
       - NEO4J_dbms_memory_pagecache_size=1G
       - NEO4J_dbms.memory.heap.initial_size=1G
       - NEO4J_dbms_memory_heap_max__size=2G
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:1.25.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    command: ["/bin/sh", "-c", "while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"]
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    depends_on:
+      - nginx
 
 volumes:
-  neo4j_data:
-  neo4j_logs:
-  neo4j_import:
-  neo4j_plugins:
+  neo4j-data:
+  neo4j-logs:
+  neo4j-import:
+  neo4j-plugins:
+  backend-uploads:
+
+networks:
+  app-network:
+    driver: bridge
