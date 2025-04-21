@@ -19,6 +19,8 @@ import { transcriptionRoutes } from './routes/transcription.routes';
 import { sessionAnalysisRoutes } from './routes/session-analysis.routes';
 import { graphRoutes } from './routes/graph.routes';
 import { llmRoutes } from './routes/llm.routes';
+import { changeProposalRoutes } from './routes/change-proposal.routes';
+import { contentAnalysisRoutes } from './routes/content-analysis.routes';
 import path from 'path';
 
 // Initialize database service
@@ -55,6 +57,18 @@ app.use('/api/transcriptions', transcriptionRoutes(repositoryFactory));
 app.use('/api/session-analyses', sessionAnalysisRoutes(repositoryFactory));
 app.use('/api/graph', graphRoutes(repositoryFactory));
 app.use('/api/llm', llmRoutes(repositoryFactory));
+
+// Create LLM service for change proposal routes
+const llmRepository = repositoryFactory.getLLMRepository();
+const llmService = new LLMService(llmRepository);
+
+// Initialize LLM service
+llmService.initialize().catch(error => {
+  console.error('Error initializing LLM service:', error);
+});
+
+app.use('/api/proposals', changeProposalRoutes(repositoryFactory, llmService, dbService));
+app.use('/api/content-analysis', contentAnalysisRoutes(repositoryFactory, llmService));
 
 // Health check
 app.get('/health', (req, res) => {

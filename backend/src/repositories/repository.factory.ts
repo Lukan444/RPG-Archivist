@@ -13,6 +13,8 @@ import { AudioRecordingRepository } from './audio-recording.repository';
 import { SessionAnalysisRepository } from './session-analysis.repository';
 import { GraphRepository } from './graph.repository';
 import { LLMRepository } from './llm.repository';
+import { ChangeProposalRepository } from './change-proposal.repository';
+import { ContentAnalysisRepository } from './content-analysis.repository';
 
 /**
  * Repository factory
@@ -135,5 +137,19 @@ export class RepositoryFactory {
    */
   public getLLMRepository(): LLMRepository {
     return this.getRepository('llm', () => new LLMRepository(this.dbService));
+  }
+
+  /**
+   * Get change proposal repository
+   */
+  public getChangeProposalRepository(): ChangeProposalRepository {
+    return this.getRepository('changeProposal', () => new ChangeProposalRepository(this.dbService));
+  }
+
+  /**
+   * Get content analysis repository
+   */
+  public getContentAnalysisRepository(): ContentAnalysisRepository {
+    return this.getRepository('contentAnalysis', () => new ContentAnalysisRepository(this.dbService));
   }
 }
