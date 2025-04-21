@@ -13,12 +13,13 @@ import {
   FormControl,
   InputLabel,
   Select,
+  SelectChangeEvent,
   MenuItem
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import StorytellingInterface from '../../components/storytelling/StorytellingInterface';
-import { CampaignService } from '../../services/api/campaign.service';
-import { SessionService } from '../../services/api/session.service';
+import CampaignService from '../../services/api/campaign.service';
+import SessionService from '../../services/api/session.service';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -48,7 +49,7 @@ const StorytellingPage: React.FC = () => {
     sessionId?: string;
   }>();
   const navigate = useNavigate();
-  
+
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -142,10 +143,10 @@ const StorytellingPage: React.FC = () => {
     setTabValue(newValue);
   };
 
-  const handleCampaignChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleCampaignChange = (event: SelectChangeEvent<string>) => {
     const campaignId = event.target.value as string;
     setSelectedCampaign(campaignId);
-    
+
     // Update URL
     if (campaignId) {
       navigate(`/storytelling/campaign/${campaignId}`);
@@ -154,10 +155,10 @@ const StorytellingPage: React.FC = () => {
     }
   };
 
-  const handleSessionChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleSessionChange = (event: SelectChangeEvent<string>) => {
     const sessionId = event.target.value as string;
     setSelectedSession(sessionId);
-    
+
     // Update URL
     if (sessionId) {
       navigate(`/storytelling/session/${sessionId}`);
@@ -178,19 +179,19 @@ const StorytellingPage: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Storytelling Assistant
       </Typography>
-      
+
       {contextName && (
         <Typography variant="h6" color="text.secondary" gutterBottom>
           {contextName}
         </Typography>
       )}
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Paper sx={{ width: '100%', mb: 3 }}>
         <Box sx={{ p: 2 }}>
           <Grid container spacing={2}>
@@ -216,7 +217,7 @@ const StorytellingPage: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={6}>
               <FormControl fullWidth disabled={!selectedCampaign || sessions.length === 0}>
                 <InputLabel id="session-select-label">Session</InputLabel>
@@ -242,7 +243,7 @@ const StorytellingPage: React.FC = () => {
           </Grid>
         </Box>
       </Paper>
-      
+
       <Paper sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="storytelling tabs">
@@ -251,7 +252,7 @@ const StorytellingPage: React.FC = () => {
             <Tab label="Settings" />
           </Tabs>
         </Box>
-        
+
         <TabPanel value={tabValue} index={0}>
           <StorytellingInterface
             campaignId={selectedCampaign}
@@ -259,7 +260,7 @@ const StorytellingPage: React.FC = () => {
             onProposalGenerated={handleProposalGenerated}
           />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -270,7 +271,7 @@ const StorytellingPage: React.FC = () => {
             </Typography>
           </Box>
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={2}>
           <Box sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>

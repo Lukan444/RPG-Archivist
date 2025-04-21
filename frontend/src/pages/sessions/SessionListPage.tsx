@@ -50,30 +50,30 @@ import CampaignService, { Campaign } from '../../services/api/campaign.service';
 
 const SessionListPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State for Sessions
   const [sessions, setSessions] = useState<Session[]>([]);
   const [filteredSessions, setFilteredSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for Campaigns
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
-  
+
   // State for search, filter, and sort
   const [searchQuery, setSearchQuery] = useState('');
   const [campaignFilter, setCampaignFilter] = useState<string>('all');
   const [sortOption, setSortOption] = useState<string>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  
+
   // State for menu and dialog
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [filterMenuAnchorEl, setFilterMenuAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   // Fetch Sessions and Campaigns
   useEffect(() => {
     const fetchData = async () => {
@@ -81,12 +81,12 @@ const SessionListPage: React.FC = () => {
         setLoading(true);
         setLoadingCampaigns(true);
         setError(null);
-        
+
         // Fetch sessions
         const sessionsData = await SessionService.getAllSessions();
         setSessions(sessionsData);
         setFilteredSessions(sessionsData);
-        
+
         // Fetch campaigns
         const campaignsData = await CampaignService.getAllCampaigns();
         setCampaigns(campaignsData);
@@ -98,14 +98,14 @@ const SessionListPage: React.FC = () => {
         setLoadingCampaigns(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   // Apply filters and sorting when sessions, search query, filters, or sort options change
   useEffect(() => {
     let result = [...sessions];
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -116,16 +116,16 @@ const SessionListPage: React.FC = () => {
           (session.campaignName && session.campaignName.toLowerCase().includes(query))
       );
     }
-    
+
     // Apply campaign filter
     if (campaignFilter !== 'all') {
       result = result.filter((session) => session.campaignId === campaignFilter);
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortOption) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
@@ -148,32 +148,32 @@ const SessionListPage: React.FC = () => {
         default:
           comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    
+
     setFilteredSessions(result);
   }, [sessions, searchQuery, campaignFilter, sortOption, sortDirection]);
-  
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
+
   // Handle campaign filter change
   const handleCampaignFilterChange = (e: React.ChangeEvent<{ value: unknown }>) => {
     setCampaignFilter(e.target.value as string);
   };
-  
+
   // Handle sort menu
   const handleSortMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSortMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleSortMenuClose = () => {
     setSortMenuAnchorEl(null);
   };
-  
+
   const handleSortOptionSelect = (option: string) => {
     if (option === sortOption) {
       // Toggle direction if same option
@@ -186,53 +186,53 @@ const SessionListPage: React.FC = () => {
     }
     handleSortMenuClose();
   };
-  
+
   // Handle filter menu
   const handleFilterMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setFilterMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleFilterMenuClose = () => {
     setFilterMenuAnchorEl(null);
   };
-  
+
   // Handle session menu
   const handleSessionMenuOpen = (event: React.MouseEvent<HTMLElement>, sessionId: string) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
     setSelectedSessionId(sessionId);
   };
-  
+
   const handleSessionMenuClose = () => {
     setMenuAnchorEl(null);
     setSelectedSessionId(null);
   };
-  
+
   // Handle session actions
   const handleViewSession = (sessionId: string) => {
     navigate(/sessions/);
     handleSessionMenuClose();
   };
-  
+
   const handleEditSession = (event: React.MouseEvent, sessionId: string) => {
     event.stopPropagation();
     navigate(/sessions//edit);
     handleSessionMenuClose();
   };
-  
+
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
     handleSessionMenuClose();
   };
-  
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setSelectedSessionId(null);
   };
-  
+
   const handleDeleteConfirm = async () => {
     if (!selectedSessionId) return;
-    
+
     try {
       await SessionService.deleteSession(selectedSessionId);
       setSessions(sessions.filter((session) => session.id !== selectedSessionId));
@@ -243,28 +243,28 @@ const SessionListPage: React.FC = () => {
       setError('Failed to delete session. Please try again.');
     }
   };
-  
+
   const handleCreateSession = () => {
     navigate('/sessions/create');
   };
-  
+
   const handleSessionClick = (sessionId: string) => {
     navigate(/sessions/);
   };
-  
+
   // Format date
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   // Format duration in minutes to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return ${hours}h m;
   };
-  
+
   // Render loading skeletons
   const renderSkeletons = () => {
     return Array.from({ length: 6 }).map((_, index) => (
@@ -282,7 +282,7 @@ rectangular\ height={140} />
       </Grid>
     ));
   };
-  
+
   return (
     <Container maxWidth=\lg\>
       <PageHeader
@@ -306,7 +306,7 @@ sessions\
           </Button>
         }
       />
-      
+
       {/* Search, filter, and sort bar */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <TextField
@@ -326,9 +326,9 @@ sessions...\
             ),
           }}
         />
-        
-        <FormControl 
-          size=\small\ 
+
+        <FormControl
+          size=\small\
           sx={{ minWidth: '150px', flexGrow: { xs: 1, md: 0 } }}
         >
           <InputLabel id=\campaign-filter-label\>Campaign</InputLabel>
@@ -347,7 +347,7 @@ sessions...\
             ))}
           </Select>
         </FormControl>
-        
+
         <Tooltip title=\Sort
 sessions\>
           <Button
@@ -356,53 +356,53 @@ sessions\>
             onClick={handleSortMenuOpen}
             size=\medium\
           >
-            {sortOption === 'name' ? 'Name' : 
-             sortOption === 'date' ? 'Date' : 
-             sortOption === 'duration' ? 'Duration' : 
-             sortOption === 'campaign' ? 'Campaign' : 
-             sortOption === 'created' ? 'Created' : 
+            {sortOption === 'name' ? 'Name' :
+             sortOption === 'date' ? 'Date' :
+             sortOption === 'duration' ? 'Duration' :
+             sortOption === 'campaign' ? 'Campaign' :
+             sortOption === 'created' ? 'Created' :
              sortOption === 'updated' ? 'Updated' : 'Sort'}
             {sortDirection === 'asc' ? ' ↑' : ' ↓'}
           </Button>
         </Tooltip>
-        
+
         <Menu
           anchorEl={sortMenuAnchorEl}
           open={Boolean(sortMenuAnchorEl)}
           onClose={handleSortMenuClose}
         >
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('name')}
             selected={sortOption === 'name'}
           >
             Name {sortOption === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('date')}
             selected={sortOption === 'date'}
           >
             Date {sortOption === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('duration')}
             selected={sortOption === 'duration'}
           >
             Duration {sortOption === 'duration' && (sortDirection === 'asc' ? '↑' : '↓')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('campaign')}
             selected={sortOption === 'campaign'}
           >
             Campaign {sortOption === 'campaign' && (sortDirection === 'asc' ? '↑' : '↓')}
           </MenuItem>
           <Divider />
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('created')}
             selected={sortOption === 'created'}
           >
             Created Date {sortOption === 'created' && (sortDirection === 'asc' ? '↑' : '↓')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('updated')}
             selected={sortOption === 'updated'}
           >
@@ -410,14 +410,14 @@ sessions\>
           </MenuItem>
         </Menu>
       </Box>
-      
+
       {/* Error message */}
       {error && (
         <Alert severity=\error\ sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-      
+
       {/* Empty state */}
       {!loading && filteredSessions.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -445,7 +445,7 @@ sessions\>
           )}
         </Box>
       )}
-      
+
       {/* Session grid */}
       <Grid container spacing={3}>
         {loading ? (
@@ -453,10 +453,10 @@ sessions\>
         ) : (
           filteredSessions.map((session) => (
             <Grid item xs={12} sm={6} md={4} key={session.id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
@@ -487,30 +487,30 @@ options\
                       <MoreVertIcon />
                     </IconButton>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                     {session.campaignName && (
-                      <Chip 
-                        label={session.campaignName} 
-                        size=\small\ 
-                        color=\primary\ 
-                        variant=\outlined\ 
+                      <Chip
+                        label={session.campaignName}
+                        size=\small\
+                        color=\primary\
+                        variant=\outlined\
                         icon={<CampaignIcon />}
                       />
                     )}
                     {session.hasTranscription && (
-                      <Chip 
-                        label=\Transcribed\ 
-                        size=\small\ 
-                        color=\success\ 
-                        variant=\outlined\ 
+                      <Chip
+                        label=\Transcribed\
+                        size=\small\
+                        color=\success\
+                        variant=\outlined\
                         icon={<MicIcon />}
                       />
                     )}
                   </Box>
-                  
-                  <Typography 
-                    variant=\body2\ 
+
+                  <Typography
+                    variant=\body2\
                     color=\text.secondary\
                     sx={{
                       overflow: 'hidden',
@@ -523,7 +523,7 @@ options\
                   >
                     {session.description}
                   </Typography>
-                  
+
                   <Box sx={{ mt: 'auto' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                       <CalendarTodayIcon fontSize=\small\ color=\action\ sx={{ mr: 0.5 }} />
@@ -544,7 +544,7 @@ options\
           ))
         )}
       </Grid>
-      
+
       {/* Session options menu */}
       <Menu
         anchorEl={menuAnchorEl}
@@ -553,25 +553,25 @@ options\
       >
         <MenuItem onClick={() => selectedSessionId && handleViewSession(selectedSessionId)}>
           <ListItemIcon>
-            <VisibilityIcon fontSize=\small\ />
+            <VisibilityIcon fontSize="small" />
           </ListItemIcon>
           View
         </MenuItem>
         <MenuItem onClick={(e) => selectedSessionId && handleEditSession(e, selectedSessionId)}>
           <ListItemIcon>
-            <EditIcon fontSize=\small\ />
+            <EditIcon fontSize="small" />
           </ListItemIcon>
           Edit
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <ListItemIcon>
-            <DeleteIcon fontSize=\small\ color=\error\ />
+            <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
           Delete
         </MenuItem>
       </Menu>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
@@ -586,7 +586,7 @@ options\
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color=\error\ variant=\contained\>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

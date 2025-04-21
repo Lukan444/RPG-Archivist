@@ -807,8 +807,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                 </FormControl>
               </Box>
 
-              <Box sx={{ display: \flex\, justifyContent: \flex-end\ }}>
-                <Tooltip title=\Refresh\>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Tooltip title="Refresh">
                   <IconButton onClick={handleRefresh}>
                     <RefreshIcon />
                   </IconButton>

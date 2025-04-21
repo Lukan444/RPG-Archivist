@@ -1167,60 +1167,59 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             </Box>
           </Box>
 
-          <>
+          <Box>
             <Typography variant="body1" paragraph>
               {suggestion.description}
             </Typography>
 
-          <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
-          <Typography variant="h6" gutterBottom>
-            Suggestion Details
-          </Typography>
+            <Typography variant="h6" gutterBottom>
+              Suggestion Details
+            </Typography>
 
-          {renderSuggestionDetails()}
+            {renderSuggestionDetails()}
 
-          <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-            {suggestion.status === SuggestionStatus.PENDING && (
-              <>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleConfirmAction('reject')}
-                >
-                  Reject
-                </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+              {suggestion.status === SuggestionStatus.PENDING && (
+                <>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleConfirmAction('reject')}
+                  >
+                    Reject
+                  </Button>
 
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => setEditMode(true)}
-                >
-                  Modify
-                </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => setEditMode(true)}
+                  >
+                    Modify
+                  </Button>
 
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => handleConfirmAction('accept')}
-                >
-                  Accept
-                </Button>
-              </>
-            )}
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() => handleConfirmAction('accept')}
+                  >
+                    Accept
+                  </Button>
+                </>
+              )}
 
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleConfirmAction('delete')}
-            >
-              Delete
-            </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleConfirmAction('delete')}
+              >
+                Delete
+              </Button>
+            </Box>
           </Box>
-          )}
-        </>
         </Box>
       ) : (
         <Alert severity="warning" sx={{ mt: 2 }}>

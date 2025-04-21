@@ -51,7 +51,7 @@ const CharacterService = {
    * @returns List of Characters
    */
   getCharactersByWorldId: async (worldId: string): Promise<Character[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(/worlds//characters);
+    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(`/worlds/${worldId}/characters`);
     return response.data.data;
   },
 
