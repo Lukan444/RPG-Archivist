@@ -12,6 +12,7 @@ import { EventRepository } from './event.repository';
 import { AudioRecordingRepository } from './audio-recording.repository';
 import { SessionAnalysisRepository } from './session-analysis.repository';
 import { GraphRepository } from './graph.repository';
+import { LLMRepository } from './llm.repository';
 
 /**
  * Repository factory
@@ -127,5 +128,12 @@ export class RepositoryFactory {
    */
   public getGraphRepository(): GraphRepository {
     return this.getRepository('graph', () => new GraphRepository(this.dbService));
+  }
+
+  /**
+   * Get LLM repository
+   */
+  public getLLMRepository(): LLMRepository {
+    return this.getRepository('llm', () => new LLMRepository(this.dbService));
   }
 }
