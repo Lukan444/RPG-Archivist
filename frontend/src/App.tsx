@@ -15,6 +15,7 @@ const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const ProfilePage = lazy(() => import('./pages/user/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/user/SettingsPage'));
+const LLMSettingsPage = lazy(() => import('./pages/settings/LLMSettingsPage'));
 
 // RPG World pages
 const RPGWorldListPage = lazy(() => import('./pages/rpg-worlds/RPGWorldListPage'));
@@ -59,6 +60,9 @@ const TimelinePage = lazy(() => import('./pages/timeline/TimelinePage'));
 
 // Mind Map page
 const MindMapPage = lazy(() => import('./pages/mind-map/MindMapPage'));
+
+// Brain page
+const BrainPage = lazy(() => import('./pages/brain/BrainPage'));
 
 // Search page
 const SearchPage = lazy(() => import('./pages/search/SearchPage'));
@@ -117,6 +121,7 @@ const AppRoutes: React.FC = () => {
           {/* User routes */}
           <Route path=/profile element={<ProfilePage />} />
           <Route path=/settings element={<SettingsPage />} />
+          <Route path=/settings/llm element={<LLMSettingsPage />} />
 
           {/* RPG World routes */}
           <Route path=/rpg-worlds element={<RPGWorldListPage />} />
@@ -179,12 +184,7 @@ const AppRoutes: React.FC = () => {
               <Typography variant=body1>Transcription content will be implemented soon.</Typography>
             </Box>
           } />
-          <Route path=/brain element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Brain</Typography>
-              <Typography variant=body1>Brain content will be implemented soon.</Typography>
-            </Box>
-          } />
+          <Route path=/brain element={<BrainPage />} />
         </Route>
 
         {/* 404 page */}
