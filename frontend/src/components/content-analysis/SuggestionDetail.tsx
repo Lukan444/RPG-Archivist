@@ -1167,9 +1167,10 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             </Box>
           </Box>
 
-          <Typography variant="body1" paragraph>
-            {suggestion.description}
-          </Typography>
+          <>
+            <Typography variant="body1" paragraph>
+              {suggestion.description}
+            </Typography>
 
           <Divider sx={{ my: 2 }} />
 
@@ -1219,6 +1220,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             </Button>
           </Box>
           )}
+        </>
         </Box>
       ) : (
         <Alert severity="warning" sx={{ mt: 2 }}>

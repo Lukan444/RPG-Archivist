@@ -61,7 +61,7 @@ const CharacterService = {
    * @returns List of Characters
    */
   getCharactersByCampaignId: async (campaignId: string): Promise<Character[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(/campaigns//characters);
+    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(`/campaigns/${campaignId}/characters`);
     return response.data.data;
   },
 
@@ -71,7 +71,7 @@ const CharacterService = {
    * @returns List of Characters
    */
   getCharactersBySessionId: async (sessionId: string): Promise<Character[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(/sessions//characters);
+    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(`/sessions/${sessionId}/characters`);
     return response.data.data;
   },
 
@@ -81,7 +81,7 @@ const CharacterService = {
    * @returns List of Characters
    */
   getCharactersByLocationId: async (locationId: string): Promise<Character[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(/locations//characters);
+    const response: AxiosResponse<{ success: boolean; data: Character[] }> = await apiClient.get(`/locations/${locationId}/characters`);
     return response.data.data;
   },
 
@@ -91,7 +91,7 @@ const CharacterService = {
    * @returns Character
    */
   getCharacterById: async (id: string): Promise<Character> => {
-    const response: AxiosResponse<{ success: boolean; data: Character }> = await apiClient.get(/characters/);
+    const response: AxiosResponse<{ success: boolean; data: Character }> = await apiClient.get(`/characters/${id}`);
     return response.data.data;
   },
 
@@ -112,7 +112,7 @@ const CharacterService = {
    * @returns Updated Character
    */
   updateCharacter: async (id: string, characterData: Partial<CharacterInput>): Promise<Character> => {
-    const response: AxiosResponse<{ success: boolean; data: Character }> = await apiClient.put(/characters/, characterData);
+    const response: AxiosResponse<{ success: boolean; data: Character }> = await apiClient.put(`/characters/${id}`, characterData);
     return response.data.data;
   },
 
@@ -122,7 +122,7 @@ const CharacterService = {
    * @returns Success status
    */
   deleteCharacter: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/characters/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/characters/${id}`);
     return response.data.success;
   },
 
@@ -135,9 +135,9 @@ const CharacterService = {
   uploadCharacterImage: async (id: string, file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('image', file);
-    
+
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /characters//image,
+      `/characters/${id}/image`,
       formData,
       {
         headers: {
@@ -145,7 +145,7 @@ const CharacterService = {
         },
       }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -157,10 +157,10 @@ const CharacterService = {
    */
   generateCharacterImage: async (id: string, prompt: string): Promise<string> => {
     const response: AxiosResponse<{ success: boolean; data: { imageUrl: string } }> = await apiClient.post(
-      /characters//generate-image,
+      `/characters/${id}/generate-image`,
       { prompt }
     );
-    
+
     return response.data.data.imageUrl;
   },
 
@@ -170,7 +170,7 @@ const CharacterService = {
    * @returns Success status
    */
   deleteCharacterImage: async (id: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/characters//image);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/characters/${id}/image`);
     return response.data.success;
   },
 
@@ -181,7 +181,7 @@ const CharacterService = {
    * @returns Success status
    */
   addCharacterToSession: async (characterId: string, sessionId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(/characters//sessions/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(`/characters/${characterId}/sessions/${sessionId}`);
     return response.data.success;
   },
 
@@ -192,7 +192,7 @@ const CharacterService = {
    * @returns Success status
    */
   removeCharacterFromSession: async (characterId: string, sessionId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/characters//sessions/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/characters/${characterId}/sessions/${sessionId}`);
     return response.data.success;
   },
 
@@ -203,7 +203,7 @@ const CharacterService = {
    * @returns Success status
    */
   setCharacterLocation: async (characterId: string, locationId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(/characters//location/);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.post(`/characters/${characterId}/location/${locationId}`);
     return response.data.success;
   },
 
@@ -213,7 +213,7 @@ const CharacterService = {
    * @returns Success status
    */
   removeCharacterLocation: async (characterId: string): Promise<boolean> => {
-    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(/characters//location);
+    const response: AxiosResponse<{ success: boolean }> = await apiClient.delete(`/characters/${characterId}/location`);
     return response.data.success;
   },
 };

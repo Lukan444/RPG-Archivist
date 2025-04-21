@@ -35,7 +35,7 @@ import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   AccountCircle as ProfileIcon,
-  MindMap as MindMapIcon,
+  AccountTree as MindMapIcon,
   RateReview as ProposalIcon,
   Chat as StorytellingIcon,
   Analytics as ContentAnalysisIcon
