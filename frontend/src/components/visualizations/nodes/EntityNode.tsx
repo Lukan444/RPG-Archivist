@@ -10,6 +10,9 @@ import {
   Event as SessionIcon,
   Person as CharacterIcon,
   LocationOn as LocationIcon,
+  Inventory as ItemIcon,
+  EventNote as EventIcon,
+  AutoFixHigh as PowerIcon,
 } from \@mui/icons-material\;
 
 // Node type colors
@@ -19,6 +22,9 @@ const nodeTypeColors: Record<string, string> = {
   session: \#00bcd4\, // Cyan
   character: \#4caf50\, // Green
   location: \#ff9800\, // Orange
+  item: \#f44336\, // Red
+  event: \#9c27b0\, // Purple
+  power: \#ffc107\, // Amber
 };
 
 // Node type icons
@@ -28,6 +34,9 @@ const nodeTypeIcons: Record<string, React.ReactNode> = {
   session: <SessionIcon />,
   character: <CharacterIcon />,
   location: <LocationIcon />,
+  item: <ItemIcon />,
+  event: <EventIcon />,
+  power: <PowerIcon />,
 };
 
 // EntityNode props
@@ -39,11 +48,11 @@ interface EntityNodeData extends GraphNode {
 
 const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }) => {
   const { type, label, imageUrl, showLabel, showImage } = data;
-  
+
   // Get color and icon based on node type
   const color = nodeTypeColors[type] || \#ccc\;
   const icon = nodeTypeIcons[type] || null;
-  
+
   return (
     <Box
       sx={{
@@ -67,7 +76,7 @@ const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }
         style={{ background: color }}
         isConnectable={isConnectable}
       />
-      
+
       {showImage && imageUrl ? (
         <Avatar
           src={imageUrl}
@@ -91,7 +100,7 @@ const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }
           {icon}
         </Avatar>
       )}
-      
+
       {showLabel && (
         <Typography
           variant=\subtitle2\
@@ -108,7 +117,7 @@ const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }
           {label}
         </Typography>
       )}
-      
+
       <Handle
         type=\source\
         position={Position.Bottom}

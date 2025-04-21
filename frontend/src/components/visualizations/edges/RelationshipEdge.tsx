@@ -11,6 +11,10 @@ const edgeTypeColors: Record<string, string> = {
   RELATED_TO: \#9c27b0\, // Purple
   PARENT_OF: \#795548\, // Brown
   CHILD_OF: \#8d6e63\, // Light Brown
+  OWNS: \#f44336\, // Red
+  CREATED: \#2196f3\, // Blue
+  HAS_POWER: \#ffc107\, // Amber
+  OCCURRED_AT: \#00bcd4\, // Cyan
 };
 
 // RelationshipEdge props
@@ -42,10 +46,10 @@ const RelationshipEdge: React.FC<EdgeProps<RelationshipEdgeData>> = ({
     targetY,
     targetPosition,
   });
-  
+
   // Get color based on edge type
   const color = data?.type ? edgeTypeColors[data.type] || \#ccc\ : \#ccc\;
-  
+
   return (
     <>
       <path
@@ -59,7 +63,7 @@ const RelationshipEdge: React.FC<EdgeProps<RelationshipEdgeData>> = ({
         d={edgePath}
         markerEnd={markerEnd}
       />
-      
+
       {label && (
         <EdgeLabelRenderer>
           <div
