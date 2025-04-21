@@ -64,6 +64,15 @@ const MindMapPage = lazy(() => import('./pages/mind-map/MindMapPage'));
 // Brain page
 const BrainPage = lazy(() => import('./pages/brain/BrainPage'));
 
+// Proposals pages
+const ProposalManagementPage = lazy(() => import('./pages/proposals/ProposalManagementPage'));
+
+// Storytelling pages
+const StorytellingPage = lazy(() => import('./pages/storytelling/StorytellingPage'));
+
+// Content Analysis pages
+const ContentAnalysisPage = lazy(() => import('./pages/content-analysis/ContentAnalysisPage'));
+
 // Search page
 const SearchPage = lazy(() => import('./pages/search/SearchPage'));
 
@@ -185,6 +194,24 @@ const AppRoutes: React.FC = () => {
             </Box>
           } />
           <Route path=/brain element={<BrainPage />} />
+
+          {/* Proposals routes */}
+          <Route path=/proposals element={<ProposalManagementPage />} />
+          <Route path=/proposals/context/:contextId element={<ProposalManagementPage />} />
+          <Route path=/proposals/entity/:entityType/:entityId element={<ProposalManagementPage />} />
+
+          {/* Storytelling routes */}
+          <Route path=/storytelling element={<StorytellingPage />} />
+          <Route path=/storytelling/campaign/:campaignId element={<StorytellingPage />} />
+          <Route path=/storytelling/session/:sessionId element={<StorytellingPage />} />
+
+          {/* Content Analysis routes */}
+          <Route path=/content-analysis element={<ContentAnalysisPage />} />
+          <Route path=/content-analysis/context/:contextId element={<ContentAnalysisPage />} />
+          <Route path=/content-analysis/entity/:entityType/:entityId element={<ContentAnalysisPage />} />
+          <Route path=/content-analysis/suggestion/:suggestionId element={<ContentAnalysisPage />} />
+          <Route path=/content-analysis/context/:contextId/suggestion/:suggestionId element={<ContentAnalysisPage />} />
+          <Route path=/content-analysis/entity/:entityType/:entityId/suggestion/:suggestionId element={<ContentAnalysisPage />} />
         </Route>
 
         {/* 404 page */}
