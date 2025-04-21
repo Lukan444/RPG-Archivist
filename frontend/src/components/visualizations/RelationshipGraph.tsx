@@ -44,6 +44,7 @@ import {
   Image as ImageIcon,
   Code as CodeIcon,
   Download as DownloadIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import GraphService, {
   GraphData,
@@ -56,6 +57,9 @@ import GraphService, {
 
 // Import export utilities
 import { exportToPng, exportToSvg, exportToJson } from '../../utils/exportUtils';
+
+// Import sharing components
+import ShareDialog from './sharing/ShareDialog';
 
 // Custom node components
 import EntityNode from './nodes/EntityNode';
@@ -179,6 +183,9 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
 
   // State for annotations
   const [nodeAnnotations, setNodeAnnotations] = useState<Record<string, string>>({});
+
+  // State for sharing
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Reference to the ReactFlow instance and container
   const reactFlowRef = useRef<ReactFlowInstance | null>(null);
@@ -408,6 +415,16 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
     setExportMenuAnchorEl(null);
   };
 
+  // Handle share dialog open
+  const handleShareDialogOpen = () => {
+    setShareDialogOpen(true);
+  };
+
+  // Handle share dialog close
+  const handleShareDialogClose = () => {
+    setShareDialogOpen(false);
+  };
+
 
 
   // Handle export to PNG
@@ -585,6 +602,17 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
               </IconButton>
             </Tooltip>
 
+            <Tooltip title="Share">
+              <IconButton
+                onClick={handleShareDialogOpen}
+                size="small"
+                sx={{ bgcolor: 'background.paper' }}
+                disabled={nodes.length === 0}
+              >
+                <ShareIcon />
+              </IconButton>
+            </Tooltip>
+
             <Tooltip title="Refresh">
               <IconButton
                 onClick={handleRefresh}
@@ -636,6 +664,27 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
             </Alert>
           </Panel>
         )}
+
+        {/* Share Dialog */}
+        <ShareDialog
+          open={shareDialogOpen}
+          onClose={handleShareDialogClose}
+          graphParams={{
+            worldId,
+            campaignId,
+            sessionId,
+            characterId,
+            locationId,
+            itemId,
+            eventId,
+            powerId,
+            depth,
+            nodeTypes,
+            edgeTypes,
+            layout: layoutType,
+          }}
+          currentUrl={window.location.href}
+        />
 
         {showFilters && (
           <Panel position='top-right'>
