@@ -33,12 +33,35 @@ const SessionListPage = lazy(() => import('./pages/sessions/SessionListPage'));
 const SessionDetailPage = lazy(() => import('./pages/sessions/SessionDetailPage'));
 const SessionCreatePage = lazy(() => import('./pages/sessions/SessionCreatePage'));
 const SessionEditPage = lazy(() => import('./pages/sessions/SessionEditPage'));
+const SessionRecordingsPage = lazy(() => import('./pages/SessionRecordingsPage'));
+const SessionAnalysisPage = lazy(() => import('./pages/SessionAnalysisPage'));
 
 // Character pages
 const CharacterListPage = lazy(() => import('./pages/characters/CharacterListPage'));
 const CharacterDetailPage = lazy(() => import('./pages/characters/CharacterDetailPage'));
 const CharacterCreatePage = lazy(() => import('./pages/characters/CharacterCreatePage'));
 const CharacterEditPage = lazy(() => import('./pages/characters/CharacterEditPage'));
+
+// Location pages
+const LocationListPage = lazy(() => import('./pages/locations/LocationListPage'));
+const LocationDetailPage = lazy(() => import('./pages/locations/LocationDetailPage'));
+const LocationCreatePage = lazy(() => import('./pages/locations/LocationCreatePage'));
+const LocationEditPage = lazy(() => import('./pages/locations/LocationEditPage'));
+
+// Event pages
+const EventListPage = lazy(() => import('./pages/events/EventListPage'));
+const EventDetailPage = lazy(() => import('./pages/events/EventDetailPage'));
+const EventCreatePage = lazy(() => import('./pages/events/EventCreatePage'));
+const EventEditPage = lazy(() => import('./pages/events/EventEditPage'));
+
+// Timeline page
+const TimelinePage = lazy(() => import('./pages/timeline/TimelinePage'));
+
+// Mind Map page
+const MindMapPage = lazy(() => import('./pages/mind-map/MindMapPage'));
+
+// Search page
+const SearchPage = lazy(() => import('./pages/search/SearchPage'));
 
 // Create a simple HomePage component
 const HomePageComponent: React.FC = () => (
@@ -76,7 +99,7 @@ const AppRoutes: React.FC = () => {
       <Routes>
         {/* Public routes */}
         <Route path=/ element={<HomePageComponent />} />
-        
+
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
           <Route path=/login element={<LoginPage />} />
@@ -94,48 +117,60 @@ const AppRoutes: React.FC = () => {
           {/* User routes */}
           <Route path=/profile element={<ProfilePage />} />
           <Route path=/settings element={<SettingsPage />} />
-          
+
           {/* RPG World routes */}
           <Route path=/rpg-worlds element={<RPGWorldListPage />} />
           <Route path=/rpg-worlds/create element={<RPGWorldCreatePage />} />
           <Route path=/rpg-worlds/:id element={<RPGWorldDetailPage />} />
           <Route path=/rpg-worlds/:id/edit element={<RPGWorldEditPage />} />
-          
+
           {/* Campaign routes */}
           <Route path=/campaigns element={<CampaignListPage />} />
           <Route path=/campaigns/create element={<CampaignCreatePage />} />
           <Route path=/campaigns/:id element={<CampaignDetailPage />} />
           <Route path=/campaigns/:id/edit element={<CampaignEditPage />} />
-          
+
           {/* Session routes */}
           <Route path=/sessions element={<SessionListPage />} />
           <Route path=/sessions/create element={<SessionCreatePage />} />
           <Route path=/sessions/:id element={<SessionDetailPage />} />
           <Route path=/sessions/:id/edit element={<SessionEditPage />} />
-          
+          <Route path=/sessions/:sessionId/recordings element={<SessionRecordingsPage />} />
+          <Route path=/sessions/:sessionId/analysis element={<SessionAnalysisPage />} />
+          <Route path=/sessions/:sessionId/analysis/:transcriptionId element={<SessionAnalysisPage />} />
+
           {/* Character routes */}
           <Route path=/characters element={<CharacterListPage />} />
           <Route path=/characters/create element={<CharacterCreatePage />} />
           <Route path=/characters/:id element={<CharacterDetailPage />} />
           <Route path=/characters/:id/edit element={<CharacterEditPage />} />
-          
+
+          {/* Location routes */}
+          <Route path=/locations element={<LocationListPage />} />
+          <Route path=/locations/create element={<LocationCreatePage />} />
+          <Route path=/locations/:id element={<LocationDetailPage />} />
+          <Route path=/locations/:id/edit element={<LocationEditPage />} />
+
+          {/* Event routes */}
+          <Route path=/events element={<EventListPage />} />
+          <Route path=/events/create element={<EventCreatePage />} />
+          <Route path=/events/:id element={<EventDetailPage />} />
+          <Route path=/events/:id/edit element={<EventEditPage />} />
+
+          {/* Timeline route */}
+          <Route path=/timeline element={<TimelinePage />} />
+
+          {/* Mind Map route */}
+          <Route path=/mind-map element={<MindMapPage />} />
+
+          {/* Search route */}
+          <Route path=/search element={<SearchPage />} />
+
           {/* Temporary placeholder routes */}
           <Route path=/dashboard element={
             <Box sx={{ p: 3 }}>
               <Typography variant=h4 gutterBottom>Dashboard</Typography>
               <Typography variant=body1>Dashboard content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/locations element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Locations</Typography>
-              <Typography variant=body1>Locations content will be implemented soon.</Typography>
-            </Box>
-          } />
-          <Route path=/mind-map element={
-            <Box sx={{ p: 3 }}>
-              <Typography variant=h4 gutterBottom>Mind Map</Typography>
-              <Typography variant=body1>Mind Map content will be implemented soon.</Typography>
             </Box>
           } />
           <Route path=/transcription element={

@@ -44,6 +44,8 @@ import {
   Mic as MicIcon,
   PlayArrow as PlayArrowIcon,
   Pause as PauseIcon,
+  AudioFile as AudioFileIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { PageHeader } from '../../components/ui';
 import { ImageGallery, ImageItem } from '../../components/images';
@@ -80,24 +82,24 @@ tabpanel\
 const SessionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   // State for Session
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for tabs
   const [tabValue, setTabValue] = useState(0);
-  
+
   // State for menu and dialog
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  
+
   // State for transcription
   const [transcription, setTranscription] = useState<any>(null);
   const [loadingTranscription, setLoadingTranscription] = useState(false);
   const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
-  
+
   // Mock data for characters and locations
   const [characters, setCharacters] = useState<any[]>([
     { id: '1', name: 'Aragorn', type: 'NPC', race: 'Human', class: 'Ranger' },
@@ -105,13 +107,13 @@ const SessionDetailPage: React.FC = () => {
     { id: '3', name: 'Legolas', type: 'PC', race: 'Elf', class: 'Archer' },
     { id: '4', name: 'Gimli', type: 'PC', race: 'Dwarf', class: 'Fighter' },
   ]);
-  
+
   const [locations, setLocations] = useState<any[]>([
     { id: '1', name: 'Rivendell', type: 'City', description: 'Elven city' },
     { id: '2', name: 'Mordor', type: 'Region', description: 'Dark land' },
     { id: '3', name: 'Minas Tirith', type: 'City', description: 'White city' },
   ]);
-  
+
   // Mock data for images
   const [images, setImages] = useState<ImageItem[]>([
     {
@@ -133,7 +135,7 @@ const SessionDetailPage: React.FC = () => {
       createdAt: '2023-03-10',
     },
   ]);
-  
+
   // Mock transcription data
   const mockTranscription = {
     segments: [
@@ -145,18 +147,18 @@ const SessionDetailPage: React.FC = () => {
     ],
     duration: 25,
   };
-  
+
   // Fetch Session
   useEffect(() => {
     const fetchSession = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         setError(null);
         const data = await SessionService.getSessionById(id);
         setSession(data);
-        
+
         // If session has transcription, fetch it
         if (data.hasTranscription) {
           fetchTranscription();
@@ -168,23 +170,23 @@ const SessionDetailPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchSession();
   }, [id]);
-  
+
   // Fetch transcription
   const fetchTranscription = async () => {
     if (!id) return;
-    
+
     try {
       setLoadingTranscription(true);
       setTranscriptionError(null);
-      
+
       // In a real implementation, this would fetch from the API
       // For now, we'll just use mock data
       // const data = await SessionService.getSessionTranscription(id);
       // setTranscription(data);
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       setTranscription(mockTranscription);
@@ -195,21 +197,21 @@ const SessionDetailPage: React.FC = () => {
       setLoadingTranscription(false);
     }
   };
-  
+
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-  
+
   // Handle menu
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
   };
-  
+
   // Handle edit
   const handleEdit = () => {
     if (id) {
@@ -217,20 +219,20 @@ const SessionDetailPage: React.FC = () => {
     }
     handleMenuClose();
   };
-  
+
   // Handle delete
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
     handleMenuClose();
   };
-  
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
   };
-  
+
   const handleDeleteConfirm = async () => {
     if (!id) return;
-    
+
     try {
       await SessionService.deleteSession(id);
       navigate('/sessions');
@@ -239,44 +241,44 @@ const SessionDetailPage: React.FC = () => {
       setError('Failed to delete Session. Please try again.');
     }
   };
-  
+
   // Handle image actions
   const handleImageDelete = (imageId: string) => {
     setImages(images.filter((image) => image.id !== imageId));
   };
-  
+
   const handleImageEdit = (imageId: string) => {
     console.log('Edit image:', imageId);
   };
-  
+
   // Handle navigation to related entities
   const handleCampaignClick = () => {
     if (session?.campaignId) {
       navigate(/campaigns/);
     }
   };
-  
+
   const handleCharacterClick = (characterId: string) => {
     navigate(/characters/);
   };
-  
+
   const handleLocationClick = (locationId: string) => {
     navigate(/locations/);
   };
-  
+
   // Format date
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   // Format duration in minutes to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return ${hours}h m;
   };
-  
+
   // Render loading skeleton
   if (loading) {
     return (
@@ -285,7 +287,7 @@ const SessionDetailPage: React.FC = () => {
           <Skeleton variant=\text\ height={40} width=\50%\ />
           <Skeleton variant=\text\ height={24} width=\30%\ />
         </Box>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Skeleton variant=\rectangular\ height={300} sx={{ borderRadius: 1 }} />
@@ -301,7 +303,7 @@ const SessionDetailPage: React.FC = () => {
       </Container>
     );
   }
-  
+
   // Render error state
   if (error || !session) {
     return (
@@ -319,7 +321,7 @@ const SessionDetailPage: React.FC = () => {
       </Container>
     );
   }
-  
+
   return (
     <Container maxWidth=\lg\>
       <PageHeader
@@ -360,7 +362,7 @@ options\
           </>
         }
       />
-      
+
       <Grid container spacing={3}>
         {/* Session image and details */}
         <Grid item xs={12} md={4}>
@@ -377,13 +379,13 @@ options\
               }}
             />
           </Paper>
-          
+
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant=\h6\ gutterBottom>
               Session Details
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant=\subtitle2\ color=\text.secondary\>
                 Date
@@ -393,7 +395,7 @@ options\
                 <Typography variant=\body1\>{formatDate(session.date)}</Typography>
               </Box>
             </Box>
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant=\subtitle2\ color=\text.secondary\>
                 Duration
@@ -403,7 +405,7 @@ options\
                 <Typography variant=\body1\>{formatDuration(session.duration)}</Typography>
               </Box>
             </Box>
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant=\subtitle2\ color=\text.secondary\>
                 Campaign
@@ -418,29 +420,34 @@ options\
                 {session.campaignName || 'View Campaign'}
               </Button>
             </Box>
-            
+
             <Box sx={{ mb: 2 }}>
               <Typography variant=\subtitle2\ color=\text.secondary\>
-                Transcription
+                Recordings & Analysis
               </Typography>
-              {session.hasTranscription ? (
-                <Chip 
-                  label=\Available\ 
-                  color=\success\ 
-                  icon={<MicIcon />}
-                  size=\small\
-                />
-              ) : (
-                <Chip 
-                  label=\Not
-Available\ 
-                  color=\default\ 
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                <Button
                   variant=\outlined\
                   size=\small\
-                />
-              )}
+                  startIcon={<AudioFileIcon />}
+                  onClick={() => navigate(`/sessions/${id}/recordings`)}
+                  fullWidth
+                >
+                  Recordings
+                </Button>
+                <Button
+                  variant=\outlined\
+                  size=\small\
+                  startIcon={<AnalyticsIcon />}
+                  onClick={() => navigate(`/sessions/${id}/analysis`)}
+                  fullWidth
+                  disabled={!session.hasTranscription}
+                >
+                  AI Analysis
+                </Button>
+              </Box>
             </Box>
-            
+
             <Box>
               <Typography variant=\subtitle2\ color=\text.secondary\>
                 Created
@@ -451,14 +458,14 @@ Available\
             </Box>
           </Paper>
         </Grid>
-        
+
         {/* Session content */}
         <Grid item xs={12} md={8}>
           <Paper sx={{ borderRadius: 2 }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs 
-                value={tabValue} 
-                onChange={handleTabChange} 
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
                 aria-label=\session
 tabs\
                 sx={{ px: 2 }}
@@ -470,7 +477,7 @@ tabs\
                 <Tab label=\Gallery\ id=\session-tab-4\ aria-controls=\session-tabpanel-4\ />
               </Tabs>
             </Box>
-            
+
             {/* Overview Tab */}
             <TabPanel value={tabValue} index={0}>
               <Typography variant=\h6\ gutterBottom>
@@ -479,7 +486,7 @@ tabs\
               <Typography variant=\body1\ paragraph>
                 {session.description}
               </Typography>
-              
+
               <Box sx={{ mt: 4 }}>
                 <Typography variant=\h6\ gutterBottom>
                   Statistics
@@ -524,7 +531,7 @@ tabs\
                 </Grid>
               </Box>
             </TabPanel>
-            
+
             {/* Transcription Tab */}
             <TabPanel value={tabValue} index={1}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -539,7 +546,7 @@ tabs\
                   Edit Transcription
                 </Button>
               </Box>
-              
+
               {loadingTranscription ? (
                 <Box sx={{ py: 4 }}>
                   <Skeleton variant=\text\ height={40} />
@@ -556,10 +563,10 @@ tabs\
                 <Box>
                   <List>
                     {transcription.segments.map((segment: any) => (
-                      <ListItem 
+                      <ListItem
                         key={segment.id}
                         alignItems=\flex-start\
-                        sx={{ 
+                        sx={{
                           mb: 1,
                           bgcolor: 'background.paper',
                           borderRadius: 1,
@@ -576,7 +583,7 @@ tabs\
                             <Typography variant=\subtitle1\>
                               {segment.speaker}
                               <Typography variant=\caption\ sx={{ ml: 1, color: 'text.secondary' }}>
-                                {Math.floor(segment.start / 60)}:{(segment.start % 60).toString().padStart(2, '0')} - 
+                                {Math.floor(segment.start / 60)}:{(segment.start % 60).toString().padStart(2, '0')} -
                                 {Math.floor(segment.end / 60)}:{(segment.end % 60).toString().padStart(2, '0')}
                               </Typography>
                             </Typography>
@@ -599,13 +606,13 @@ tabs\
                 </Box>
               )}
             </TabPanel>
-            
+
             {/* Characters Tab */}
             <TabPanel value={tabValue} index={2}>
               <Typography variant=\h6\ gutterBottom>
                 Characters
               </Typography>
-              
+
               {characters.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <PersonIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
@@ -642,13 +649,13 @@ tabs\
                 </Grid>
               )}
             </TabPanel>
-            
+
             {/* Locations Tab */}
             <TabPanel value={tabValue} index={3}>
               <Typography variant=\h6\ gutterBottom>
                 Locations
               </Typography>
-              
+
               {locations.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <LocationIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
@@ -685,7 +692,7 @@ tabs\
                 </Grid>
               )}
             </TabPanel>
-            
+
             {/* Gallery Tab */}
             <TabPanel value={tabValue} index={4}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -701,7 +708,7 @@ tabs\
                   Add Image
                 </Button>
               </Box>
-              
+
               <ImageGallery
                 images={images}
                 onDelete={handleImageDelete}
@@ -711,7 +718,7 @@ tabs\
           </Paper>
         </Grid>
       </Grid>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
