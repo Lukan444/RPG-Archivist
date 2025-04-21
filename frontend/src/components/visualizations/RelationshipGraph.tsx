@@ -177,12 +177,66 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  // State for annotations
+  const [nodeAnnotations, setNodeAnnotations] = useState<Record<string, string>>({});
+
   // Reference to the ReactFlow instance and container
   const reactFlowRef = useRef<ReactFlowInstance | null>(null);
   const graphContainerId = 'relationship-graph-container';
 
   // Current graph data
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
+
+  // Handle annotation change
+  const handleAnnotationChange = useCallback((nodeId: string, annotation: string) => {
+    setNodeAnnotations((prev) => ({
+      ...prev,
+      [nodeId]: annotation,
+    }));
+
+    // Update current graph data with annotation
+    if (currentGraphData) {
+      const updatedNodes = currentGraphData.nodes.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            annotation,
+          };
+        }
+        return node;
+      });
+
+      setCurrentGraphData({
+        ...currentGraphData,
+        nodes: updatedNodes,
+      });
+    }
+  }, [currentGraphData]);
+
+  // Handle annotation delete
+  const handleAnnotationDelete = useCallback((nodeId: string) => {
+    setNodeAnnotations((prev) => {
+      const newAnnotations = { ...prev };
+      delete newAnnotations[nodeId];
+      return newAnnotations;
+    });
+
+    // Update current graph data to remove annotation
+    if (currentGraphData) {
+      const updatedNodes = currentGraphData.nodes.map((node) => {
+        if (node.id === nodeId) {
+          const { annotation, ...rest } = node;
+          return rest;
+        }
+        return node;
+      });
+
+      setCurrentGraphData({
+        ...currentGraphData,
+        nodes: updatedNodes,
+      });
+    }
+  }, [currentGraphData]);
 
   // Convert GraphData to ReactFlow nodes and edges
   const convertGraphDataToReactFlow = useCallback((graphData: GraphData) => {
@@ -195,6 +249,9 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
         label: node.label,
         showLabel: showLabels,
         showImage: showImages,
+        annotation: nodeAnnotations[node.id] || node.annotation,
+        onAnnotationChange: handleAnnotationChange,
+        onAnnotationDelete: handleAnnotationDelete,
       },
       position: { x: 0, y: 0 }, // Will be positioned by layout
       style: {
@@ -219,7 +276,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
     }));
 
     return { nodes: reactFlowNodes, edges: reactFlowEdges };
-  }, [showLabels, showImages]);
+  }, [showLabels, showImages, nodeAnnotations, handleAnnotationChange, handleAnnotationDelete]);
 
   // Apply force-directed layout to nodes
   const applyForceDirectedLayout = useCallback((nodes: Node[], edges: Edge[]) => {
@@ -350,6 +407,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
   const handleExportMenuClose = () => {
     setExportMenuAnchorEl(null);
   };
+
+
 
   // Handle export to PNG
   const handleExportToPng = async () => {

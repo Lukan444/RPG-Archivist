@@ -11,6 +11,7 @@ export interface GraphNode {
   type: NodeType;
   imageUrl?: string;
   properties?: Record<string, any>;
+  annotation?: string;
 }
 
 // Edge types

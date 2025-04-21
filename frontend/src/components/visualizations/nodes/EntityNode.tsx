@@ -1,7 +1,8 @@
-import React, { memo } from \ react\;
-import { Handle, Position, NodeProps } from \reactflow\;
-import { Box, Typography, Avatar } from \@mui/material\;
-import { GraphNode } from \../../../services/api/graph.service\;
+import React, { memo, useState } from 'react';
+import { Handle, Position, NodeProps } from 'reactflow';
+import { Box, Typography, Avatar, Tooltip } from '@mui/material';
+import { GraphNode } from '../../../services/api/graph.service';
+import AnnotationEditor, { AnnotationIndicator, AddAnnotationButton } from '../annotations/AnnotationEditor';
 
 // Node type icons
 import {
@@ -13,18 +14,18 @@ import {
   Inventory as ItemIcon,
   EventNote as EventIcon,
   AutoFixHigh as PowerIcon,
-} from \@mui/icons-material\;
+} from '@mui/icons-material';
 
 // Node type colors
 const nodeTypeColors: Record<string, string> = {
-  world: \#3f51b5\, // Indigo
-  campaign: \#2196f3\, // Blue
-  session: \#00bcd4\, // Cyan
-  character: \#4caf50\, // Green
-  location: \#ff9800\, // Orange
-  item: \#f44336\, // Red
-  event: \#9c27b0\, // Purple
-  power: \#ffc107\, // Amber
+  world: '#3f51b5', // Indigo
+  campaign: '#2196f3', // Blue
+  session: '#00bcd4', // Cyan
+  character: '#4caf50', // Green
+  location: '#ff9800', // Orange
+  item: '#f44336', // Red
+  event: '#9c27b0', // Purple
+  power: '#ffc107', // Amber
 };
 
 // Node type icons
@@ -44,34 +45,63 @@ interface EntityNodeData extends GraphNode {
   label: string;
   showLabel: boolean;
   showImage: boolean;
+  onAnnotationChange?: (nodeId: string, annotation: string) => void;
+  onAnnotationDelete?: (nodeId: string) => void;
 }
 
 const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }) => {
-  const { type, label, imageUrl, showLabel, showImage } = data;
+  const { type, label, imageUrl, showLabel, showImage, annotation, onAnnotationChange, onAnnotationDelete } = data;
+
+  // State for annotation editor
+  const [annotationEditorOpen, setAnnotationEditorOpen] = useState(false);
 
   // Get color and icon based on node type
-  const color = nodeTypeColors[type] || \#ccc\;
+  const color = nodeTypeColors[type] || '#ccc';
   const icon = nodeTypeIcons[type] || null;
+
+  // Handle opening annotation editor
+  const handleOpenAnnotationEditor = () => {
+    setAnnotationEditorOpen(true);
+  };
+
+  // Handle closing annotation editor
+  const handleCloseAnnotationEditor = () => {
+    setAnnotationEditorOpen(false);
+  };
+
+  // Handle saving annotation
+  const handleSaveAnnotation = (nodeId: string, newAnnotation: string) => {
+    if (onAnnotationChange) {
+      onAnnotationChange(nodeId, newAnnotation);
+    }
+  };
+
+  // Handle deleting annotation
+  const handleDeleteAnnotation = (nodeId: string) => {
+    if (onAnnotationDelete) {
+      onAnnotationDelete(nodeId);
+    }
+  };
 
   return (
     <Box
       sx={{
         padding: 1,
         borderRadius: 2,
-        backgroundColor: \background.paper\,
-        border: 2px solid ,
+        backgroundColor: 'background.paper',
+        border: `2px solid ${color}`,
         boxShadow: 2,
         width: 150,
-        height: \auto\,
-        display: \flex\,
-        flexDirection: \column\,
-        alignItems: \center\,
-        justifyContent: \center\,
-        position: \relative\,
+        height: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
       }}
     >
       <Handle
-        type=\target\
+        type="target"
         position={Position.Top}
         style={{ background: color }}
         isConnectable={isConnectable}
@@ -85,7 +115,7 @@ const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }
             width: 60,
             height: 60,
             mb: 1,
-            border: 2px solid ,
+            border: `2px solid ${color}`,
           }}
         />
       ) : (
@@ -103,23 +133,39 @@ const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, isConnectable }
 
       {showLabel && (
         <Typography
-          variant=\subtitle2\
-          align=\center\
+          variant="subtitle2"
+          align="center"
           sx={{
-            fontWeight: \bold\,
-            overflow: \hidden\,
-            textOverflow: \ellipsis\,
-            display: \-webkit-box\,
+            fontWeight: 'bold',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: \vertical\,
+            WebkitBoxOrient: 'vertical',
           }}
         >
           {label}
         </Typography>
       )}
 
+      {/* Annotation indicator or add button */}
+      {annotation ? (
+        <AnnotationIndicator node={data} onEdit={handleOpenAnnotationEditor} />
+      ) : (
+        <AddAnnotationButton onAdd={handleOpenAnnotationEditor} />
+      )}
+
+      {/* Annotation editor dialog */}
+      <AnnotationEditor
+        node={data}
+        open={annotationEditorOpen}
+        onClose={handleCloseAnnotationEditor}
+        onSave={handleSaveAnnotation}
+        onDelete={handleDeleteAnnotation}
+      />
+
       <Handle
-        type=\source\
+        type="source"
         position={Position.Bottom}
         style={{ background: color }}
         isConnectable={isConnectable}
