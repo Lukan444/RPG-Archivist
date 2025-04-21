@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from \ react\;
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -11,8 +11,9 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   Panel,
-} from \reactflow\;
-import \reactflow/dist/style.css\;
+  ReactFlowInstance,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
 import {
   Box,
   Paper,
@@ -29,7 +30,10 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-} from \@mui/material\;
+  Menu,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
 import {
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon,
@@ -37,7 +41,10 @@ import {
   Refresh as RefreshIcon,
   Save as SaveIcon,
   FilterList as FilterListIcon,
-} from \@mui/icons-material\;
+  Image as ImageIcon,
+  Code as CodeIcon,
+  Download as DownloadIcon,
+} from '@mui/icons-material';
 import GraphService, {
   GraphData,
   GraphNode,
@@ -45,21 +52,24 @@ import GraphService, {
   NodeType,
   EdgeType,
   GraphQueryParams,
-} from \../../services/api/graph.service\;
+} from '../../services/api/graph.service';
+
+// Import export utilities
+import { exportToPng, exportToSvg, exportToJson } from '../../utils/exportUtils';
 
 // Custom node components
-import EntityNode from \./nodes/EntityNode\;
-import WorldNode from \./nodes/WorldNode\;
-import CampaignNode from \./nodes/CampaignNode\;
-import SessionNode from \./nodes/SessionNode\;
-import CharacterNode from \./nodes/CharacterNode\;
-import LocationNode from \./nodes/LocationNode\;
-import ItemNode from \./nodes/ItemNode\;
-import EventNode from \./nodes/EventNode\;
-import PowerNode from \./nodes/PowerNode\;
+import EntityNode from './nodes/EntityNode';
+import WorldNode from './nodes/WorldNode';
+import CampaignNode from './nodes/CampaignNode';
+import SessionNode from './nodes/SessionNode';
+import CharacterNode from './nodes/CharacterNode';
+import LocationNode from './nodes/LocationNode';
+import ItemNode from './nodes/ItemNode';
+import EventNode from './nodes/EventNode';
+import PowerNode from './nodes/PowerNode';
 
 // Custom edge components
-import RelationshipEdge from \./edges/RelationshipEdge\;
+import RelationshipEdge from './edges/RelationshipEdge';
 
 // Node types mapping
 const nodeTypes: NodeTypes = {
@@ -81,29 +91,29 @@ const edgeTypes: EdgeTypes = {
 
 // Node type colors
 const nodeTypeColors: Record<NodeType, string> = {
-  world: \#3f51b5\, // Indigo
-  campaign: \#2196f3\, // Blue
-  session: \#00bcd4\, // Cyan
-  character: \#4caf50\, // Green
-  location: \#ff9800\, // Orange
-  item: \#f44336\, // Red
-  event: \#9c27b0\, // Purple
-  power: \#ffc107\, // Amber
+  world: '#3f51b5', // Indigo
+  campaign: '#2196f3', // Blue
+  session: '#00bcd4', // Cyan
+  character: '#4caf50', // Green
+  location: '#ff9800', // Orange
+  item: '#f44336', // Red
+  event: '#9c27b0', // Purple
+  power: '#ffc107', // Amber
 };
 
 // Edge type colors
 const edgeTypeColors: Record<EdgeType, string> = {
-  PART_OF: \#9e9e9e\, // Gray
-  CONTAINS: \#607d8b\, // Blue Gray
-  LOCATED_AT: \#ff9800\, // Orange
-  PARTICIPATED_IN: \#4caf50\, // Green
-  RELATED_TO: \#9c27b0\, // Purple
-  PARENT_OF: \#795548\, // Brown
-  CHILD_OF: \#8d6e63\, // Light Brown
-  OWNS: \#f44336\, // Red
-  CREATED: \#2196f3\, // Blue
-  HAS_POWER: \#ffc107\, // Amber
-  OCCURRED_AT: \#00bcd4\, // Cyan
+  PART_OF: '#9e9e9e', // Gray
+  CONTAINS: '#607d8b', // Blue Gray
+  LOCATED_AT: '#ff9800', // Orange
+  PARTICIPATED_IN: '#4caf50', // Green
+  RELATED_TO: '#9c27b0', // Purple
+  PARENT_OF: '#795548', // Brown
+  CHILD_OF: '#8d6e63', // Light Brown
+  OWNS: '#f44336', // Red
+  CREATED: '#2196f3', // Blue
+  HAS_POWER: '#ffc107', // Amber
+  OCCURRED_AT: '#00bcd4', // Cyan
 };
 
 // Props for RelationshipGraph component
@@ -138,7 +148,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
   powerId,
   initialDepth = 1,
   height = 600,
-  width = \100%\,
+  width = '100%',
   showControls = true,
   showMiniMap = true,
   showFilters = true,
@@ -156,11 +166,23 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
 
   // State for filters
   const [depth, setDepth] = useState(initialDepth);
-  const [nodeTypes, setNodeTypes] = useState<NodeType[]>([\world\, \campaign\, \session\, \character\, \location\, \item\, \event\, \power\]);
-  const [edgeTypes, setEdgeTypes] = useState<EdgeType[]>([\PART_OF\, \CONTAINS\, \LOCATED_AT\, \PARTICIPATED_IN\, \RELATED_TO\, \PARENT_OF\, \CHILD_OF\, \OWNS\, \CREATED\, \HAS_POWER\, \OCCURRED_AT\]);
+  const [nodeTypes, setNodeTypes] = useState<NodeType[]>(['world', 'campaign', 'session', 'character', 'location', 'item', 'event', 'power']);
+  const [edgeTypes, setEdgeTypes] = useState<EdgeType[]>(['PART_OF', 'CONTAINS', 'LOCATED_AT', 'PARTICIPATED_IN', 'RELATED_TO', 'PARENT_OF', 'CHILD_OF', 'OWNS', 'CREATED', 'HAS_POWER', 'OCCURRED_AT']);
   const [layoutType, setLayoutType] = useState<'force' | 'hierarchy' | 'radial'>(layout);
   const [showLabels, setShowLabels] = useState(true);
   const [showImages, setShowImages] = useState(true);
+
+  // State for export menu
+  const [exportMenuAnchorEl, setExportMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Reference to the ReactFlow instance and container
+  const reactFlowRef = useRef<ReactFlowInstance | null>(null);
+  const graphContainerId = 'relationship-graph-container';
+
+  // Current graph data
+  const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
 
   // Convert GraphData to ReactFlow nodes and edges
   const convertGraphDataToReactFlow = useCallback((graphData: GraphData) => {
@@ -176,7 +198,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
       },
       position: { x: 0, y: 0 }, // Will be positioned by layout
       style: {
-        background: nodeTypeColors[node.type as NodeType] || \#ccc\,
+        background: nodeTypeColors[node.type as NodeType] || '#ccc',
       },
     }));
 
@@ -185,15 +207,15 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      type: \relationship\,
+      type: 'relationship',
       label: showLabels ? edge.label || edge.type : undefined,
       data: {
         ...edge,
       },
       style: {
-        stroke: edgeTypeColors[edge.type as EdgeType] || \#ccc\,
+        stroke: edgeTypeColors[edge.type as EdgeType] || '#ccc',
       },
-      animated: edge.type === \RELATED_TO\,
+      animated: edge.type === 'RELATED_TO',
     }));
 
     return { nodes: reactFlowNodes, edges: reactFlowEdges };
@@ -273,8 +295,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
       setNodes(positionedNodes);
       setEdges(reactFlowEdges);
     } catch (error) {
-      console.error(\Error fetching graph data:\, error);
-      setError(\Failed to load relationship data. Please try again.\);
+      console.error('Error fetching graph data:', error);
+      setError('Failed to load relationship data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -319,6 +341,107 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
     fetchGraphData();
   };
 
+  // Handle export menu open
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchorEl(event.currentTarget);
+  };
+
+  // Handle export menu close
+  const handleExportMenuClose = () => {
+    setExportMenuAnchorEl(null);
+  };
+
+  // Handle export to PNG
+  const handleExportToPng = async () => {
+    try {
+      setExportLoading(true);
+      setExportError(null);
+      handleExportMenuClose();
+
+      await exportToPng(graphContainerId, getExportFileName());
+    } catch (error) {
+      console.error('Error exporting to PNG:', error);
+      setExportError('Failed to export to PNG. Please try again.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Handle export to SVG
+  const handleExportToSvg = async () => {
+    try {
+      setExportLoading(true);
+      setExportError(null);
+      handleExportMenuClose();
+
+      await exportToSvg(graphContainerId, getExportFileName());
+    } catch (error) {
+      console.error('Error exporting to SVG:', error);
+      setExportError('Failed to export to SVG. Please try again.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Handle export to JSON
+  const handleExportToJson = () => {
+    try {
+      setExportLoading(true);
+      setExportError(null);
+      handleExportMenuClose();
+
+      if (!currentGraphData) {
+        throw new Error('No graph data available');
+      }
+
+      exportToJson(currentGraphData, getExportFileName());
+    } catch (error) {
+      console.error('Error exporting to JSON:', error);
+      setExportError('Failed to export to JSON. Please try again.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Get export file name based on current context
+  const getExportFileName = (): string => {
+    if (worldId) return `world-${worldId}`;
+    if (campaignId) return `campaign-${campaignId}`;
+    if (sessionId) return `session-${sessionId}`;
+    if (characterId) return `character-${characterId}`;
+    if (locationId) return `location-${locationId}`;
+    if (itemId) return `item-${itemId}`;
+    if (eventId) return `event-${eventId}`;
+    if (powerId) return `power-${powerId}`;
+    return 'mind-map';
+  };
+
+  // Store current graph data when it's fetched
+  useEffect(() => {
+    if (nodes.length > 0) {
+      // Convert ReactFlow nodes and edges back to GraphData format
+      const graphData: GraphData = {
+        nodes: nodes.map(node => ({
+          id: node.id,
+          label: node.data.label,
+          type: node.data.type,
+          imageUrl: node.data.imageUrl,
+          properties: node.data.properties,
+        })),
+        edges: edges.map(edge => ({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          type: edge.data.type,
+          label: edge.data.label,
+          properties: edge.data.properties,
+        })),
+      };
+
+      setCurrentGraphData(graphData);
+    }
+  }, [nodes, edges]);
+
   // Render loading state
   if (loading && nodes.length === 0) {
     return (
@@ -326,10 +449,10 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
         sx={{
           height,
           width,
-          display: \flex\,
-          justifyContent: \center\,
-          alignItems: \center\,
-          bgcolor: \background.paper\,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bgcolor: 'background.paper',
           borderRadius: 1,
         }}
       >
@@ -345,14 +468,14 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
         sx={{
           height,
           width,
-          display: \flex\,
-          justifyContent: \center\,
-          alignItems: \center\,
-          bgcolor: \background.paper\,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bgcolor: 'background.paper',
           borderRadius: 1,
         }}
       >
-        <Alert severity=\error\>{error}</Alert>
+        <Alert severity='error'>{error}</Alert>
       </Box>
     );
   }
@@ -362,12 +485,13 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
       sx={{
         height,
         width,
-        overflow: \hidden\,
+        overflow: 'hidden',
         borderRadius: 1,
-        position: \relative\,
+        position: 'relative',
       }}
     >
       <ReactFlow
+        id={graphContainerId}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -377,21 +501,92 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionLineType={ConnectionLineType.SmoothStep}
+        onInit={(instance) => (reactFlowRef.current = instance)}
         fitView
       >
         {showControls && <Controls />}
         <Background />
         {showMiniMap && <MiniMap />}
 
+        {/* Export Button */}
+        <Panel position='top-left'>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Export">
+              <IconButton
+                onClick={handleExportMenuOpen}
+                size="small"
+                sx={{ bgcolor: 'background.paper' }}
+                disabled={exportLoading || nodes.length === 0}
+              >
+                {exportLoading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <DownloadIcon />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Refresh">
+              <IconButton
+                onClick={handleRefresh}
+                size="small"
+                sx={{ bgcolor: 'background.paper' }}
+                disabled={loading}
+              >
+                {loading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <RefreshIcon />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Panel>
+
+        {/* Export Menu */}
+        <Menu
+          anchorEl={exportMenuAnchorEl}
+          open={Boolean(exportMenuAnchorEl)}
+          onClose={handleExportMenuClose}
+        >
+          <MenuItem onClick={handleExportToPng}>
+            <ListItemIcon>
+              <ImageIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export as PNG</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleExportToSvg}>
+            <ListItemIcon>
+              <ImageIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export as SVG</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleExportToJson}>
+            <ListItemIcon>
+              <CodeIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export as JSON</ListItemText>
+          </MenuItem>
+        </Menu>
+
+        {/* Export Error */}
+        {exportError && (
+          <Panel position='bottom'>
+            <Alert severity='error' onClose={() => setExportError(null)}>
+              {exportError}
+            </Alert>
+          </Panel>
+        )}
+
         {showFilters && (
-          <Panel position=\top-right\>
+          <Panel position='top-right'>
             <Paper sx={{ p: 2, width: 300 }}>
-              <Typography variant=\h6\ gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Filters
               </Typography>
 
               <Box sx={{ mb: 2 }}>
-                <Typography variant=\subtitle2\ gutterBottom>
+                <Typography variant='subtitle2' gutterBottom>
                   Depth: {depth}
                 </Typography>
                 <Slider
@@ -401,25 +596,25 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                   max={5}
                   step={1}
                   marks
-                  valueLabelDisplay=\auto\
+                  valueLabelDisplay='auto'
                 />
               </Box>
 
               <Box sx={{ mb: 2 }}>
-                <FormControl fullWidth size=\small\>
-                  <InputLabel id=\node-type-filter-label\>Node Types</InputLabel>
+                <FormControl fullWidth size='small'>
+                  <InputLabel id='node-type-filter-label'>Node Types</InputLabel>
                   <Select
-                    labelId=\node-type-filter-label\
+                    labelId='node-type-filter-label'
                     multiple
                     value={nodeTypes}
                     onChange={handleNodeTypeChange}
                     renderValue={(selected) => (
-                      <Box sx={{ display: \flex\, flexWrap: \wrap\, gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {(selected as NodeType[]).map((value) => (
                           <Chip
                             key={value}
                             label={value}
-                            size=\small\
+                            size='small'
                             sx={{ bgcolor: nodeTypeColors[value] }}
                           />
                         ))}
@@ -436,20 +631,20 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
               </Box>
 
               <Box sx={{ mb: 2 }}>
-                <FormControl fullWidth size=\small\>
-                  <InputLabel id=\edge-type-filter-label\>Edge Types</InputLabel>
+                <FormControl fullWidth size='small'>
+                  <InputLabel id='edge-type-filter-label'>Edge Types</InputLabel>
                   <Select
-                    labelId=\edge-type-filter-label\
+                    labelId='edge-type-filter-label'
                     multiple
                     value={edgeTypes}
                     onChange={handleEdgeTypeChange}
                     renderValue={(selected) => (
-                      <Box sx={{ display: \flex\, flexWrap: \wrap\, gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {(selected as EdgeType[]).map((value) => (
                           <Chip
                             key={value}
                             label={value}
-                            size=\small\
+                            size='small'
                             sx={{ bgcolor: edgeTypeColors[value] }}
                           />
                         ))}
@@ -458,7 +653,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                   >
                     {Object.keys(edgeTypeColors).map((type) => (
                       <MenuItem key={type} value={type}>
-                        {type.replace(\_\, \ \)}
+                        {type.replace('_', ' ')}
                       </MenuItem>
                     ))}
                   </Select>
@@ -473,7 +668,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                       onChange={(e) => setShowLabels(e.target.checked)}
                     />
                   }
-                  label=\Show Labels\
+                  label='Show Labels'
                 />
               </Box>
 
@@ -485,21 +680,21 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                       onChange={(e) => setShowImages(e.target.checked)}
                     />
                   }
-                  label=\Show Images\
+                  label='Show Images'
                 />
               </Box>
 
               <Box sx={{ mb: 2 }}>
-                <FormControl fullWidth size=\small\>
-                  <InputLabel id=\layout-type-label\>Layout</InputLabel>
+                <FormControl fullWidth size='small'>
+                  <InputLabel id='layout-type-label'>Layout</InputLabel>
                   <Select
-                    labelId=\layout-type-label\
+                    labelId='layout-type-label'
                     value={layoutType}
                     onChange={(e) => setLayoutType(e.target.value as 'force' | 'hierarchy' | 'radial')}
                   >
-                    <MenuItem value=\force\>Force-Directed</MenuItem>
-                    <MenuItem value=\hierarchy\>Hierarchical</MenuItem>
-                    <MenuItem value=\radial\>Radial</MenuItem>
+                    <MenuItem value='force'>Force-Directed</MenuItem>
+                    <MenuItem value='hierarchy'>Hierarchical</MenuItem>
+                    <MenuItem value='radial'>Radial</MenuItem>
                   </Select>
                 </FormControl>
               </Box>

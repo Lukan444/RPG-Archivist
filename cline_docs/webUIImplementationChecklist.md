@@ -425,9 +425,9 @@ This document serves as a comprehensive task tracking system for implementing th
 - [x] 17.5. Add custom styling options
   - Verification: Implemented custom styling for nodes and edges based on type
   - Notes: Created nodeTypeColors and edgeTypeColors with appropriate visual differentiation
-- [ ] 17.6. Create export functionality (PNG, SVG, JSON)
-  - Status: Not implemented yet
-  - Notes: This feature will be addressed in a future update
+- [x] 17.6. Create export functionality (PNG, SVG, JSON)
+  - Verification: Implemented export functionality for PNG, SVG, and JSON formats in RelationshipGraph component
+  - Notes: Used html-to-image library for PNG/SVG export and added JSON export with proper file naming
 - [ ] 17.7. Implement mind map sharing
   - Status: Not implemented yet
   - Notes: This feature will be addressed in Phase 8 with other sharing capabilities
