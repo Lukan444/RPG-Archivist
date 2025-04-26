@@ -1,7 +1,10 @@
 // RPG-themed images for the application
 
+// Import the logo directly from the assets directory
+import LogoImage from './images/logo.png';
+
 // Logo
-export const Logo = 'https://i.imgur.com/8KbJGfw.png'; // RPG-themed logo with d20 dice
+export const Logo = LogoImage; // Our official RPG Archivist logo
 
 // Background images
 export const HeroBackground = 'https://i.imgur.com/JXjxSDE.jpg'; // Fantasy landscape with castle and mountains
