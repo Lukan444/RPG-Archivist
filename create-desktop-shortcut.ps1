@@ -38,7 +38,7 @@ $Shortcut.Description = "Start RPG Archivist Application"
 $Shortcut.WorkingDirectory = (Get-Location).Path
 
 # Use the custom icon if it was created, otherwise use a system icon
-if (Test-Path $iconPath -and $iconPath -ne "shell32.dll,22") {
+if ((Test-Path $iconPath) -and (-not $iconPath.Contains("shell32.dll"))) {
     $Shortcut.IconLocation = $iconPath
 } else {
     $Shortcut.IconLocation = "shell32.dll,22" # Fallback to system icon
