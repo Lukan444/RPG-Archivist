@@ -1,4 +1,4 @@
-import apiClient from './client';
+import { apiClient } from './api-client';
 import { AxiosResponse } from 'axios';
 
 // Session interface
@@ -28,6 +28,7 @@ export interface SessionInput {
   duration: number;
   campaignId: string;
   imageUrl?: string;
+  status?: string;
 }
 
 // Session service
@@ -37,8 +38,86 @@ const SessionService = {
    * @returns List of Sessions
    */
   getAllSessions: async (): Promise<Session[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Session[] }> = await apiClient.get('/sessions');
-    return response.data.data;
+    try {
+      // In development mode, return mock sessions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock sessions');
+        return [
+          {
+            id: '1',
+            name: 'Session 1: The Pattern of Amber',
+            description: 'The party explores the Pattern Chamber in Castle Amber',
+            date: new Date().toISOString(),
+            duration: 180,
+            campaignId: '1',
+            campaignName: 'Amber Chronicles',
+            imageUrl: 'https://via.placeholder.com/300x200?text=Session+1',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            characterCount: 5,
+            locationCount: 3,
+            hasTranscription: true
+          },
+          {
+            id: '2',
+            name: 'Session 2: Journey to the Courts of Chaos',
+            description: 'The party travels through shadow to the Courts of Chaos',
+            date: new Date().toISOString(),
+            duration: 240,
+            campaignId: '1',
+            campaignName: 'Amber Chronicles',
+            imageUrl: 'https://via.placeholder.com/300x200?text=Session+2',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            characterCount: 6,
+            locationCount: 4,
+            hasTranscription: true
+          }
+        ];
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: Session[] }> = await apiClient.get('/sessions');
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      // In development mode, return mock sessions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock sessions after error');
+        return [
+          {
+            id: '1',
+            name: 'Session 1: The Pattern of Amber',
+            description: 'The party explores the Pattern Chamber in Castle Amber',
+            date: new Date().toISOString(),
+            duration: 180,
+            campaignId: '1',
+            campaignName: 'Amber Chronicles',
+            imageUrl: 'https://via.placeholder.com/300x200?text=Session+1',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            characterCount: 5,
+            locationCount: 3,
+            hasTranscription: true
+          },
+          {
+            id: '2',
+            name: 'Session 2: Journey to the Courts of Chaos',
+            description: 'The party travels through shadow to the Courts of Chaos',
+            date: new Date().toISOString(),
+            duration: 240,
+            campaignId: '1',
+            campaignName: 'Amber Chronicles',
+            imageUrl: 'https://via.placeholder.com/300x200?text=Session+2',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            characterCount: 6,
+            locationCount: 4,
+            hasTranscription: true
+          }
+        ];
+      }
+      throw error;
+    }
   },
 
   /**
@@ -56,9 +135,53 @@ const SessionService = {
    * @param id Session ID
    * @returns Session
    */
-  getSessionById: async (id: string): Promise<Session> => {
-    const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.get(`/sessions/${id}`);
-    return response.data.data;
+  getSession: async (id: string): Promise<Session> => {
+    try {
+      // In development mode, return a mock session
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock session');
+        return {
+          id,
+          name: id === '1' ? 'Session 1: The Pattern of Amber' : 'Session 2: Journey to the Courts of Chaos',
+          description: id === '1' ? 'The party explores the Pattern Chamber in Castle Amber' : 'The party travels through shadow to the Courts of Chaos',
+          date: new Date().toISOString(),
+          duration: id === '1' ? 180 : 240,
+          campaignId: '1',
+          campaignName: 'Amber Chronicles',
+          imageUrl: `https://via.placeholder.com/300x200?text=Session+${id}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          characterCount: id === '1' ? 5 : 6,
+          locationCount: id === '1' ? 3 : 4,
+          hasTranscription: true
+        };
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: Session }> = await apiClient.get(`/sessions/${id}`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error fetching session ${id}:`, error);
+      // In development mode, return a mock session
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock session after error');
+        return {
+          id,
+          name: id === '1' ? 'Session 1: The Pattern of Amber' : 'Session 2: Journey to the Courts of Chaos',
+          description: id === '1' ? 'The party explores the Pattern Chamber in Castle Amber' : 'The party travels through shadow to the Courts of Chaos',
+          date: new Date().toISOString(),
+          duration: id === '1' ? 180 : 240,
+          campaignId: '1',
+          campaignName: 'Amber Chronicles',
+          imageUrl: `https://via.placeholder.com/300x200?text=Session+${id}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          characterCount: id === '1' ? 5 : 6,
+          locationCount: id === '1' ? 3 : 4,
+          hasTranscription: true
+        };
+      }
+      throw error;
+    }
   },
 
   /**

@@ -8,12 +8,14 @@ export interface Transcription {
   full_text: string;
   segments: TranscriptionSegment[];
   language_code: string;
+  language: string; // Added for compatibility
   confidence_score: number;
   word_count: number;
   processing_time_seconds: number;
   service_used: string;
   created_at: string;
   updated_at: string;
+  created_by?: string; // Added for compatibility
   metadata: TranscriptionMetadata;
 }
 

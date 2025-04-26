@@ -37,10 +37,10 @@ const TabPanel = (props: TabPanelProps) => {
 
   return (
     <div
-      role= tabpanel
+      role="tabpanel"
       hidden={value !== index}
-      id={image-upload-tabpanel-}
-      aria-labelledby={image-upload-tab-}
+      id={`image-upload-tabpanel-${index}`}
+      aria-labelledby={`image-upload-tab-${index}`}
       {...other}
     >
       {value === index && (
@@ -75,61 +75,61 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
-  
+
   // State for AI image generation
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationPrompt, setGenerationPrompt] = useState('');
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
-  
+
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-  
+
   // Handle drag events
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
-  
+
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   }, []);
-  
+
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
-  
+
   // Handle file drop
   const handleDrop = useCallback(
     async (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
-      
+
       const files = e.dataTransfer.files;
       if (files && files.length > 0) {
         const file = files[0];
-        
+
         // Check if file is an image
         if (!file.type.startsWith('image/')) {
           setError('Please upload an image file (JPEG, PNG, etc.)');
           return;
         }
-        
+
         // Check file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           setError('Image size should be less than 5MB');
           return;
         }
-        
+
         try {
           setIsUploading(true);
           setError(null);
@@ -144,26 +144,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     },
     [onImageUpload]
   );
-  
+
   // Handle file selection
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
         const file = files[0];
-        
+
         // Check if file is an image
         if (!file.type.startsWith('image/')) {
           setError('Please upload an image file (JPEG, PNG, etc.)');
           return;
         }
-        
+
         // Check file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           setError('Image size should be less than 5MB');
           return;
         }
-        
+
         try {
           setIsUploading(true);
           setError(null);
@@ -178,21 +178,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     },
     [onImageUpload]
   );
-  
+
   // Handle browse button click
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, []);
-  
+
   // Handle image delete
   const handleDelete = useCallback(() => {
     if (onImageDelete) {
       onImageDelete();
     }
   }, [onImageDelete]);
-  
+
   // Handle AI generation dialog
   const handleGenerateDialogOpen = () => {
     setShowGenerateDialog(true);
@@ -201,34 +201,34 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       let prompt = '';
       switch (entityType.toLowerCase()) {
         case 'world':
-          prompt = A fantasy world map of ;
+          prompt = `A fantasy world map of ${entityName}`;
           break;
         case 'campaign':
-          prompt = A fantasy campaign scene for ;
+          prompt = `A fantasy campaign scene for ${entityName}`;
           break;
         case 'character':
-          prompt = A fantasy character portrait of ;
+          prompt = `A fantasy character portrait of ${entityName}`;
           break;
         case 'location':
-          prompt = A fantasy location scene of ;
+          prompt = `A fantasy location scene of ${entityName}`;
           break;
         default:
-          prompt = A fantasy image of ;
+          prompt = `A fantasy image of ${entityName}`;
       }
       setGenerationPrompt(prompt);
     }
   };
-  
+
   const handleGenerateDialogClose = () => {
     setShowGenerateDialog(false);
   };
-  
+
   // Handle AI image generation
   const handleGenerateImage = async () => {
     if (!onImageGenerate || !generationPrompt.trim()) {
       return;
     }
-    
+
     try {
       setIsGenerating(true);
       setError(null);
@@ -241,41 +241,41 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       setIsGenerating(false);
     }
   };
-  
+
   return (
     <>
       {/* Image upload area */}
       <Box sx={{ mb: 2 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange} 
-          aria-label=image upload tabs
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          aria-label="image upload tabs"
           centered
         >
-          <Tab 
-            icon={<CloudUploadIcon />} 
-            label=Upload 
-            id=image-upload-tab-0 
-            aria-controls=image-upload-tabpanel-0 
+          <Tab
+            icon={<CloudUploadIcon />}
+            label="Upload"
+            id="image-upload-tab-0"
+            aria-controls="image-upload-tabpanel-0"
           />
           {onImageGenerate && (
-            <Tab 
-              icon={<AutoFixHighIcon />} 
-              label=Generate 
-              id=image-upload-tab-1 
-              aria-controls=image-upload-tabpanel-1 
+            <Tab
+              icon={<AutoFixHighIcon />}
+              label="Generate"
+              id="image-upload-tab-1"
+              aria-controls="image-upload-tabpanel-1"
             />
           )}
         </Tabs>
-        
+
         {/* Upload Tab */}
         <TabPanel value={tabValue} index={0}>
           {imageUrl ? (
             <Box sx={{ position: 'relative' }}>
               <Box
-                component=img
+                component="img"
                 src={imageUrl}
-                alt={${entityType} image}
+                alt={`${entityType} image`}
                 sx={{
                   width: '100%',
                   height: 'auto',
@@ -296,13 +296,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                   p: 0.5,
                 }}
               >
-                <Tooltip title=Delete image>
+                <Tooltip title="Delete image">
                   <IconButton
-                    size=small
+                    size="small"
                     onClick={handleDelete}
                     sx={{ color: 'white' }}
                   >
-                    <DeleteIcon fontSize=small />
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -328,49 +328,49 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               {isUploading ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <CircularProgress size={40} sx={{ mb: 2 }} />
-                  <Typography variant=body1>Uploading image...</Typography>
+                  <Typography variant="body1">Uploading image...</Typography>
                 </Box>
               ) : (
                 <>
-                  <ImageIcon color=primary sx={{ fontSize: 48, mb: 2 }} />
-                  <Typography variant=h6 gutterBottom>
+                  <ImageIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
                     {isDragging ? 'Drop image here' : 'Drag & drop image here'}
                   </Typography>
-                  <Typography variant=body2 color=text.secondary paragraph>
+                  <Typography variant="body2" color="text.secondary" paragraph>
                     or
                   </Typography>
                   <Button
-                    variant=outlined
+                    variant="outlined"
                     startIcon={<CloudUploadIcon />}
                     onClick={handleBrowseClick}
                   >
                     Browse Files
                   </Button>
-                  <Typography variant=caption color=text.secondary sx={{ display: 'block', mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                     Supports: JPEG, PNG, WebP (max 5MB)
                   </Typography>
                 </>
               )}
               <input
-                type=file
+                type="file"
                 ref={fileInputRef}
                 onChange={handleFileSelect}
-                accept=image/*
+                accept="image/*"
                 style={{ display: 'none' }}
               />
             </Paper>
           )}
         </TabPanel>
-        
+
         {/* Generate Tab */}
         {onImageGenerate && (
           <TabPanel value={tabValue} index={1}>
             {imageUrl ? (
               <Box sx={{ position: 'relative' }}>
                 <Box
-                  component=img
+                  component="img"
                   src={imageUrl}
-                  alt={${entityType} image}
+                  alt={`${entityType} image`}
                   sx={{
                     width: '100%',
                     height: 'auto',
@@ -391,13 +391,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     p: 0.5,
                   }}
                 >
-                  <Tooltip title=Delete image>
+                  <Tooltip title="Delete image">
                     <IconButton
-                      size=small
+                      size="small"
                       onClick={handleDelete}
                       sx={{ color: 'white' }}
                     >
-                      <DeleteIcon fontSize=small />
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -412,15 +412,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                   textAlign: 'center',
                 }}
               >
-                <AutoFixHighIcon color=primary sx={{ fontSize: 48, mb: 2 }} />
-                <Typography variant=h6 gutterBottom>
+                <AutoFixHighIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
                   Generate an AI image
                 </Typography>
-                <Typography variant=body2 color=text.secondary paragraph>
+                <Typography variant="body2" color="text.secondary" paragraph>
                   Create a custom image using AI
                 </Typography>
                 <Button
-                  variant=outlined
+                  variant="outlined"
                   startIcon={<AutoFixHighIcon />}
                   onClick={handleGenerateDialogOpen}
                 >
@@ -430,40 +430,40 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             )}
           </TabPanel>
         )}
-        
+
         {/* Error message */}
         {error && (
-          <Alert severity=error sx={{ mt: 2 }}>
+          <Alert severity="error" sx={{ mt: 2 }}>
             {error}
           </Alert>
         )}
       </Box>
-      
+
       {/* AI Image Generation Dialog */}
       <Dialog
         open={showGenerateDialog}
         onClose={handleGenerateDialogClose}
-        maxWidth=sm
+        maxWidth="sm"
         fullWidth
       >
         <DialogTitle>Generate AI Image</DialogTitle>
         <DialogContent>
-          <Typography variant=body2 color=text.secondary paragraph>
+          <Typography variant="body2" color="text.secondary" paragraph>
             Describe the image you want to generate for this {entityType.toLowerCase()}.
           </Typography>
           <TextField
             autoFocus
-            label=Image Description
+            label="Image Description"
             fullWidth
             multiline
             rows={4}
             value={generationPrompt}
             onChange={(e) => setGenerationPrompt(e.target.value)}
-            placeholder={Describe how you want the  to look...}
-            variant=outlined
+            placeholder="Describe how you want the image to look..."
+            variant="outlined"
             sx={{ mb: 2 }}
           />
-          <Typography variant=caption color=text.secondary>
+          <Typography variant="caption" color="text.secondary">
             Tip: Be specific about style, colors, mood, and details for better results.
           </Typography>
         </DialogContent>
@@ -471,8 +471,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <Button onClick={handleGenerateDialogClose}>Cancel</Button>
           <Button
             onClick={handleGenerateImage}
-            variant=contained
-            color=primary
+            variant="contained"
+            color="primary"
             disabled={isGenerating || !generationPrompt.trim()}
             startIcon={isGenerating ? <CircularProgress size={20} /> : <AutoFixHighIcon />}
           >

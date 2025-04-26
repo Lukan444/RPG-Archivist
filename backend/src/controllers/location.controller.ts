@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Location } from '../models/location.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Location controller for handling location-related requests
  */
@@ -14,11 +22,23 @@ export class LocationController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all locations
    * @param req Express request
    * @param res Express response
    */
-  public async getAllLocations(req: Request, res: Response): Promise<void> {
+  public async getAllLocations(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
@@ -29,16 +49,13 @@ export class LocationController {
       const parentLocationId = req.query.parent_location_id as string;
 
       // Get locations
-      const { locations, total } = await this.repositoryFactory.getLocationRepository().findAll(
+      const { locations, total } = await this.repositoryFactory.getLocationRepository().findAll({
         campaignId,
+        parentId: parentLocationId,
         page,
         limit,
-        req.query.sort as string || 'name',
-        req.query.order as 'asc' | 'desc' || 'asc',
-        search,
-        locationType,
-        parentLocationId
-      );
+        search
+      });
 
       // Return response
       res.status(200).json({
@@ -57,7 +74,8 @@ export class LocationController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting locations'
+          message: 'An error occurred while getting locations',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -68,7 +86,7 @@ export class LocationController {
    * @param req Express request
    * @param res Express response
    */
-  public async getLocationById(req: Request, res: Response): Promise<void> {
+  public async getLocationById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get location ID from request parameters
       const locationId = req.params.id;
@@ -90,7 +108,7 @@ export class LocationController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -113,7 +131,8 @@ export class LocationController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting location'
+          message: 'An error occurred while getting location',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -124,7 +143,7 @@ export class LocationController {
    * @param req Express request
    * @param res Express response
    */
-  public async createLocation(req: Request, res: Response): Promise<void> {
+  public async createLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -157,7 +176,7 @@ export class LocationController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -196,13 +215,16 @@ export class LocationController {
       }
 
       // Create location
+      const now = new Date().toISOString();
       const location = await this.repositoryFactory.getLocationRepository().create({
         campaign_id: req.body.campaign_id,
         name: req.body.name,
         description: req.body.description,
         location_type: req.body.location_type,
-        parent_location_id: req.body.parent_location_id
-      }, userId);
+        parent_location_id: req.body.parent_location_id,
+        created_at: now,
+        created_by: userId || 'system'
+      });
 
       // Return response
       res.status(201).json({
@@ -215,7 +237,8 @@ export class LocationController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating location'
+          message: 'An error occurred while creating location',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -226,7 +249,7 @@ export class LocationController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateLocation(req: Request, res: Response): Promise<void> {
+  public async updateLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -264,7 +287,7 @@ export class LocationController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -346,7 +369,8 @@ export class LocationController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating location'
+          message: 'An error occurred while updating location',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -357,7 +381,7 @@ export class LocationController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteLocation(req: Request, res: Response): Promise<void> {
+  public async deleteLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get location ID from request parameters
       const locationId = req.params.id;
@@ -381,7 +405,7 @@ export class LocationController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(location.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -405,22 +429,26 @@ export class LocationController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete location with child locations') {
-          res.status(400).json({
-            success: false,
-            error: {
-              code: 'LOCATION_HAS_CHILDREN',
-              message: 'Cannot delete location with child locations'
-            }
-          });
-        } else if (error.message === 'Cannot delete location with associated relationships') {
-          res.status(400).json({
-            success: false,
-            error: {
-              code: 'LOCATION_HAS_RELATIONSHIPS',
-              message: 'Cannot delete location with associated relationships'
-            }
-          });
+        if (error instanceof Error) {
+          if (error.message === 'Cannot delete location with child locations') {
+            res.status(400).json({
+              success: false,
+              error: {
+                code: 'LOCATION_HAS_CHILDREN',
+                message: 'Cannot delete location with child locations'
+              }
+            });
+          } else if (error.message === 'Cannot delete location with associated relationships') {
+            res.status(400).json({
+              success: false,
+              error: {
+                code: 'LOCATION_HAS_RELATIONSHIPS',
+                message: 'Cannot delete location with associated relationships'
+              }
+            });
+          } else {
+            throw error;
+          }
         } else {
           throw error;
         }
@@ -431,7 +459,8 @@ export class LocationController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting location'
+          message: 'An error occurred while deleting location',
+          details: this.getErrorMessage(error)
         }
       });
     }

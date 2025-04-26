@@ -36,26 +36,26 @@ export const changeProposalRoutes = (
   const changeProposalController = new ChangeProposalController(changeProposalService);
 
   // Proposal routes
-  router.get('/', authenticate(), changeProposalController.getProposals);
-  router.post('/', authenticate(), changeProposalController.createProposal);
-  router.get('/:id', authenticate(), changeProposalController.getProposal);
-  router.put('/:id', authenticate(), changeProposalController.updateProposal);
-  router.delete('/:id', authenticate(), changeProposalController.deleteProposal);
+  router.get('/', authenticate, changeProposalController.getProposals);
+  router.post('/', authenticate, changeProposalController.createProposal);
+  router.get('/:id', authenticate, changeProposalController.getProposal);
+  router.put('/:id', authenticate, changeProposalController.updateProposal);
+  router.delete('/:id', authenticate, changeProposalController.deleteProposal);
 
   // Proposal actions
-  router.post('/:id/comments', authenticate(), changeProposalController.addComment);
-  router.post('/:id/review', authenticate(), changeProposalController.reviewProposal);
-  router.post('/:id/apply', authenticate(), changeProposalController.applyProposal);
+  router.post('/:id/comments', authenticate, changeProposalController.addComment);
+  router.post('/:id/review', authenticate, changeProposalController.reviewProposal);
+  router.post('/:id/apply', authenticate, changeProposalController.applyProposal);
 
   // Proposal generation
-  router.post('/generate', authenticate(), changeProposalController.generateProposal);
+  router.post('/generate', authenticate, changeProposalController.generateProposal);
 
   // Template routes
-  router.get('/templates', authenticate(), changeProposalController.getTemplates);
-  router.post('/templates', authenticate(), adminOnly(), changeProposalController.createTemplate);
-  router.get('/templates/:id', authenticate(), changeProposalController.getTemplate);
-  router.put('/templates/:id', authenticate(), adminOnly(), changeProposalController.updateTemplate);
-  router.delete('/templates/:id', authenticate(), adminOnly(), changeProposalController.deleteTemplate);
+  router.get('/templates', authenticate, changeProposalController.getTemplates);
+  router.post('/templates', authenticate, adminOnly(), changeProposalController.createTemplate);
+  router.get('/templates/:id', authenticate, changeProposalController.getTemplate);
+  router.put('/templates/:id', authenticate, adminOnly(), changeProposalController.updateTemplate);
+  router.delete('/templates/:id', authenticate, adminOnly(), changeProposalController.deleteTemplate);
 
   return router;
 };

@@ -2,6 +2,14 @@ import { Request, Response } from 'express';
 import { GraphService } from '../services/graph.service';
 import { NodeType, EdgeType } from '../models/graph.model';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
+
 /**
  * Controller for graph data
  */
@@ -18,11 +26,23 @@ export class GraphController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get graph data
    * @param req Request
    * @param res Response
    */
-  public async getGraphData(req: Request, res: Response): Promise<void> {
+  public async getGraphData(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Parse query parameters
       const worldId = req.query.worldId as string;
@@ -72,7 +92,7 @@ export class GraphController {
         success: false,
         error: {
           message: 'Failed to get graph data',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -83,7 +103,7 @@ export class GraphController {
    * @param req Request
    * @param res Response
    */
-  public async getMindMapGraph(req: Request, res: Response): Promise<void> {
+  public async getMindMapGraph(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Parse query parameters
       const depth = req.query.depth ? parseInt(req.query.depth as string) : undefined;
@@ -112,7 +132,7 @@ export class GraphController {
         success: false,
         error: {
           message: 'Failed to get mind map graph',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -123,7 +143,7 @@ export class GraphController {
    * @param req Request
    * @param res Response
    */
-  public async getHierarchyGraph(req: Request, res: Response): Promise<void> {
+  public async getHierarchyGraph(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Parse query parameters
       const worldId = req.query.worldId as string;
@@ -152,7 +172,7 @@ export class GraphController {
         success: false,
         error: {
           message: 'Failed to get hierarchy graph',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }

@@ -28,6 +28,7 @@ import {
   InputLabel,
   Select,
   ListItemIcon,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -47,31 +48,31 @@ import RPGWorldService, { RPGWorld } from '../../services/api/rpgWorld.service';
 
 const CampaignListPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State for Campaigns
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for RPG Worlds
   const [worlds, setWorlds] = useState<RPGWorld[]>([]);
   const [loadingWorlds, setLoadingWorlds] = useState(true);
-  
+
   // State for search, filter, and sort
   const [searchQuery, setSearchQuery] = useState('');
   const [worldFilter, setWorldFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortOption, setSortOption] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
+
   // State for menu and dialog
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [filterMenuAnchorEl, setFilterMenuAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   // Fetch Campaigns and Worlds
   useEffect(() => {
     const fetchData = async () => {
@@ -79,14 +80,14 @@ const CampaignListPage: React.FC = () => {
         setLoading(true);
         setLoadingWorlds(true);
         setError(null);
-        
+
         // Fetch campaigns
-        const campaignsData = await CampaignService.getAllCampaigns();
+        const campaignsData = await CampaignService.getCampaigns();
         setCampaigns(campaignsData);
         setFilteredCampaigns(campaignsData);
-        
+
         // Fetch worlds
-        const worldsData = await RPGWorldService.getAllWorlds();
+        const worldsData = await RPGWorldService.getRPGWorlds();
         setWorlds(worldsData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -96,39 +97,39 @@ const CampaignListPage: React.FC = () => {
         setLoadingWorlds(false);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   // Apply filters and sorting when campaigns, search query, filters, or sort options change
   useEffect(() => {
     let result = [...campaigns];
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (campaign) =>
           campaign.name.toLowerCase().includes(query) ||
-          campaign.description.toLowerCase().includes(query) ||
+          (campaign.description && campaign.description.toLowerCase().includes(query)) ||
           (campaign.worldName && campaign.worldName.toLowerCase().includes(query))
       );
     }
-    
+
     // Apply world filter
     if (worldFilter !== 'all') {
       result = result.filter((campaign) => campaign.worldId === worldFilter);
     }
-    
+
     // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter((campaign) => campaign.status === statusFilter);
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortOption) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
@@ -137,51 +138,51 @@ const CampaignListPage: React.FC = () => {
           comparison = (a.worldName || '').localeCompare(b.worldName || '');
           break;
         case 'status':
-          comparison = a.status.localeCompare(b.status);
+          comparison = (a.status || '').localeCompare(b.status || '');
           break;
         case 'sessions':
           comparison = (a.sessionCount || 0) - (b.sessionCount || 0);
           break;
         case 'created':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          comparison = new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
           break;
         case 'updated':
-          comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          comparison = new Date(a.updatedAt || '').getTime() - new Date(b.updatedAt || '').getTime();
           break;
         default:
           comparison = a.name.localeCompare(b.name);
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    
+
     setFilteredCampaigns(result);
   }, [campaigns, searchQuery, worldFilter, statusFilter, sortOption, sortDirection]);
-  
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
+
   // Handle world filter change
-  const handleWorldFilterChange = (e: React.ChangeEvent<{ value: unknown }>) => {
-    setWorldFilter(e.target.value as string);
+  const handleWorldFilterChange = (e: SelectChangeEvent<string>) => {
+    setWorldFilter(e.target.value);
   };
-  
+
   // Handle status filter change
-  const handleStatusFilterChange = (e: React.ChangeEvent<{ value: unknown }>) => {
-    setStatusFilter(e.target.value as string);
+  const handleStatusFilterChange = (e: SelectChangeEvent<string>) => {
+    setStatusFilter(e.target.value);
   };
-  
+
   // Handle sort menu
   const handleSortMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSortMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleSortMenuClose = () => {
     setSortMenuAnchorEl(null);
   };
-  
+
   const handleSortOptionSelect = (option: string) => {
     if (option === sortOption) {
       // Toggle direction if same option
@@ -193,53 +194,53 @@ const CampaignListPage: React.FC = () => {
     }
     handleSortMenuClose();
   };
-  
+
   // Handle filter menu
   const handleFilterMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setFilterMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleFilterMenuClose = () => {
     setFilterMenuAnchorEl(null);
   };
-  
+
   // Handle campaign menu
   const handleCampaignMenuOpen = (event: React.MouseEvent<HTMLElement>, campaignId: string) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
     setSelectedCampaignId(campaignId);
   };
-  
+
   const handleCampaignMenuClose = () => {
     setMenuAnchorEl(null);
     setSelectedCampaignId(null);
   };
-  
+
   // Handle campaign actions
   const handleViewCampaign = (campaignId: string) => {
-    navigate(/campaigns/);
+    navigate(`/campaigns/${campaignId}`);
     handleCampaignMenuClose();
   };
-  
+
   const handleEditCampaign = (event: React.MouseEvent, campaignId: string) => {
     event.stopPropagation();
-    navigate(/campaigns//edit);
+    navigate(`/campaigns/${campaignId}/edit`);
     handleCampaignMenuClose();
   };
-  
+
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
     handleCampaignMenuClose();
   };
-  
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setSelectedCampaignId(null);
   };
-  
+
   const handleDeleteConfirm = async () => {
     if (!selectedCampaignId) return;
-    
+
     try {
       await CampaignService.deleteCampaign(selectedCampaignId);
       setCampaigns(campaigns.filter((campaign) => campaign.id !== selectedCampaignId));
@@ -250,15 +251,15 @@ const CampaignListPage: React.FC = () => {
       setError('Failed to delete campaign. Please try again.');
     }
   };
-  
+
   const handleCreateCampaign = () => {
     navigate('/campaigns/create');
   };
-  
+
   const handleCampaignClick = (campaignId: string) => {
-    navigate(/campaigns/);
+    navigate(`/campaigns/${campaignId}`);
   };
-  
+
   // Get status chip color
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -272,37 +273,37 @@ const CampaignListPage: React.FC = () => {
         return 'default';
     }
   };
-  
+
   // Render loading skeletons
   const renderSkeletons = () => {
     return Array.from({ length: 6 }).map((_, index) => (
-      <Grid item xs={12} sm={6} md={4} key={skeleton-}>
+      <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
         <Card sx={{ height: '100%' }}>
-          <Skeleton variant= rectangular height={140} />
+          <Skeleton variant="rectangular" height={140} />
           <CardContent>
-            <Skeleton variant=text height={32} width=80% />
-            <Skeleton variant=text height={20} width=50% />
-            <Skeleton variant=text height={20} width=40% />
-            <Skeleton variant=text height={80} />
+            <Skeleton variant="text" height={32} width="80%" />
+            <Skeleton variant="text" height={20} width="50%" />
+            <Skeleton variant="text" height={20} width="40%" />
+            <Skeleton variant="text" height={80} />
           </CardContent>
         </Card>
       </Grid>
     ));
   };
-  
+
   return (
-    <Container maxWidth=lg>
+    <Container maxWidth="lg">
       <PageHeader
-        title=Campaigns
-        subtitle=Manage your RPG campaigns
+        title="Campaigns"
+        subtitle="Manage your RPG campaigns"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Campaigns' },
         ]}
-        action={
+        actions={
           <Button
-            variant=contained
-            color=primary
+            variant="contained"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={handleCreateCampaign}
           >
@@ -310,39 +311,39 @@ const CampaignListPage: React.FC = () => {
           </Button>
         }
       />
-      
+
       {/* Search, filter, and sort bar */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          placeholder=Search campaigns...
-          variant=outlined
-          size=small
+          placeholder="Search campaigns..."
+          variant="outlined"
+          size="small"
           fullWidth
           sx={{ flexGrow: 1, minWidth: '200px', maxWidth: { xs: '100%', sm: '300px' } }}
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
             startAdornment: (
-              <InputAdornment position=start>
-                <SearchIcon color=action />
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
               </InputAdornment>
             ),
           }}
         />
-        
-        <FormControl 
-          size=small 
+
+        <FormControl
+          size="small"
           sx={{ minWidth: '150px', flexGrow: { xs: 1, md: 0 } }}
         >
-          <InputLabel id=world-filter-label>World</InputLabel>
+          <InputLabel id="world-filter-label">World</InputLabel>
           <Select
-            labelId=world-filter-label
-            id=world-filter
+            labelId="world-filter-label"
+            id="world-filter"
             value={worldFilter}
-            label=World
+            label="World"
             onChange={handleWorldFilterChange}
           >
-            <MenuItem value=all>All Worlds</MenuItem>
+            <MenuItem value="all">All Worlds</MenuItem>
             {worlds.map((world) => (
               <MenuItem key={world.id} value={world.id}>
                 {world.name}
@@ -350,113 +351,113 @@ const CampaignListPage: React.FC = () => {
             ))}
           </Select>
         </FormControl>
-        
-        <FormControl 
-          size=small 
+
+        <FormControl
+          size="small"
           sx={{ minWidth: '120px', flexGrow: { xs: 1, md: 0 } }}
         >
-          <InputLabel id=status-filter-label>Status</InputLabel>
+          <InputLabel id="status-filter-label">Status</InputLabel>
           <Select
-            labelId=status-filter-label
-            id=status-filter
+            labelId="status-filter-label"
+            id="status-filter"
             value={statusFilter}
-            label=Status
+            label="Status"
             onChange={handleStatusFilterChange}
           >
-            <MenuItem value=all>All Status</MenuItem>
-            <MenuItem value=planned>Planned</MenuItem>
-            <MenuItem value=active>Active</MenuItem>
-            <MenuItem value=completed>Completed</MenuItem>
+            <MenuItem value="all">All Status</MenuItem>
+            <MenuItem value="planned">Planned</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="completed">Completed</MenuItem>
           </Select>
         </FormControl>
-        
-        <Tooltip title=Sort campaigns>
+
+        <Tooltip title="Sort campaigns">
           <Button
-            variant=outlined
+            variant="outlined"
             startIcon={<SortIcon />}
             onClick={handleSortMenuOpen}
-            size=medium
+            size="medium"
           >
-            {sortOption === 'name' ? 'Name' : 
-             sortOption === 'world' ? 'World' : 
-             sortOption === 'status' ? 'Status' : 
-             sortOption === 'sessions' ? 'Sessions' : 
-             sortOption === 'created' ? 'Created' : 
+            {sortOption === 'name' ? 'Name' :
+             sortOption === 'world' ? 'World' :
+             sortOption === 'status' ? 'Status' :
+             sortOption === 'sessions' ? 'Sessions' :
+             sortOption === 'created' ? 'Created' :
              sortOption === 'updated' ? 'Updated' : 'Sort'}
-            {sortDirection === 'asc' ? ' ^' : ' ¡'}
+            {sortDirection === 'asc' ? ' ^' : ' ï¿½'}
           </Button>
         </Tooltip>
-        
+
         <Menu
           anchorEl={sortMenuAnchorEl}
           open={Boolean(sortMenuAnchorEl)}
           onClose={handleSortMenuClose}
         >
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('name')}
             selected={sortOption === 'name'}
           >
-            Name {sortOption === 'name' && (sortDirection === 'asc' ? '^' : '¡')}
+            Name {sortOption === 'name' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('world')}
             selected={sortOption === 'world'}
           >
-            World {sortOption === 'world' && (sortDirection === 'asc' ? '^' : '¡')}
+            World {sortOption === 'world' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('status')}
             selected={sortOption === 'status'}
           >
-            Status {sortOption === 'status' && (sortDirection === 'asc' ? '^' : '¡')}
+            Status {sortOption === 'status' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('sessions')}
             selected={sortOption === 'sessions'}
           >
-            Sessions {sortOption === 'sessions' && (sortDirection === 'asc' ? '^' : '¡')}
+            Sessions {sortOption === 'sessions' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
           <Divider />
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('created')}
             selected={sortOption === 'created'}
           >
-            Created Date {sortOption === 'created' && (sortDirection === 'asc' ? '^' : '¡')}
+            Created Date {sortOption === 'created' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('updated')}
             selected={sortOption === 'updated'}
           >
-            Updated Date {sortOption === 'updated' && (sortDirection === 'asc' ? '^' : '¡')}
+            Updated Date {sortOption === 'updated' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
         </Menu>
       </Box>
-      
+
       {/* Error message */}
       {error && (
-        <Alert severity=error sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-      
+
       {/* Empty state */}
       {!loading && filteredCampaigns.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <CampaignIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant=h6 gutterBottom>
+          <Typography variant="h6" gutterBottom>
             {searchQuery || worldFilter !== 'all' || statusFilter !== 'all'
               ? 'No campaigns match your filters'
               : 'No campaigns yet'}
           </Typography>
-          <Typography variant=body1 color=text.secondary paragraph>
+          <Typography variant="body1" color="text.secondary" paragraph>
             {searchQuery || worldFilter !== 'all' || statusFilter !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Create your first campaign to get started'}
           </Typography>
           {!searchQuery && worldFilter === 'all' && statusFilter === 'all' && (
             <Button
-              variant=contained
-              color=primary
+              variant="contained"
+              color="primary"
               startIcon={<AddIcon />}
               onClick={handleCreateCampaign}
               sx={{ mt: 2 }}
@@ -466,7 +467,7 @@ const CampaignListPage: React.FC = () => {
           )}
         </Box>
       )}
-      
+
       {/* Campaign grid */}
       <Grid container spacing={3}>
         {loading ? (
@@ -474,10 +475,10 @@ const CampaignListPage: React.FC = () => {
         ) : (
           filteredCampaigns.map((campaign) => (
             <Grid item xs={12} sm={6} md={4} key={campaign.id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
@@ -489,45 +490,45 @@ const CampaignListPage: React.FC = () => {
                 onClick={() => handleCampaignClick(campaign.id)}
               >
                 <CardMedia
-                  component=img
-                  height=140
+                  component="img"
+                  height="140"
                   image={campaign.imageUrl || '/placeholder-campaign.jpg'}
                   alt={campaign.name}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Typography variant=h6 component=div gutterBottom>
+                    <Typography variant="h6" component="div" gutterBottom>
                       {campaign.name}
                     </Typography>
                     <IconButton
-                      size=small
+                      size="small"
                       onClick={(e) => handleCampaignMenuOpen(e, campaign.id)}
-                      aria-label=campaign options
+                      aria-label="campaign options"
                     >
                       <MoreVertIcon />
                     </IconButton>
                   </Box>
-                  
+
                   <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                    <Chip 
-                      label={campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)} 
-                      size=small 
-                      color={getStatusColor(campaign.status) as any}
-                      variant=outlined 
+                    <Chip
+                      label={campaign.status ? campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1) : 'Unknown'}
+                      size="small"
+                      color={getStatusColor(campaign.status || '') as any}
+                      variant="outlined"
                     />
                     {campaign.worldName && (
-                      <Chip 
-                        label={campaign.worldName} 
-                        size=small 
-                        color=primary 
-                        variant=outlined 
+                      <Chip
+                        label={campaign.worldName}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
                       />
                     )}
                   </Box>
-                  
-                  <Typography 
-                    variant=body2 
-                    color=text.secondary
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -539,10 +540,10 @@ const CampaignListPage: React.FC = () => {
                   >
                     {campaign.description}
                   </Typography>
-                  
+
                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 'auto' }}>
-                    <EventIcon fontSize=small color=action sx={{ mr: 0.5 }} />
-                    <Typography variant=body2 color=text.secondary>
+                    <EventIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                    <Typography variant="body2" color="text.secondary">
                       {campaign.sessionCount || 0} {campaign.sessionCount === 1 ? 'Session' : 'Sessions'}
                     </Typography>
                   </Box>
@@ -552,7 +553,7 @@ const CampaignListPage: React.FC = () => {
           ))
         )}
       </Grid>
-      
+
       {/* Campaign options menu */}
       <Menu
         anchorEl={menuAnchorEl}
@@ -561,25 +562,25 @@ const CampaignListPage: React.FC = () => {
       >
         <MenuItem onClick={() => selectedCampaignId && handleViewCampaign(selectedCampaignId)}>
           <ListItemIcon>
-            <VisibilityIcon fontSize=small />
+            <VisibilityIcon fontSize="small" />
           </ListItemIcon>
           View
         </MenuItem>
         <MenuItem onClick={(e) => selectedCampaignId && handleEditCampaign(e, selectedCampaignId)}>
           <ListItemIcon>
-            <EditIcon fontSize=small />
+            <EditIcon fontSize="small" />
           </ListItemIcon>
           Edit
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <ListItemIcon>
-            <DeleteIcon fontSize=small color=error />
+            <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
           Delete
         </MenuItem>
       </Menu>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
@@ -594,7 +595,7 @@ const CampaignListPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color=error variant=contained>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

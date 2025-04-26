@@ -1,10 +1,11 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Box, Container, Typography } from '@mui/material';
 
 // Import components
 import { MainLayout, AuthLayout } from './components/layouts';
 import { LoadingScreen } from './components/ui';
+import { SingleInstanceCheck } from './components/system';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Lazy load pages
@@ -76,14 +77,7 @@ const ContentAnalysisPage = lazy(() => import('./pages/content-analysis/ContentA
 // Search page
 const SearchPage = lazy(() => import('./pages/search/SearchPage'));
 
-// Create a simple HomePage component
-const HomePageComponent: React.FC = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-    <Typography variant="h2" component="h1" align="center">
-      Welcome to RPG Archivist Web
-    </Typography>
-  </Box>
-);
+// HomePage is already imported above
 
 // Protected route component
 interface ProtectedRouteProps {
@@ -111,7 +105,7 @@ const AppRoutes: React.FC = () => {
     <Suspense fallback={<LoadingScreen fullScreen />}>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<HomePageComponent />} />
+        <Route path="/" element={<HomePage />} />
 
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
@@ -232,9 +226,21 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const [isInstanceResolved, setIsInstanceResolved] = useState(false);
+
+  const handleInstanceResolved = () => {
+    setIsInstanceResolved(true);
+  };
+
   return (
     <AuthProvider>
-      <AppRoutes />
+      {!isInstanceResolved ? (
+        <SingleInstanceCheck
+          onInstanceResolved={handleInstanceResolved}
+        />
+      ) : (
+        <AppRoutes />
+      )}
     </AuthProvider>
   );
 };

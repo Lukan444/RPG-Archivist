@@ -19,7 +19,8 @@ import {
   Checkbox,
   Card,
   CardContent,
-  CardActions
+  CardActions,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   ContentAnalysisService,
@@ -28,9 +29,44 @@ import {
   ContentAnalysisRequest,
   ContentAnalysisResult
 } from '../../services/api/content-analysis.service';
-import { LLMService, LLMModel } from '../../services/api/llm.service';
-import { TranscriptionService } from '../../services/api/transcription.service';
-import { SessionAnalysisService } from '../../services/api/session-analysis.service';
+import TranscriptionService, { TranscriptionStatus } from '../../services/api/transcription.service';
+import SessionAnalysisService, { AnalysisStatus } from '../../services/api/session-analysis.service';
+
+// LLM model interface
+interface LLMModel {
+  id: string;
+  name: string;
+  provider: string;
+  maxTokens: number;
+  capabilities: string[];
+}
+
+// Mock LLM service
+const LLMService = {
+  getModels: async (): Promise<LLMModel[]> => {
+    return [
+      {
+        id: 'gpt-4',
+        name: 'GPT-4',
+        provider: 'OpenAI',
+        maxTokens: 8192,
+        capabilities: ['text-generation', 'content-analysis']
+      },
+      {
+        id: 'gpt-3.5-turbo',
+        name: 'GPT-3.5 Turbo',
+        provider: 'OpenAI',
+        maxTokens: 4096,
+        capabilities: ['text-generation', 'content-analysis']
+      }
+    ];
+  },
+  getConfig: async () => {
+    return {
+      defaultModel: 'gpt-3.5-turbo'
+    };
+  }
+};
 
 interface ContentAnalyzerProps {
   contextId?: string;
@@ -85,7 +121,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
       // Fetch transcriptions if context ID is provided
       if (contextId) {
         let transcriptions: { id: string; name: string }[] = [];
-        
+
         if (contextType === 'session') {
           // Fetch transcriptions for session
           const sessionTranscriptions = await TranscriptionService.getTranscriptionsBySessionId(contextId);
@@ -96,7 +132,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
         } else if (contextType === 'campaign') {
           // Fetch sessions for campaign
           const campaignSessions = await SessionAnalysisService.getSessionsByContextId(contextId);
-          
+
           // Fetch transcriptions for each session
           for (const session of campaignSessions) {
             const sessionTranscriptions = await TranscriptionService.getTranscriptionsBySessionId(session.id);
@@ -109,7 +145,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
             ];
           }
         }
-        
+
         setTranscriptions(transcriptions);
 
         // Fetch sessions if context is campaign
@@ -134,16 +170,16 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
     }
   };
 
-  const handleModelChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedModel(event.target.value as string);
+  const handleModelChange = (event: SelectChangeEvent<string>) => {
+    setSelectedModel(event.target.value);
   };
 
-  const handleTranscriptionChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedTranscription(event.target.value as string);
+  const handleTranscriptionChange = (event: SelectChangeEvent<string>) => {
+    setSelectedTranscription(event.target.value);
   };
 
-  const handleSessionChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedSession(event.target.value as string);
+  const handleSessionChange = (event: SelectChangeEvent<string>) => {
+    setSelectedSession(event.target.value);
   };
 
   const handleCustomContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,11 +196,11 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
     });
   };
 
-  const handleMinConfidenceChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleMinConfidenceChange = (event: SelectChangeEvent<ConfidenceLevel>) => {
     setMinConfidence(event.target.value as ConfidenceLevel);
   };
 
-  const handleMaxResultsChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleMaxResultsChange = (event: SelectChangeEvent<number>) => {
     setMaxResults(Number(event.target.value));
   };
 
@@ -225,9 +261,9 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
 
       // Analyze content
       const result = await ContentAnalysisService.analyzeContent(request);
-      
+
       setAnalysisResult(result);
-      
+
       // Call onAnalysisComplete callback if provided
       if (onAnalysisComplete) {
         onAnalysisComplete(result);
@@ -270,19 +306,19 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
       <Typography variant="h6" gutterBottom>
         Content Analysis
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {analysisResult && (
         <Alert severity="success" sx={{ mb: 2 }}>
           Analysis completed successfully! Found {analysisResult.suggestions.length} suggestions.
         </Alert>
       )}
-      
+
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth sx={{ mb: 2 }}>
@@ -302,7 +338,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
               ))}
             </Select>
           </FormControl>
-          
+
           <Typography variant="subtitle2" gutterBottom>
             Analysis Types
           </Typography>
@@ -324,7 +360,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
               ))}
             </Grid>
           </FormGroup>
-          
+
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={6}>
               <FormControl fullWidth>
@@ -362,7 +398,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
               </FormControl>
             </Grid>
           </Grid>
-          
+
           <FormControlLabel
             control={
               <Checkbox
@@ -373,7 +409,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
             }
             label="Use custom prompt"
           />
-          
+
           {useCustomPrompt && (
             <TextField
               fullWidth
@@ -387,12 +423,12 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
             />
           )}
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <Typography variant="subtitle2" gutterBottom>
             Content Source
           </Typography>
-          
+
           {transcriptions.length > 0 && (
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel id="transcription-select-label">Transcription</InputLabel>
@@ -413,7 +449,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
               </Select>
             </FormControl>
           )}
-          
+
           {sessions.length > 0 && (
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel id="session-select-label">Session</InputLabel>
@@ -434,7 +470,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
               </Select>
             </FormControl>
           )}
-          
+
           <Typography variant="subtitle2" gutterBottom>
             Custom Content
           </Typography>
@@ -449,7 +485,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
             placeholder="Enter text to analyze..."
           />
         </Grid>
-        
+
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             <Button
@@ -464,28 +500,28 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
           </Box>
         </Grid>
       </Grid>
-      
+
       {analysisResult && (
         <Box sx={{ mt: 3 }}>
           <Divider sx={{ mb: 2 }} />
           <Typography variant="h6" gutterBottom>
             Analysis Results
           </Typography>
-          
+
           <Grid container spacing={2}>
             {Object.values(SuggestionType).map(type => {
               const typeSuggestions = analysisResult.suggestions.filter(s => s.type === type);
-              
+
               if (typeSuggestions.length === 0) {
                 return null;
               }
-              
+
               return (
                 <Grid item xs={12} key={type}>
                   <Typography variant="subtitle1" gutterBottom>
                     {getSuggestionTypeName(type)} ({typeSuggestions.length})
                   </Typography>
-                  
+
                   <Grid container spacing={2}>
                     {typeSuggestions.map(suggestion => (
                       <Grid item xs={12} md={6} lg={4} key={suggestion.id}>
@@ -494,7 +530,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
                             <Typography variant="h6" gutterBottom>
                               {suggestion.title}
                             </Typography>
-                            
+
                             <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
                               <Chip
                                 label={suggestion.confidence}
@@ -508,7 +544,7 @@ const ContentAnalyzer: React.FC<ContentAnalyzerProps> = ({
                                 }
                               />
                             </Box>
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               {suggestion.description}
                             </Typography>

@@ -279,8 +279,8 @@ const TranscriptionViewer: React.FC<TranscriptionViewerProps> = ({
               ? {
                   ...speaker,
                   speaker_name: editedSpeakerName.trim(),
-                  character_id: editedCharacterId,
-                  user_id: editedUserId
+                  character_id: editedCharacterId || undefined,
+                  user_id: editedUserId || undefined
                 }
               : speaker
           )
@@ -558,7 +558,7 @@ const TranscriptionViewer: React.FC<TranscriptionViewerProps> = ({
           {transcription.segments.map((segment: TranscriptionSegment, index: number) => (
             <Box
               key={segment.segment_id}
-              ref={el => segmentRefs.current[segment.segment_id] = el}
+              ref={el => segmentRefs.current[segment.segment_id] = el as HTMLDivElement}
               sx={{
                 p: 1.5,
                 mb: 1,

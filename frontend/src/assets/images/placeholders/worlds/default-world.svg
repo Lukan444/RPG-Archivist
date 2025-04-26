@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800px" height="600px" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Default World Map</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="worldGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#00696b" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="landGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="#f5f5f5" x="0" y="0" width="800" height="600"></rect>
+        
+        <!-- World Circle -->
+        <circle fill="url(#worldGradient)" cx="400" cy="300" r="250" opacity="0.9"></circle>
+        
+        <!-- Continents -->
+        <path d="M300,200 C350,180 400,190 450,200 C500,210 520,250 530,300 C540,350 520,400 480,420 C440,440 400,430 350,410 C300,390 280,350 270,300 C260,250 280,220 300,200 Z" fill="url(#landGradient)" opacity="0.9"></path>
+        <path d="M350,150 C370,140 390,145 410,150 C430,155 440,175 445,200 C450,225 440,250 420,260 C400,270 380,265 360,255 C340,245 330,225 325,200 C320,175 330,160 350,150 Z" fill="url(#landGradient)" opacity="0.9"></path>
+        <path d="M500,350 C520,340 540,345 560,350 C580,355 590,375 595,400 C600,425 590,450 570,460 C550,470 530,465 510,455 C490,445 480,425 475,400 C470,375 480,360 500,350 Z" fill="url(#landGradient)" opacity="0.9"></path>
+        
+        <!-- Compass -->
+        <circle fill="#FFFFFF" cx="650" cy="150" r="50" opacity="0.9"></circle>
+        <path d="M650,110 L650,190" stroke="#1a9b9b" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M610,150 L690,150" stroke="#1a9b9b" stroke-width="3" stroke-linecap="round"></path>
+        <text x="650" y="135" font-family="Arial" font-size="12" fill="#1a9b9b" text-anchor="middle">N</text>
+        <text x="650" y="175" font-family="Arial" font-size="12" fill="#1a9b9b" text-anchor="middle">S</text>
+        <text x="625" y="155" font-family="Arial" font-size="12" fill="#1a9b9b" text-anchor="middle">W</text>
+        <text x="675" y="155" font-family="Arial" font-size="12" fill="#1a9b9b" text-anchor="middle">E</text>
+        
+        <!-- Title -->
+        <text x="400" y="550" font-family="Arial" font-size="24" font-weight="bold" fill="#1a9b9b" text-anchor="middle">Fantasy World</text>
+    </g>
+</svg>

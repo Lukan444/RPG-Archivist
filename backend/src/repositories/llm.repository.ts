@@ -4,7 +4,10 @@ import {
   LLMContext,
   PromptTemplate,
   LLMCacheEntry,
-  LLMCacheKey
+  LLMCacheKey,
+  LLMProviderType,
+  LLMModel,
+  LLMCapability
 } from '../models/llm.model';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,6 +28,45 @@ export class LLMRepository {
    */
   public async getConfig(): Promise<LLMConfig | null> {
     try {
+      // In development mode, return a default config
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning default LLM configuration');
+        return {
+          defaultModel: 'gpt-3.5-turbo',
+          apiKey: 'dummy-api-key',
+          apiEndpoint: 'https://api.openai.com/v1',
+          provider: LLMProviderType.OPENAI,
+          maxTokens: 1000,
+          temperature: 0.7,
+          topP: 1,
+          frequencyPenalty: 0,
+          presencePenalty: 0,
+          timeout: 30000,
+          cacheEnabled: true,
+          cacheTTL: 3600000, // 1 hour
+          models: [
+            {
+              id: 'gpt-3.5-turbo',
+              name: 'GPT-3.5 Turbo',
+              provider: LLMProviderType.OPENAI,
+              contextWindow: 4096,
+              maxTokens: 4096,
+              isAvailable: true,
+              capabilities: [LLMCapability.CHAT, LLMCapability.FUNCTION_CALLING]
+            },
+            {
+              id: 'gpt-4',
+              name: 'GPT-4',
+              provider: LLMProviderType.OPENAI,
+              contextWindow: 8192,
+              maxTokens: 8192,
+              isAvailable: true,
+              capabilities: [LLMCapability.CHAT, LLMCapability.FUNCTION_CALLING, LLMCapability.VISION]
+            }
+          ]
+        };
+      }
+
       const query = `
         MATCH (c:LLMConfig)
         RETURN c {.*} as config
@@ -39,6 +81,44 @@ export class LLMRepository {
       return result;
     } catch (error) {
       console.error('Error getting LLM configuration:', error);
+      // In development mode, return a default config
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning default LLM configuration after error');
+        return {
+          defaultModel: 'gpt-3.5-turbo',
+          apiKey: 'dummy-api-key',
+          apiEndpoint: 'https://api.openai.com/v1',
+          provider: LLMProviderType.OPENAI,
+          maxTokens: 1000,
+          temperature: 0.7,
+          topP: 1,
+          frequencyPenalty: 0,
+          presencePenalty: 0,
+          timeout: 30000,
+          cacheEnabled: true,
+          cacheTTL: 3600000, // 1 hour
+          models: [
+            {
+              id: 'gpt-3.5-turbo',
+              name: 'GPT-3.5 Turbo',
+              provider: LLMProviderType.OPENAI,
+              contextWindow: 4096,
+              maxTokens: 4096,
+              isAvailable: true,
+              capabilities: [LLMCapability.CHAT, LLMCapability.FUNCTION_CALLING]
+            },
+            {
+              id: 'gpt-4',
+              name: 'GPT-4',
+              provider: LLMProviderType.OPENAI,
+              contextWindow: 8192,
+              maxTokens: 8192,
+              isAvailable: true,
+              capabilities: [LLMCapability.CHAT, LLMCapability.FUNCTION_CALLING, LLMCapability.VISION]
+            }
+          ]
+        };
+      }
       throw error;
     }
   }
@@ -50,6 +130,12 @@ export class LLMRepository {
    */
   public async saveConfig(config: LLMConfig): Promise<LLMConfig> {
     try {
+      // In development mode, just return the config
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning provided LLM configuration');
+        return config;
+      }
+
       const query = `
         MERGE (c:LLMConfig)
         SET c += $config
@@ -64,6 +150,11 @@ export class LLMRepository {
       return result;
     } catch (error) {
       console.error('Error saving LLM configuration:', error);
+      // In development mode, just return the config
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning provided LLM configuration after error');
+        return config;
+      }
       throw error;
     }
   }
@@ -75,6 +166,22 @@ export class LLMRepository {
    */
   public async getPromptTemplate(templateId: string): Promise<PromptTemplate | null> {
     try {
+      // In development mode, return a mock template
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock prompt template');
+        return {
+          id: templateId,
+          name: 'Mock Template',
+          description: 'A mock template for development',
+          template: 'This is a mock template with {{variable}}',
+          variables: ['variable'],
+          entityType: 'generic',
+          requiredCapabilities: [LLMCapability.CHAT],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+
       const query = `
         MATCH (t:PromptTemplate {id: $templateId})
         RETURN t {.*} as template
@@ -88,6 +195,21 @@ export class LLMRepository {
       return result;
     } catch (error) {
       console.error('Error getting prompt template:', error);
+      // In development mode, return a mock template
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock prompt template after error');
+        return {
+          id: templateId,
+          name: 'Mock Template',
+          description: 'A mock template for development',
+          template: 'This is a mock template with {{variable}}',
+          variables: ['variable'],
+          entityType: 'generic',
+          requiredCapabilities: [LLMCapability.CHAT],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
       throw error;
     }
   }
@@ -98,6 +220,35 @@ export class LLMRepository {
    */
   public async getPromptTemplates(): Promise<PromptTemplate[]> {
     try {
+      // In development mode, return mock templates
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock prompt templates');
+        return [
+          {
+            id: '1',
+            name: 'Character Template',
+            description: 'Template for character generation',
+            template: 'Generate a character named {{name}} with traits {{traits}}',
+            variables: ['name', 'traits'],
+            entityType: 'character',
+            requiredCapabilities: [LLMCapability.CHAT],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            name: 'Location Template',
+            description: 'Template for location generation',
+            template: 'Generate a location named {{name}} with description {{description}}',
+            variables: ['name', 'description'],
+            entityType: 'location',
+            requiredCapabilities: [LLMCapability.CHAT],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ];
+      }
+
       const query = `
         MATCH (t:PromptTemplate)
         RETURN t {.*} as template
@@ -112,6 +263,34 @@ export class LLMRepository {
       return result;
     } catch (error) {
       console.error('Error getting prompt templates:', error);
+      // In development mode, return mock templates
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock prompt templates after error');
+        return [
+          {
+            id: '1',
+            name: 'Character Template',
+            description: 'Template for character generation',
+            template: 'Generate a character named {{name}} with traits {{traits}}',
+            variables: ['name', 'traits'],
+            entityType: 'character',
+            requiredCapabilities: [LLMCapability.CHAT],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            name: 'Location Template',
+            description: 'Template for location generation',
+            template: 'Generate a location named {{name}} with description {{description}}',
+            variables: ['name', 'description'],
+            entityType: 'location',
+            requiredCapabilities: [LLMCapability.CHAT],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ];
+      }
       throw error;
     }
   }
@@ -304,7 +483,7 @@ export class LLMRepository {
   public getFromCache(key: LLMCacheKey): any | null {
     const cacheKey = JSON.stringify(key);
     const entry = this.cache.get(cacheKey);
-    
+
     if (!entry) {
       return null;
     }

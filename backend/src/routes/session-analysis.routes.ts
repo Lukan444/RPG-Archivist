@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { SessionAnalysisController } from '../controllers/sessionAnalysisController';
+import { SessionAnalysisController } from '../controllers/session-analysis.controller';
 import { RepositoryFactory } from '../repositories/repository.factory';
 import { SessionAnalysisService } from '../services/session-analysis.service';
-import { authenticate } from '../middleware/auth.middleware';
+import { AuthMiddleware } from '../middleware/auth.middleware';
 
 /**
  * Create session analysis routes
@@ -24,13 +24,16 @@ export function sessionAnalysisRoutes(repositoryFactory: RepositoryFactory): Rou
   // Create controller
   const sessionAnalysisController = new SessionAnalysisController(sessionAnalysisService);
 
+  // Create auth middleware
+  const authMiddleware = new AuthMiddleware();
+
   // Routes
-  router.get('/:id', authenticate(), sessionAnalysisController.getSessionAnalysisById);
-  router.get('/session/:sessionId', authenticate(), sessionAnalysisController.getSessionAnalysisBySessionId);
-  router.get('/transcription/:transcriptionId', authenticate(), sessionAnalysisController.getSessionAnalysisByTranscriptionId);
-  router.post('/', authenticate(), sessionAnalysisController.createSessionAnalysis);
-  router.delete('/:id', authenticate(), sessionAnalysisController.deleteSessionAnalysis);
-  router.post('/:id/process', authenticate(), sessionAnalysisController.processSessionAnalysis);
+  router.get('/:id', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.getById);
+  router.get('/session/:sessionId', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.getBySessionId);
+  router.get('/transcription/:transcriptionId', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.getByTranscriptionId);
+  router.post('/', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.create);
+  router.delete('/:id', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.delete);
+  router.post('/:id/process', authMiddleware.authenticate.bind(authMiddleware), sessionAnalysisController.process);
 
   return router;
 }

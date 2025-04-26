@@ -222,8 +222,8 @@ export class ChangeProposalService {
       return {
         success: false,
         proposalId,
-        message: `Error applying proposal: ${error.message}`,
-        details: { error: error.toString() }
+        message: `Error applying proposal: ${error instanceof Error ? error.message : String(error)}`,
+        details: { error: String(error) }
       };
     }
   }
@@ -248,7 +248,7 @@ export class ChangeProposalService {
 
       // Extract entity data from changes
       const entityData: Record<string, any> = {};
-      
+
       for (const change of proposal.changes) {
         entityData[change.field] = change.newValue;
       }
@@ -267,8 +267,8 @@ export class ChangeProposalService {
       return {
         success: false,
         proposalId: proposal.id,
-        message: `Error creating entity: ${error.message}`,
-        details: { error: error.toString() }
+        message: `Error creating entity: ${error instanceof Error ? error.message : String(error)}`,
+        details: { error: String(error) }
       };
     }
   }
@@ -304,7 +304,7 @@ export class ChangeProposalService {
       const entityData: Record<string, any> = {
         id: proposal.entityId
       };
-      
+
       for (const change of proposal.changes) {
         entityData[change.field] = change.newValue;
       }
@@ -323,8 +323,8 @@ export class ChangeProposalService {
       return {
         success: false,
         proposalId: proposal.id,
-        message: `Error updating entity: ${error.message}`,
-        details: { error: error.toString() }
+        message: `Error updating entity: ${error instanceof Error ? error.message : String(error)}`,
+        details: { error: String(error) }
       };
     }
   }
@@ -379,8 +379,8 @@ export class ChangeProposalService {
       return {
         success: false,
         proposalId: proposal.id,
-        message: `Error deleting entity: ${error.message}`,
-        details: { error: error.toString() }
+        message: `Error deleting entity: ${error instanceof Error ? error.message : String(error)}`,
+        details: { error: String(error) }
       };
     }
   }
@@ -430,7 +430,7 @@ export class ChangeProposalService {
         } catch (error) {
           results.push({
             success: false,
-            message: `Error creating relationship: ${error.message}`
+            message: `Error creating relationship: ${error instanceof Error ? error.message : String(error)}`
           });
         }
       }
@@ -451,8 +451,8 @@ export class ChangeProposalService {
       return {
         success: false,
         proposalId: proposal.id,
-        message: `Error creating relationships: ${error.message}`,
-        details: { error: error.toString() }
+        message: `Error creating relationships: ${error instanceof Error ? error.message : String(error)}`,
+        details: { error: String(error) }
       };
     }
   }
@@ -498,10 +498,10 @@ export class ChangeProposalService {
     try {
       // Get entity data if entity ID is provided
       let entityData: any = null;
-      
+
       if (request.entityId) {
         const repository = this.getRepositoryForEntityType(request.entityType);
-        
+
         if (repository) {
           entityData = await repository.getById(request.entityId);
         }
@@ -509,26 +509,26 @@ export class ChangeProposalService {
 
       // Get context data if context ID is provided
       let contextData: any = null;
-      
+
       if (request.contextId) {
         // Determine if context is campaign or session
         const campaignRepository = this.repositoryFactory.getCampaignRepository();
         const sessionRepository = this.repositoryFactory.getSessionRepository();
-        
+
         const campaign = await campaignRepository.getById(request.contextId);
-        
+
         if (campaign) {
           contextData = campaign;
         } else {
           const session = await sessionRepository.getById(request.contextId);
-          
+
           if (session) {
             contextData = session;
-            
+
             // Also get the campaign for additional context
-            if (session.campaignId) {
-              const campaign = await campaignRepository.getById(session.campaignId);
-              
+            if (session.campaign_id) {
+              const campaign = await campaignRepository.getById(session.campaign_id);
+
               if (campaign) {
                 contextData.campaign = campaign;
               }
@@ -539,13 +539,13 @@ export class ChangeProposalService {
 
       // Get prompt template if provided
       let promptTemplate: ProposalTemplate | null = null;
-      
+
       if (request.promptId) {
         promptTemplate = await this.changeProposalRepository.getTemplate(request.promptId);
       } else {
         // Get default template for entity type
         const templates = await this.changeProposalRepository.getTemplates(request.entityType);
-        
+
         if (templates.length > 0) {
           // Find a template that matches the entity type
           promptTemplate = templates.find(t => t.entityType === request.entityType) || templates[0];
@@ -555,12 +555,12 @@ export class ChangeProposalService {
       // Build prompt
       let prompt: string;
       let systemPrompt: string = '';
-      
+
       if (promptTemplate) {
         // Use template
         prompt = promptTemplate.promptTemplate;
         systemPrompt = promptTemplate.systemPrompt || '';
-        
+
         // Replace variables in template
         const variables: Record<string, any> = {
           entityType: request.entityType,
@@ -569,12 +569,12 @@ export class ChangeProposalService {
           contextId: request.contextId || '',
           contextData: contextData ? JSON.stringify(contextData, null, 2) : 'No context data'
         };
-        
+
         // Replace variables in prompt
         for (const [key, value] of Object.entries(variables)) {
           const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
           prompt = prompt.replace(regex, String(value));
-          
+
           if (systemPrompt) {
             systemPrompt = systemPrompt.replace(regex, String(value));
           }
@@ -590,7 +590,7 @@ export class ChangeProposalService {
 
       // Prepare messages for LLM
       const messages: LLMMessage[] = [];
-      
+
       if (systemPrompt) {
         messages.push({
           role: LLMMessageRole.SYSTEM,
@@ -602,7 +602,7 @@ export class ChangeProposalService {
           content: this.getDefaultSystemPrompt()
         });
       }
-      
+
       messages.push({
         role: LLMMessageRole.USER,
         content: prompt
@@ -635,7 +635,7 @@ export class ChangeProposalService {
    * @returns Default system prompt
    */
   private getDefaultSystemPrompt(): string {
-    return `You are an AI assistant for an RPG campaign management system. 
+    return `You are an AI assistant for an RPG campaign management system.
 Your task is to generate proposals for changes to entities in the system.
 Respond in JSON format with the following structure:
 {
@@ -679,13 +679,13 @@ Respond in JSON format with the following structure:
     contextData: any
   ): string {
     let prompt = `Generate a proposal to `;
-    
+
     if (entityData) {
       prompt += `update the following ${entityType}:\n\n`;
       prompt += `${JSON.stringify(entityData, null, 2)}\n\n`;
     } else {
       prompt += `create a new ${entityType}`;
-      
+
       if (contextData) {
         prompt += ` in the context of:\n\n`;
         prompt += `${JSON.stringify(contextData, null, 2)}\n\n`;
@@ -693,13 +693,13 @@ Respond in JSON format with the following structure:
         prompt += `.\n\n`;
       }
     }
-    
+
     prompt += `Please provide a detailed proposal with changes that would improve or enhance this ${entityType}.`;
-    
+
     if (contextData) {
       prompt += ` Make sure your proposal is consistent with the context provided.`;
     }
-    
+
     return prompt;
   }
 
@@ -719,18 +719,18 @@ Respond in JSON format with the following structure:
   ): Omit<ChangeProposal, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'status'> {
     try {
       // Extract JSON from response
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || 
+      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) ||
                         response.match(/```\n([\s\S]*?)\n```/) ||
                         response.match(/({[\s\S]*})/);
-      
+
       let jsonStr = jsonMatch ? jsonMatch[1] : response;
-      
+
       // Clean up the JSON string
       jsonStr = jsonStr.trim();
-      
+
       // Parse JSON
       const proposalData = JSON.parse(jsonStr);
-      
+
       // Create proposal
       const proposal: Omit<ChangeProposal, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'status'> = {
         type: proposalData.type || ProposalType.UPDATE,
@@ -744,11 +744,11 @@ Respond in JSON format with the following structure:
         contextId,
         comments: []
       };
-      
+
       return proposal;
     } catch (error) {
       console.error('Error parsing proposal from LLM response:', error);
-      
+
       // Create a fallback proposal
       return {
         type: ProposalType.UPDATE,
@@ -762,7 +762,7 @@ Respond in JSON format with the following structure:
         contextId,
         comments: [{
           id: 'error',
-          content: `Error parsing proposal: ${error.message}\n\nRaw response:\n${response}`,
+          content: `Error parsing proposal: ${error instanceof Error ? error.message : String(error)}\n\nRaw response:\n${response}`,
           createdBy: 'system',
           createdAt: Date.now()
         }]

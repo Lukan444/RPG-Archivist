@@ -137,6 +137,8 @@ interface RelationshipGraphProps {
   showMiniMap?: boolean;
   showFilters?: boolean;
   layout?: 'force' | 'hierarchy' | 'radial';
+  nodeTypeFilters?: NodeType[];
+  edgeTypeFilters?: EdgeType[];
   onNodeClick?: (node: GraphNode) => void;
   onEdgeClick?: (edge: GraphEdge) => void;
 }
@@ -157,6 +159,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
   showMiniMap = true,
   showFilters = true,
   layout = 'force',
+  nodeTypeFilters: initialNodeTypeFilters,
+  edgeTypeFilters: initialEdgeTypeFilters,
   onNodeClick,
   onEdgeClick,
 }) => {
@@ -170,8 +174,12 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
 
   // State for filters
   const [depth, setDepth] = useState(initialDepth);
-  const [nodeTypes, setNodeTypes] = useState<NodeType[]>(['world', 'campaign', 'session', 'character', 'location', 'item', 'event', 'power']);
-  const [edgeTypes, setEdgeTypes] = useState<EdgeType[]>(['PART_OF', 'CONTAINS', 'LOCATED_AT', 'PARTICIPATED_IN', 'RELATED_TO', 'PARENT_OF', 'CHILD_OF', 'OWNS', 'CREATED', 'HAS_POWER', 'OCCURRED_AT']);
+  const [nodeTypeFilters, setNodeTypeFilters] = useState<NodeType[]>(
+    initialNodeTypeFilters || ['world', 'campaign', 'session', 'character', 'location', 'item', 'event', 'power']
+  );
+  const [edgeTypeFilters, setEdgeTypeFilters] = useState<EdgeType[]>(
+    initialEdgeTypeFilters || ['PART_OF', 'CONTAINS', 'LOCATED_AT', 'PARTICIPATED_IN', 'RELATED_TO', 'PARENT_OF', 'CHILD_OF', 'OWNS', 'CREATED', 'HAS_POWER', 'OCCURRED_AT']
+  );
   const [layoutType, setLayoutType] = useState<'force' | 'hierarchy' | 'radial'>(layout);
   const [showLabels, setShowLabels] = useState(true);
   const [showImages, setShowImages] = useState(true);
@@ -319,8 +327,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
       // Build query parameters
       const params: GraphQueryParams = {
         depth,
-        nodeTypes,
-        edgeTypes,
+        nodeTypes: nodeTypeFilters,
+        edgeTypes: edgeTypeFilters,
         includeImages: showImages,
         layout: layoutType,
       };
@@ -364,7 +372,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [worldId, campaignId, sessionId, characterId, locationId, itemId, eventId, powerId, depth, nodeTypes, edgeTypes, showImages, layoutType, convertGraphDataToReactFlow, applyForceDirectedLayout, setNodes, setEdges]);
+  }, [worldId, campaignId, sessionId, characterId, locationId, itemId, eventId, powerId, depth, nodeTypeFilters, edgeTypeFilters, showImages, layoutType, convertGraphDataToReactFlow, applyForceDirectedLayout, setNodes, setEdges]);
 
   // Fetch data on mount and when dependencies change
   useEffect(() => {
@@ -391,13 +399,13 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
   };
 
   // Handle node type filter change
-  const handleNodeTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNodeTypes(event.target.value as NodeType[]);
+  const handleNodeTypeChange = (event: any) => {
+    setNodeTypeFilters(event.target.value as NodeType[]);
   };
 
   // Handle edge type filter change
-  const handleEdgeTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setEdgeTypes(event.target.value as EdgeType[]);
+  const handleEdgeTypeChange = (event: any) => {
+    setEdgeTypeFilters(event.target.value as EdgeType[]);
   };
 
   // Handle refresh
@@ -658,7 +666,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
 
         {/* Export Error */}
         {exportError && (
-          <Panel position='bottom'>
+          <Panel position='bottom-right'>
             <Alert severity='error' onClose={() => setExportError(null)}>
               {exportError}
             </Alert>
@@ -679,8 +687,8 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
             eventId,
             powerId,
             depth,
-            nodeTypes,
-            edgeTypes,
+            nodeTypes: nodeTypeFilters,
+            edgeTypes: edgeTypeFilters,
             layout: layoutType,
           }}
           currentUrl={window.location.href}
@@ -714,7 +722,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                   <Select
                     labelId='node-type-filter-label'
                     multiple
-                    value={nodeTypes}
+                    value={nodeTypeFilters}
                     onChange={handleNodeTypeChange}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -744,7 +752,7 @@ const RelationshipGraph: React.FC<RelationshipGraphProps> = ({
                   <Select
                     labelId='edge-type-filter-label'
                     multiple
-                    value={edgeTypes}
+                    value={edgeTypeFilters}
                     onChange={handleEdgeTypeChange}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>

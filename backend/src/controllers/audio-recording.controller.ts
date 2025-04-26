@@ -7,6 +7,14 @@ import multer from 'multer';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -31,6 +39,15 @@ const upload = multer({
 export class AudioRecordingController {
   private audioRecordingService: AudioRecordingService;
 
+  /**
+   * Helper method to safely get error message
+   * @param error Any error object
+   * @returns Error message as string
+   */
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
+
   constructor(audioRecordingService: AudioRecordingService) {
     this.audioRecordingService = audioRecordingService;
   }
@@ -40,7 +57,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public getAllBySession = async (req: Request, res: Response): Promise<void> => {
+  public getAllBySession = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { sessionId } = req.params;
       const { page = '1', limit = '20', sort = 'created_at', order = 'desc' } = req.query;
@@ -74,7 +91,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public getById = async (req: Request, res: Response): Promise<void> => {
+  public getById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { recordingId } = req.params;
 
@@ -112,7 +129,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public upload = async (req: Request, res: Response): Promise<void> => {
+  public upload = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       // Validate request
       const schema = z.object({
@@ -201,7 +218,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public update = async (req: Request, res: Response): Promise<void> => {
+  public update = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { recordingId } = req.params;
 
@@ -267,7 +284,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public delete = async (req: Request, res: Response): Promise<void> => {
+  public delete = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { recordingId } = req.params;
 
@@ -310,7 +327,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public startTranscription = async (req: Request, res: Response): Promise<void> => {
+  public startTranscription = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { recordingId } = req.params;
       const userId = req.user?.user_id;
@@ -411,7 +428,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public getDefaultSettings = async (req: Request, res: Response): Promise<void> => {
+  public getDefaultSettings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const settings = this.audioRecordingService.getDefaultSettings();
 
@@ -436,7 +453,7 @@ export class AudioRecordingController {
    * @param req Request
    * @param res Response
    */
-  public updateDefaultSettings = async (req: Request, res: Response): Promise<void> => {
+  public updateDefaultSettings = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       // Validate request
       const schema = z.object({

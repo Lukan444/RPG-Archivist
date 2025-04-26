@@ -90,8 +90,8 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
   // In a real implementation, you would add mouse/touch event handlers for interactive cropping
 
   return (
-    <div className="image-cropper">
-      <div className="image-container">
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
         <img
           ref={imageRef}
           src={imageUrl}
@@ -102,7 +102,6 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
         {imageLoaded && (
           <div
-            className="crop-overlay"
             style={{
               position: 'absolute',
               left: `${crop.x}px`,
@@ -110,19 +109,30 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
               width: `${crop.width}px`,
               height: `${crop.height}px`,
               border: '2px dashed white',
-              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)'
+              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+              pointerEvents: 'none'
             }}
           />
         )}
       </div>
 
-      <button
-        onClick={handleCrop}
-        disabled={!imageLoaded}
-        className="crop-button"
-      >
-        Crop Image
-      </button>
+      <div style={{ marginTop: '15px' }}>
+        <button
+          onClick={handleCrop}
+          disabled={!imageLoaded}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#2196f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: !imageLoaded ? 'not-allowed' : 'pointer',
+            opacity: !imageLoaded ? 0.7 : 1
+          }}
+        >
+          Crop Image
+        </button>
+      </div>
 
       {/* Hidden canvas for cropping */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />

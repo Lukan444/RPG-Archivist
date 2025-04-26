@@ -15,6 +15,7 @@ import { GraphRepository } from './graph.repository';
 import { LLMRepository } from './llm.repository';
 import { ChangeProposalRepository } from './change-proposal.repository';
 import { ContentAnalysisRepository } from './content-analysis.repository';
+import { RelationshipRepository } from './relationship.repository';
 
 /**
  * Repository factory
@@ -151,5 +152,12 @@ export class RepositoryFactory {
    */
   public getContentAnalysisRepository(): ContentAnalysisRepository {
     return this.getRepository('contentAnalysis', () => new ContentAnalysisRepository(this.dbService));
+  }
+
+  /**
+   * Get relationship repository
+   */
+  public getRelationshipRepository(): RelationshipRepository {
+    return this.getRepository('relationship', () => new RelationshipRepository(this.dbService));
   }
 }

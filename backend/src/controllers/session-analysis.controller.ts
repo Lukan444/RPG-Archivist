@@ -4,6 +4,14 @@ import { AnalysisProcessingOptions } from '../models/session-analysis.model';
 import { validateRequest } from '../utils/validation';
 import { z } from 'zod';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Controller for session analysis
  */
@@ -133,7 +141,7 @@ export class SessionAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public create = async (req: Request, res: Response): Promise<void> => {
+  public create = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       // Validate request
       const schema = z.object({
@@ -155,11 +163,13 @@ export class SessionAnalysisController {
       }
 
       const { session_id, transcription_id } = req.body;
+      const userId = req.user?.user_id || 'system'; // Get user ID from request or use 'system' as fallback
 
       // Create analysis
       const analysis = await this.sessionAnalysisService.create({
         session_id,
-        transcription_id
+        transcription_id,
+        created_by: userId
       });
 
       res.status(201).json({

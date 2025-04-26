@@ -1,22 +1,22 @@
 import React from 'react';
-import { 
-  Box, 
-  Typography, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  Chip, 
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
   Divider,
   Paper
 } from '@mui/material';
-import { 
-  LightbulbOutlined, 
-  LocalPoliceOutlined, 
-  ExploreOutlined, 
-  GroupOutlined, 
-  AssignmentOutlined, 
-  MenuBookOutlined, 
-  MoreHorizOutlined 
+import {
+  LightbulbOutlined,
+  LocalPoliceOutlined,
+  ExploreOutlined,
+  GroupOutlined,
+  AssignmentOutlined,
+  MenuBookOutlined,
+  MoreHorizOutlined
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 
@@ -33,7 +33,7 @@ interface KeyPointsListProps {
   onKeyPointClick?: (keyPoint: KeyPoint) => void;
 }
 
-const KeyPointsList: React.FC<KeyPointsListProps> = ({ 
+const KeyPointsList: React.FC<KeyPointsListProps> = ({
   keyPoints,
   onKeyPointClick
 }) => {
@@ -105,12 +105,12 @@ const KeyPointsList: React.FC<KeyPointsListProps> = ({
           {keyPoints.map((keyPoint, index) => (
             <React.Fragment key={keyPoint.key_point_id}>
               {index > 0 && <Divider component="li" />}
-              <ListItem 
+              <ListItem
                 alignItems="flex-start"
-                button={!!onKeyPointClick}
                 onClick={() => onKeyPointClick && onKeyPointClick(keyPoint)}
-                sx={{ 
+                sx={{
                   py: 1.5,
+                  cursor: onKeyPointClick ? 'pointer' : 'default',
                   '&:hover': {
                     bgcolor: theme.palette.action.hover
                   }
@@ -123,7 +123,7 @@ const KeyPointsList: React.FC<KeyPointsListProps> = ({
                         icon={getCategoryIcon(keyPoint.category)}
                         label={keyPoint.category}
                         size="small"
-                        sx={{ 
+                        sx={{
                           mr: 1,
                           bgcolor: `${getCategoryColor(keyPoint.category)}20`,
                           color: getCategoryColor(keyPoint.category),
@@ -134,7 +134,7 @@ const KeyPointsList: React.FC<KeyPointsListProps> = ({
                       <Chip
                         label={`Importance: ${formatImportanceScore(keyPoint.importance_score)}`}
                         size="small"
-                        sx={{ 
+                        sx={{
                           bgcolor: theme.palette.background.default
                         }}
                       />

@@ -20,7 +20,8 @@ import {
   Select,
   MenuItem,
   Grid,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Visibility as ViewIcon,
@@ -39,6 +40,7 @@ import {
   ProposalFilterOptions
 } from '../../services/api/change-proposal.service';
 import { formatDistanceToNow } from 'date-fns';
+import { adaptSelectChangeHandler } from '../../utils/eventHandlers';
 
 interface ProposalListProps {
   contextId?: string;
@@ -67,19 +69,19 @@ const ProposalList: React.FC<ProposalListProps> = ({
     const initialFilter: ProposalFilterOptions = {
       status: [ProposalStatus.PENDING]
     };
-    
+
     if (contextId) {
       initialFilter.contextId = contextId;
     }
-    
+
     if (entityId) {
       initialFilter.entityId = entityId;
     }
-    
+
     if (entityType) {
       initialFilter.entityType = [entityType];
     }
-    
+
     setFilter(initialFilter);
   }, [contextId, entityId, entityType]);
 
@@ -91,13 +93,13 @@ const ProposalList: React.FC<ProposalListProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Apply search to filter if provided
       const searchFilter = { ...filter };
       if (search) {
         searchFilter.search = search;
       }
-      
+
       const proposals = await ChangeProposalService.getProposals(searchFilter);
       setProposals(proposals);
     } catch (error) {
@@ -124,7 +126,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleFilterChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
     const { name, value } = event.target;
-    
+
     if (name) {
       setFilter(prevFilter => ({
         ...prevFilter,
@@ -133,26 +135,29 @@ const ProposalList: React.FC<ProposalListProps> = ({
     }
   };
 
+  // Create an adapter for Material UI's SelectChangeEvent
+  const adaptedHandleFilterChange = adaptSelectChangeHandler(handleFilterChange);
+
   const handleToggleFilters = () => {
     setShowFilters(!showFilters);
   };
 
   const handleClearFilters = () => {
     const baseFilter: ProposalFilterOptions = {};
-    
+
     // Keep context and entity filters if provided as props
     if (contextId) {
       baseFilter.contextId = contextId;
     }
-    
+
     if (entityId) {
       baseFilter.entityId = entityId;
     }
-    
+
     if (entityType) {
       baseFilter.entityType = [entityType];
     }
-    
+
     setFilter(baseFilter);
     setSearch('');
   };
@@ -165,10 +170,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleDeleteProposal = async (proposalId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ChangeProposalService.deleteProposal(proposalId);
-      
+
       // Refresh proposals
       fetchProposals();
     } catch (error) {
@@ -179,10 +184,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleQuickApprove = async (proposalId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ChangeProposalService.reviewProposal(proposalId, ProposalStatus.APPROVED);
-      
+
       // Refresh proposals
       fetchProposals();
     } catch (error) {
@@ -193,10 +198,10 @@ const ProposalList: React.FC<ProposalListProps> = ({
 
   const handleQuickReject = async (proposalId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ChangeProposalService.reviewProposal(proposalId, ProposalStatus.REJECTED);
-      
+
       // Refresh proposals
       fetchProposals();
     } catch (error) {
@@ -286,7 +291,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
           Proposals
           {proposals.length > 0 && ` (${proposals.length})`}
         </Typography>
-        
+
         <Box>
           <Button
             variant="outlined"
@@ -297,7 +302,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
           >
             {showFilters ? 'Hide Filters' : 'Show Filters'}
           </Button>
-          
+
           <Button
             variant="outlined"
             size="small"
@@ -307,13 +312,13 @@ const ProposalList: React.FC<ProposalListProps> = ({
           </Button>
         </Box>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
@@ -342,7 +347,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
           }}
         />
       </Box>
-      
+
       {showFilters && (
         <Box sx={{ mb: 2 }}>
           <Grid container spacing={2}>
@@ -355,7 +360,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                   name="status"
                   multiple
                   value={filter.status || []}
-                  onChange={handleFilterChange}
+                  onChange={adaptedHandleFilterChange}
                   label="Status"
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -378,7 +383,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small">
                 <InputLabel id="type-filter-label">Type</InputLabel>
@@ -388,7 +393,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                   name="type"
                   multiple
                   value={filter.type || []}
-                  onChange={handleFilterChange}
+                  onChange={adaptedHandleFilterChange}
                   label="Type"
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -410,7 +415,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            
+
             {!entityType && (
               <Grid item xs={12}>
                 <FormControl fullWidth size="small">
@@ -421,7 +426,7 @@ const ProposalList: React.FC<ProposalListProps> = ({
                     name="entityType"
                     multiple
                     value={filter.entityType || []}
-                    onChange={handleFilterChange}
+                    onChange={adaptedHandleFilterChange}
                     label="Entity Type"
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -447,9 +452,9 @@ const ProposalList: React.FC<ProposalListProps> = ({
           </Grid>
         </Box>
       )}
-      
+
       <Divider sx={{ mb: 2 }} />
-      
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />

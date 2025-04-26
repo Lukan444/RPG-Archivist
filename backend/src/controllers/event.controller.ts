@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Event, EventType } from '../models/event.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Event controller for handling event-related requests
  */
@@ -14,11 +22,23 @@ export class EventController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all events
    * @param req Express request
    * @param res Express response
    */
-  public async getAllEvents(req: Request, res: Response): Promise<void> {
+  public async getAllEvents(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
@@ -43,7 +63,7 @@ export class EventController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -85,7 +105,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting events'
+          message: 'An error occurred while getting events',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -96,7 +117,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async getEventById(req: Request, res: Response): Promise<void> {
+  public async getEventById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID from request parameters
       const eventId = req.params.id;
@@ -118,7 +139,7 @@ export class EventController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -141,7 +162,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting event'
+          message: 'An error occurred while getting event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -152,7 +174,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async createEvent(req: Request, res: Response): Promise<void> {
+  public async createEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -185,7 +207,7 @@ export class EventController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -268,7 +290,7 @@ export class EventController {
         event_date: req.body.event_date,
         timeline_position: timelinePosition,
         location_id: req.body.location_id
-      }, userId);
+      }, userId || 'system');
 
       // Return response
       res.status(201).json({
@@ -281,7 +303,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating event'
+          message: 'An error occurred while creating event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -292,7 +315,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateEvent(req: Request, res: Response): Promise<void> {
+  public async updateEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -330,7 +353,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -418,7 +441,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating event'
+          message: 'An error occurred while updating event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -429,7 +453,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteEvent(req: Request, res: Response): Promise<void> {
+  public async deleteEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID from request parameters
       const eventId = req.params.id;
@@ -453,7 +477,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -477,7 +501,7 @@ export class EventController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete event with associated characters or items') {
+        if (error instanceof Error && error.message === 'Cannot delete event with associated characters or items') {
           res.status(400).json({
             success: false,
             error: {
@@ -495,7 +519,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting event'
+          message: 'An error occurred while deleting event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -506,7 +531,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCharactersInEvent(req: Request, res: Response): Promise<void> {
+  public async getCharactersInEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID from request parameters
       const eventId = req.params.id;
@@ -530,7 +555,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -556,7 +581,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting characters in event'
+          message: 'An error occurred while getting characters in event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -567,7 +593,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async addCharacterToEvent(req: Request, res: Response): Promise<void> {
+  public async addCharacterToEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -633,7 +659,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -677,7 +703,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding character to event'
+          message: 'An error occurred while adding character to event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -688,7 +715,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateEventCharacter(req: Request, res: Response): Promise<void> {
+  public async updateEventCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -742,7 +769,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -784,7 +811,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating event character'
+          message: 'An error occurred while updating event character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -795,7 +823,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async removeCharacterFromEvent(req: Request, res: Response): Promise<void> {
+  public async removeCharacterFromEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID and character ID from request parameters
       const eventId = req.params.id;
@@ -835,7 +863,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -876,7 +904,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing character from event'
+          message: 'An error occurred while removing character from event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -887,7 +916,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async getItemsInEvent(req: Request, res: Response): Promise<void> {
+  public async getItemsInEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID from request parameters
       const eventId = req.params.id;
@@ -911,7 +940,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -937,7 +966,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting items in event'
+          message: 'An error occurred while getting items in event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -948,7 +978,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async addItemToEvent(req: Request, res: Response): Promise<void> {
+  public async addItemToEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -1014,7 +1044,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1058,7 +1088,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding item to event'
+          message: 'An error occurred while adding item to event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -1069,7 +1100,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateEventItem(req: Request, res: Response): Promise<void> {
+  public async updateEventItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -1123,7 +1154,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1165,7 +1196,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating event item'
+          message: 'An error occurred while updating event item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -1176,7 +1208,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async removeItemFromEvent(req: Request, res: Response): Promise<void> {
+  public async removeItemFromEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get event ID and item ID from request parameters
       const eventId = req.params.id;
@@ -1216,7 +1248,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1257,7 +1289,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing item from event'
+          message: 'An error occurred while removing item from event',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -1268,7 +1301,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignTimeline(req: Request, res: Response): Promise<void> {
+  public async getCampaignTimeline(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.campaignId;
@@ -1290,7 +1323,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1316,7 +1349,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign timeline'
+          message: 'An error occurred while getting campaign timeline',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -1327,7 +1361,7 @@ export class EventController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateEventTimelinePosition(req: Request, res: Response): Promise<void> {
+  public async updateEventTimelinePosition(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -1365,7 +1399,7 @@ export class EventController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(event.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1393,7 +1427,8 @@ export class EventController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating event timeline position'
+          message: 'An error occurred while updating event timeline position',
+          details: this.getErrorMessage(error)
         }
       });
     }

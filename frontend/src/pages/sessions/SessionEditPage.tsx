@@ -8,23 +8,23 @@ import SessionService, { SessionInput } from '../../services/api/session.service
 const SessionEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   // State for Session
   const [sessionData, setSessionData] = useState<SessionInput | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Fetch Session
   useEffect(() => {
     const fetchSession = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         setError(null);
-        const data = await SessionService.getSessionById(id);
-        
+        const data = await SessionService.getSession(id);
+
         // Convert to form data format
         setSessionData({
           name: data.name,
@@ -41,106 +41,98 @@ const SessionEditPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchSession();
   }, [id]);
-  
+
   // Handle form submission
   const handleSubmit = async (data: SessionInput) => {
     if (!id) return;
-    
+
     try {
       setIsSubmitting(true);
       setError(null);
-      
+
       // Update Session
       await SessionService.updateSession(id, data);
-      
+
       // Navigate back to the session's detail page
-      navigate(/sessions/);
+      navigate(`/sessions/${id}`);
     } catch (error) {
       console.error('Error updating Session:', error);
       setError('Failed to update Session. Please try again.');
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle cancel
   const handleCancel = () => {
     if (id) {
-      navigate(/sessions/);
+      navigate(`/sessions/${id}`);
     } else {
       navigate('/sessions');
     }
   };
-  
+
   // Render loading state
   if (loading) {
     return (
-      <Container maxWidth=\
-lg\>
+      <Container maxWidth="lg">
         <Box sx={{ mb: 3 }}>
-          <Skeleton variant=\text\ height={40} width=\50%\ />
-          <Skeleton variant=\text\ height={24} width=\30%\ />
+          <Skeleton variant="text" height={40} width="50%" />
+          <Skeleton variant="text" height={24} width="30%" />
         </Box>
-        
+
         <Paper sx={{ p: 3 }}>
-          <Skeleton variant=\text\ height={32} />
-          <Skeleton variant=\text\ height={32} />
-          <Skeleton variant=\text\ height={32} />
-          <Skeleton variant=\rectangular\ height={150} sx={{ mt: 2 }} />
+          <Skeleton variant="text" height={32} />
+          <Skeleton variant="text" height={32} />
+          <Skeleton variant="text" height={32} />
+          <Skeleton variant="rectangular" height={150} sx={{ mt: 2 }} />
         </Paper>
       </Container>
     );
   }
-  
+
   // Render error state
   if (error && !sessionData) {
     return (
-      <Container maxWidth=\lg\>
+      <Container maxWidth="lg">
         <PageHeader
-          title=\Edit
-Session\
-          subtitle=\Update
-your
-session
-details\
+          title="Edit Session"
+          subtitle="Update your session details"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Sessions', href: '/sessions' },
             { label: 'Edit' },
           ]}
         />
-        
-        <Alert severity=\error\ sx={{ mt: 3 }}>
+
+        <Alert severity="error" sx={{ mt: 3 }}>
           {error}
         </Alert>
       </Container>
     );
   }
-  
+
   return (
-    <Container maxWidth=\lg\>
+    <Container maxWidth="lg">
       <PageHeader
-        title={Edit }
-        subtitle=\Update
-your
-session
-details\
+        title={`Edit ${sessionData?.name || 'Session'}`}
+        subtitle="Update your session details"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Sessions', href: '/sessions' },
-          { label: sessionData?.name || 'Session', href: /sessions/ },
+          { label: sessionData?.name || 'Session', href: `/sessions/${id}` },
           { label: 'Edit' },
         ]}
       />
-      
+
       {error && (
-        <Alert severity=\error\ sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-      
+
       {sessionData && (
         <SessionForm
           initialData={sessionData}

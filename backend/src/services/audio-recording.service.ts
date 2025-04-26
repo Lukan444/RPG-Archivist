@@ -1,5 +1,5 @@
 import { AudioRecordingRepository } from '../repositories/audio-recording.repository';
-import { AudioRecording, AudioRecordingCreationParams, AudioRecordingUpdateParams, AudioRecordingSettings, TranscriptionService, TranscriptionStatus } from '../models/audio-recording.model';
+import { AudioRecording, AudioRecordingCreationParams, AudioRecordingUpdateParams, AudioRecordingSettings, NoiseReductionLevel, TranscriptionService, TranscriptionStatus } from '../models/audio-recording.model';
 import { TranscriptionRepository } from '../repositories/transcription.repository';
 import { TranscriptionCreationParams } from '../models/transcription.model';
 import * as fs from 'fs';
@@ -28,7 +28,7 @@ export class AudioRecordingService {
     this.audioRecordingRepository = audioRecordingRepository;
     this.transcriptionRepository = transcriptionRepository;
     this.uploadDir = uploadDir;
-    
+
     // Default settings
     this.defaultSettings = {
       sample_rate: 44100,
@@ -39,7 +39,7 @@ export class AudioRecordingService {
       auto_transcribe: true,
       transcription_service: TranscriptionService.HYBRID,
       enable_speaker_diarization: true,
-      noise_reduction_level: 'medium'
+      noise_reduction_level: NoiseReductionLevel.MEDIUM
     };
 
     // Ensure upload directory exists
@@ -171,7 +171,7 @@ export class AudioRecordingService {
     try {
       // Get recording to get file path
       const recording = await this.audioRecordingRepository.findById(recordingId);
-      
+
       if (!recording) {
         throw new Error('Recording not found');
       }
@@ -209,7 +209,7 @@ export class AudioRecordingService {
 
       // Get recording
       const recording = await this.audioRecordingRepository.findById(recordingId);
-      
+
       if (!recording) {
         throw new Error('Recording not found');
       }

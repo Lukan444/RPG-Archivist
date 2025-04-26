@@ -15,8 +15,10 @@ import {
   Grid,
   Chip,
   FormControlLabel,
-  Switch
+  Switch,
+  SelectChangeEvent
 } from '@mui/material';
+import { adaptSelectChangeHandler } from '../../utils/eventHandlers';
 import {
   ChangeProposalService,
   ProposalEntityType,
@@ -83,12 +85,12 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     }
   };
 
-  const handleTemplateChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedTemplate(event.target.value as string);
+  const handleTemplateChange = (event: SelectChangeEvent<string>) => {
+    setSelectedTemplate(event.target.value);
   };
 
-  const handleModelChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedModel(event.target.value as string);
+  const handleModelChange = (event: SelectChangeEvent<string>) => {
+    setSelectedModel(event.target.value);
   };
 
   const handleCustomPromptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,9 +123,9 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
 
       // Generate proposal
       const proposal = await ChangeProposalService.generateProposal(request);
-      
+
       setGeneratedProposalId(proposal.id);
-      
+
       // Call onProposalGenerated callback if provided
       if (onProposalGenerated) {
         onProposalGenerated(proposal.id);
@@ -166,19 +168,19 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       <Typography variant="h6" gutterBottom>
         Generate {getEntityTypeName(entityType)} Proposal
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {generatedProposalId && (
         <Alert severity="success" sx={{ mb: 2 }}>
           Proposal generated successfully!
         </Alert>
       )}
-      
+
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControlLabel
@@ -192,7 +194,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
             label="Use custom prompt"
           />
         </Grid>
-        
+
         {!useCustomPrompt && (
           <Grid item xs={12} md={6}>
             <FormControl fullWidth disabled={loading || templates.length === 0}>
@@ -213,7 +215,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
             </FormControl>
           </Grid>
         )}
-        
+
         <Grid item xs={12} md={useCustomPrompt ? 12 : 6}>
           <FormControl fullWidth disabled={loading || models.length === 0}>
             <InputLabel id="model-select-label">Model</InputLabel>
@@ -232,7 +234,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
             </Select>
           </FormControl>
         </Grid>
-        
+
         {useCustomPrompt && (
           <Grid item xs={12}>
             <TextField
@@ -247,7 +249,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
             />
           </Grid>
         )}
-        
+
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
             <Box>
@@ -259,7 +261,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
                   sx={{ mr: 1 }}
                 />
               )}
-              
+
               {contextId && (
                 <Chip
                   label={`Context ID: ${contextId}`}
@@ -268,7 +270,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
                 />
               )}
             </Box>
-            
+
             <Button
               variant="contained"
               color="primary"
@@ -281,14 +283,14 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
           </Box>
         </Grid>
       </Grid>
-      
+
       {selectedTemplate && !useCustomPrompt && (
         <Box sx={{ mt: 3 }}>
           <Divider sx={{ mb: 2 }} />
           <Typography variant="subtitle2" gutterBottom>
             Selected Template
           </Typography>
-          
+
           {templates.find(t => t.id === selectedTemplate)?.description && (
             <Typography variant="body2" color="text.secondary" paragraph>
               {templates.find(t => t.id === selectedTemplate)?.description}

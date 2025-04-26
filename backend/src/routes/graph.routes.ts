@@ -22,9 +22,9 @@ export const graphRoutes = (repositoryFactory: RepositoryFactory) => {
   const graphController = new GraphController(graphService);
 
   // Routes
-  router.get('/', authenticate(), graphController.getGraphData);
-  router.get('/mind-map', authenticate(), graphController.getMindMapGraph);
-  router.get('/hierarchy', authenticate(), graphController.getHierarchyGraph);
+  router.get('/', authenticate, graphController.getGraphData);
+  router.get('/mind-map', authenticate, graphController.getMindMapGraph);
+  router.get('/hierarchy', authenticate, graphController.getHierarchyGraph);
 
   return router;
 };

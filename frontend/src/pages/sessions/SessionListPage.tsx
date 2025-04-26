@@ -27,6 +27,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  SelectChangeEvent,
   ListItemIcon,
 } from '@mui/material';
 import {
@@ -88,7 +89,7 @@ const SessionListPage: React.FC = () => {
         setFilteredSessions(sessionsData);
 
         // Fetch campaigns
-        const campaignsData = await CampaignService.getAllCampaigns();
+        const campaignsData = await CampaignService.getCampaigns();
         setCampaigns(campaignsData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -161,8 +162,8 @@ const SessionListPage: React.FC = () => {
   };
 
   // Handle campaign filter change
-  const handleCampaignFilterChange = (e: React.ChangeEvent<{ value: unknown }>) => {
-    setCampaignFilter(e.target.value as string);
+  const handleCampaignFilterChange = (e: SelectChangeEvent<string>) => {
+    setCampaignFilter(e.target.value);
   };
 
   // Handle sort menu
@@ -210,13 +211,13 @@ const SessionListPage: React.FC = () => {
 
   // Handle session actions
   const handleViewSession = (sessionId: string) => {
-    navigate(/sessions/);
+    navigate(`/sessions/${sessionId}`);
     handleSessionMenuClose();
   };
 
   const handleEditSession = (event: React.MouseEvent, sessionId: string) => {
     event.stopPropagation();
-    navigate(/sessions//edit);
+    navigate(`/sessions/${sessionId}/edit`);
     handleSessionMenuClose();
   };
 
@@ -249,7 +250,7 @@ const SessionListPage: React.FC = () => {
   };
 
   const handleSessionClick = (sessionId: string) => {
-    navigate(/sessions/);
+    navigate(`/sessions/${sessionId}`);
   };
 
   // Format date
@@ -262,21 +263,20 @@ const SessionListPage: React.FC = () => {
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return ${hours}h m;
+    return `${hours}h ${mins}m`;
   };
 
   // Render loading skeletons
   const renderSkeletons = () => {
     return Array.from({ length: 6 }).map((_, index) => (
-      <Grid item xs={12} sm={6} md={4} key={skeleton-}>
+      <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
         <Card sx={{ height: '100%' }}>
-          <Skeleton variant=\
-rectangular\ height={140} />
+          <Skeleton variant="rectangular" height={140} />
           <CardContent>
-            <Skeleton variant=\text\ height={32} width=\80%\ />
-            <Skeleton variant=\text\ height={20} width=\50%\ />
-            <Skeleton variant=\text\ height={20} width=\40%\ />
-            <Skeleton variant=\text\ height={80} />
+            <Skeleton variant="text" height={32} width="80%" />
+            <Skeleton variant="text" height={20} width="50%" />
+            <Skeleton variant="text" height={20} width="40%" />
+            <Skeleton variant="text" height={80} />
           </CardContent>
         </Card>
       </Grid>
@@ -284,21 +284,18 @@ rectangular\ height={140} />
   };
 
   return (
-    <Container maxWidth=\lg\>
+    <Container maxWidth="lg">
       <PageHeader
-        title=\Sessions\
-        subtitle=\Manage
-your
-RPG
-sessions\
+        title="Sessions"
+        subtitle="Manage your RPG sessions"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Sessions' },
         ]}
-        action={
+        actions={
           <Button
-            variant=\contained\
-            color=\primary\
+            variant="contained"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={handleCreateSession}
           >
@@ -310,36 +307,35 @@ sessions\
       {/* Search, filter, and sort bar */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          placeholder=\Search
-sessions...\
-          variant=\outlined\
-          size=\small\
+          placeholder="Search sessions..."
+          variant="outlined"
+          size="small"
           fullWidth
           sx={{ flexGrow: 1, minWidth: '200px', maxWidth: { xs: '100%', sm: '300px' } }}
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
             startAdornment: (
-              <InputAdornment position=\start\>
-                <SearchIcon color=\action\ />
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
               </InputAdornment>
             ),
           }}
         />
 
         <FormControl
-          size=\small\
+          size="small"
           sx={{ minWidth: '150px', flexGrow: { xs: 1, md: 0 } }}
         >
-          <InputLabel id=\campaign-filter-label\>Campaign</InputLabel>
+          <InputLabel id="campaign-filter-label">Campaign</InputLabel>
           <Select
-            labelId=\campaign-filter-label\
-            id=\campaign-filter\
+            labelId="campaign-filter-label"
+            id="campaign-filter"
             value={campaignFilter}
-            label=\Campaign\
+            label="Campaign"
             onChange={handleCampaignFilterChange}
           >
-            <MenuItem value=\all\>All Campaigns</MenuItem>
+            <MenuItem value="all">All Campaigns</MenuItem>
             {campaigns.map((campaign) => (
               <MenuItem key={campaign.id} value={campaign.id}>
                 {campaign.name}
@@ -348,13 +344,12 @@ sessions...\
           </Select>
         </FormControl>
 
-        <Tooltip title=\Sort
-sessions\>
+        <Tooltip title="Sort sessions">
           <Button
-            variant=\outlined\
+            variant="outlined"
             startIcon={<SortIcon />}
             onClick={handleSortMenuOpen}
-            size=\medium\
+            size="medium"
           >
             {sortOption === 'name' ? 'Name' :
              sortOption === 'date' ? 'Date' :
@@ -413,7 +408,7 @@ sessions\>
 
       {/* Error message */}
       {error && (
-        <Alert severity=\error\ sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
@@ -422,20 +417,20 @@ sessions\>
       {!loading && filteredSessions.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <EventIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant=\h6\ gutterBottom>
+          <Typography variant="h6" gutterBottom>
             {searchQuery || campaignFilter !== 'all'
               ? 'No sessions match your filters'
               : 'No sessions yet'}
           </Typography>
-          <Typography variant=\body1\ color=\text.secondary\ paragraph>
+          <Typography variant="body1" color="text.secondary" paragraph>
             {searchQuery || campaignFilter !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Create your first session to get started'}
           </Typography>
           {!searchQuery && campaignFilter === 'all' && (
             <Button
-              variant=\contained\
-              color=\primary\
+              variant="contained"
+              color="primary"
               startIcon={<AddIcon />}
               onClick={handleCreateSession}
               sx={{ mt: 2 }}
@@ -468,21 +463,20 @@ sessions\>
                 onClick={() => handleSessionClick(session.id)}
               >
                 <CardMedia
-                  component=\img\
-                  height=\140\
+                  component="img"
+                  height="140"
                   image={session.imageUrl || '/placeholder-session.jpg'}
                   alt={session.name}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Typography variant=\h6\ component=\div\ gutterBottom>
+                    <Typography variant="h6" component="div" gutterBottom>
                       {session.name}
                     </Typography>
                     <IconButton
-                      size=\small\
+                      size="small"
                       onClick={(e) => handleSessionMenuOpen(e, session.id)}
-                      aria-label=\session
-options\
+                      aria-label="session options"
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -492,26 +486,26 @@ options\
                     {session.campaignName && (
                       <Chip
                         label={session.campaignName}
-                        size=\small\
-                        color=\primary\
-                        variant=\outlined\
+                        size="small"
+                        color="primary"
+                        variant="outlined"
                         icon={<CampaignIcon />}
                       />
                     )}
                     {session.hasTranscription && (
                       <Chip
-                        label=\Transcribed\
-                        size=\small\
-                        color=\success\
-                        variant=\outlined\
+                        label="Transcribed"
+                        size="small"
+                        color="success"
+                        variant="outlined"
                         icon={<MicIcon />}
                       />
                     )}
                   </Box>
 
                   <Typography
-                    variant=\body2\
-                    color=\text.secondary\
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -526,14 +520,14 @@ options\
 
                   <Box sx={{ mt: 'auto' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                      <CalendarTodayIcon fontSize=\small\ color=\action\ sx={{ mr: 0.5 }} />
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <CalendarTodayIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                      <Typography variant="body2" color="text.secondary">
                         {formatDate(session.date)}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <AccessTimeIcon fontSize=\small\ color=\action\ sx={{ mr: 0.5 }} />
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <AccessTimeIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                      <Typography variant="body2" color="text.secondary">
                         {formatDuration(session.duration)}
                       </Typography>
                     </Box>

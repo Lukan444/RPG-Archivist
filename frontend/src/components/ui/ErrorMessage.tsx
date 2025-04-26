@@ -35,11 +35,11 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
         }}
       >
         <Alert
-          severity= error
+          severity="error"
           icon={<ErrorIcon />}
           action={
             onRetry && (
-              <Button color=inherit size=small onClick={onRetry}>
+              <Button color="inherit" size="small" onClick={onRetry}>
                 Retry
               </Button>
             )

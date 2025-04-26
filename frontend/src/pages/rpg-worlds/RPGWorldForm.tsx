@@ -9,7 +9,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import { ImageUpload } from '../../components/images';
+import { ImageUploader } from '../../components/images';
 import { RPGWorldInput } from '../../services/api/rpgWorld.service';
 
 // Genre options
@@ -66,17 +66,17 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
     system: 'D&D 5e',
     imageUrl: undefined,
   });
-  
+
   // Form validation
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Initialize form with initial data if provided
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     }
   }, [initialData]);
-  
+
   // Handle form field change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -84,7 +84,7 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
       ...formData,
       [name]: value,
     });
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors({
@@ -93,7 +93,7 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
       });
     }
   };
-  
+
   // Handle image upload
   const handleImageUpload = async (file: File): Promise<string> => {
     // In a real implementation, this would upload the file to a server
@@ -105,7 +105,7 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
     });
     return imageUrl;
   };
-  
+
   // Handle image generation
   const handleImageGenerate = async (prompt: string): Promise<string> => {
     // In a real implementation, this would call an AI image generation API
@@ -117,7 +117,7 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
     });
     return imageUrl;
   };
-  
+
   // Handle image delete
   const handleImageDelete = () => {
     setFormData({
@@ -125,76 +125,74 @@ const RPGWorldForm: React.FC<RPGWorldFormProps> = ({
       imageUrl: undefined,
     });
   };
-  
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
-    if (!formData.description.trim()) {
+
+    if (!formData.description || !formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     if (!formData.genre) {
       newErrors.genre = 'Genre is required';
     }
-    
+
     if (!formData.system) {
       newErrors.system = 'System is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       await onSubmit(formData);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <Grid container spacing={3}>
         {/* Left column - Image upload */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant=\
-h6\ gutterBottom>
+            <Typography variant="h6" gutterBottom>
               World Image
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <ImageUpload
+            <ImageUploader
               onImageUpload={handleImageUpload}
               onImageGenerate={handleImageGenerate}
               onImageDelete={handleImageDelete}
               imageUrl={formData.imageUrl}
-              entityType=\world\
+              entityType="world"
               entityName={formData.name}
             />
           </Paper>
         </Grid>
-        
+
         {/* Right column - Form fields */}
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant=\h6\ gutterBottom>
+            <Typography variant="h6" gutterBottom>
               World Details
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
-                  name=\name\
-                  label=\World
-Name\
+                  name="name"
+                  label="World Name"
                   value={formData.name}
                   onChange={handleChange}
                   fullWidth
@@ -203,12 +201,12 @@ Name\
                   helperText={errors.name}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   select
-                  name=\genre\
-                  label=\Genre\
+                  name="genre"
+                  label="Genre"
                   value={formData.genre}
                   onChange={handleChange}
                   fullWidth
@@ -223,12 +221,12 @@ Name\
                   ))}
                 </TextField>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   select
-                  name=\system\
-                  label=\System\
+                  name="system"
+                  label="System"
                   value={formData.system}
                   onChange={handleChange}
                   fullWidth
@@ -243,11 +241,11 @@ Name\
                   ))}
                 </TextField>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
-                  name=\description\
-                  label=\Description\
+                  name="description"
+                  label="Description"
                   value={formData.description}
                   onChange={handleChange}
                   fullWidth
@@ -259,20 +257,20 @@ Name\
                 />
               </Grid>
             </Grid>
-            
+
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
-                variant=\outlined\
-                color=\inherit\
+                variant="outlined"
+                color="inherit"
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
-                type=\submit\
-                variant=\contained\
-                color=\primary\
+                type="submit"
+                variant="contained"
+                color="primary"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : initialData ? 'Update World' : 'Create World'}

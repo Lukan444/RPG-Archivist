@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600px" height="400px" viewBox="0 0 600 400" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Empty Campaigns</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="emptyGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="#FFFFFF" x="0" y="0" width="600" height="400"></rect>
+        
+        <!-- Decorative Elements -->
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="100" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="80" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="60" opacity="0.1"></circle>
+        
+        <!-- D20 Die -->
+        <polygon fill="url(#emptyGradient)" points="300,100 350,150 300,200 250,150" opacity="0.8"></polygon>
+        <text x="300" y="160" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">20</text>
+        
+        <!-- Sword -->
+        <rect fill="url(#goldGradient)" x="250" y="150" width="100" height="10" rx="5"></rect>
+        <polygon fill="url(#goldGradient)" points="250,155 230,140 230,170"></polygon>
+        <rect fill="#CCCCCC" x="350" y="145" width="20" height="20" rx="5"></rect>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="150" cy="100" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="450" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="200" cy="300" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="400" cy="250" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Message -->
+        <text x="300" y="250" font-family="Arial" font-size="18" font-weight="bold" fill="#1a9b9b" text-anchor="middle">No Campaigns Found</text>
+        <text x="300" y="275" font-family="Arial" font-size="14" fill="#666666" text-anchor="middle">Create your first campaign to begin your adventure</text>
+    </g>
+</svg>

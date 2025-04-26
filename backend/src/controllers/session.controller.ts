@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Session } from '../models/session.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Session controller for handling session-related requests
  */
@@ -14,27 +22,39 @@ export class SessionController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all sessions
    * @param req Express request
    * @param res Express response
    */
-  public async getAllSessions(req: Request, res: Response): Promise<void> {
+  public async getAllSessions(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.search as string;
       const campaignId = req.query.campaign_id as string;
+      const userId = req.user?.user_id;
 
       // Get sessions
-      const { sessions, total } = await this.repositoryFactory.getSessionRepository().findAll(
+      const { sessions, total } = await this.repositoryFactory.getSessionRepository().findAll({
         campaignId,
+        userId,
         page,
         limit,
-        req.query.sort as string || 'number',
-        req.query.order as 'asc' | 'desc' || 'asc',
         search
-      );
+      });
 
       // Return response
       res.status(200).json({
@@ -53,7 +73,8 @@ export class SessionController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting sessions'
+          message: 'An error occurred while getting sessions',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -64,7 +85,7 @@ export class SessionController {
    * @param req Express request
    * @param res Express response
    */
-  public async getSessionById(req: Request, res: Response): Promise<void> {
+  public async getSessionById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get session ID from request parameters
       const sessionId = req.params.id;
@@ -95,7 +116,8 @@ export class SessionController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting session'
+          message: 'An error occurred while getting session',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -106,7 +128,7 @@ export class SessionController {
    * @param req Express request
    * @param res Express response
    */
-  public async createSession(req: Request, res: Response): Promise<void> {
+  public async createSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -139,7 +161,7 @@ export class SessionController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -152,6 +174,7 @@ export class SessionController {
       }
 
       // Create session
+      const now = new Date().toISOString();
       const session = await this.repositoryFactory.getSessionRepository().create({
         campaign_id: req.body.campaign_id,
         name: req.body.name,
@@ -159,8 +182,10 @@ export class SessionController {
         number: req.body.number,
         date: req.body.date,
         duration_minutes: req.body.duration_minutes,
-        is_completed: req.body.is_completed
-      }, userId);
+        is_completed: req.body.is_completed,
+        created_at: now,
+        created_by: userId || 'system'
+      });
 
       // Return response
       res.status(201).json({
@@ -173,7 +198,8 @@ export class SessionController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating session'
+          message: 'An error occurred while creating session',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -184,7 +210,7 @@ export class SessionController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateSession(req: Request, res: Response): Promise<void> {
+  public async updateSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -220,7 +246,7 @@ export class SessionController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(session.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(session.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -253,7 +279,8 @@ export class SessionController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating session'
+          message: 'An error occurred while updating session',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -264,7 +291,7 @@ export class SessionController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteSession(req: Request, res: Response): Promise<void> {
+  public async deleteSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get session ID from request parameters
       const sessionId = req.params.id;
@@ -286,7 +313,7 @@ export class SessionController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
-      const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(session.campaign_id, userId);
+      const isOwner = userId ? await this.repositoryFactory.getCampaignRepository().isOwner(session.campaign_id, userId) : false;
       if (!isOwner) {
         res.status(403).json({
           success: false,
@@ -310,7 +337,7 @@ export class SessionController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete session with associated transcriptions') {
+        if (error instanceof Error && error.message === 'Cannot delete session with associated transcriptions') {
           res.status(400).json({
             success: false,
             error: {
@@ -328,7 +355,8 @@ export class SessionController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting session'
+          message: 'An error occurred while deleting session',
+          details: this.getErrorMessage(error)
         }
       });
     }

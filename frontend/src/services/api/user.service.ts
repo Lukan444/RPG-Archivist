@@ -15,6 +15,9 @@ export interface User {
   lastLogin?: string;
   role: 'user' | 'admin';
   preferences: UserPreferences;
+  // Added properties to fix UI issues
+  name?: string;
+  avatar?: string;
 }
 
 // User preferences interface
@@ -87,7 +90,7 @@ const UserService = {
   uploadAvatar: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('avatar', file);
-    
+
     const response: AxiosResponse<{ success: boolean; data: { avatarUrl: string } }> = await apiClient.post(
       '/users/me/avatar',
       formData,
@@ -97,7 +100,7 @@ const UserService = {
         },
       }
     );
-    
+
     return response.data.data.avatarUrl;
   },
 

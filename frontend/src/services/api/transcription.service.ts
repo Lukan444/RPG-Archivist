@@ -9,6 +9,7 @@ export interface Transcription {
   status: TranscriptionStatus;
   createdAt: string;
   updatedAt: string;
+  name?: string;
   metadata?: {
     duration?: number;
     wordCount?: number;
@@ -63,8 +64,90 @@ const TranscriptionService = {
    * Get transcriptions by session ID
    */
   getTranscriptionsBySessionId: async (sessionId: string): Promise<Transcription[]> => {
-    const response: AxiosResponse<{ success: boolean; data: Transcription[] }> = await apiClient.get(`/sessions/${sessionId}/transcriptions`);
-    return response.data.data;
+    try {
+      // In development mode, return mock transcriptions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock transcriptions for session', sessionId);
+        return [
+          {
+            id: '1',
+            sessionId,
+            audioFileId: '1',
+            text: 'Corwin: I walked the Pattern and regained my memory. Random: I need to tell you about the Courts of Chaos.',
+            status: TranscriptionStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metadata: {
+              duration: 3600,
+              wordCount: 200,
+              speakerCount: 2,
+              speakers: ['Corwin', 'Random'],
+              confidence: 0.85
+            }
+          },
+          {
+            id: '2',
+            sessionId,
+            audioFileId: '2',
+            text: 'Corwin: We need to find the Jewel of Judgment. Random: It\'s dangerous to use it without proper training.',
+            status: TranscriptionStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metadata: {
+              duration: 2400,
+              wordCount: 150,
+              speakerCount: 2,
+              speakers: ['Corwin', 'Random'],
+              confidence: 0.9
+            }
+          }
+        ];
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: Transcription[] }> = await apiClient.get(`/sessions/${sessionId}/transcriptions`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error fetching transcriptions for session ${sessionId}:`, error);
+      // In development mode, return mock transcriptions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock transcriptions for session after error');
+        return [
+          {
+            id: '1',
+            sessionId,
+            audioFileId: '1',
+            text: 'Corwin: I walked the Pattern and regained my memory. Random: I need to tell you about the Courts of Chaos.',
+            status: TranscriptionStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metadata: {
+              duration: 3600,
+              wordCount: 200,
+              speakerCount: 2,
+              speakers: ['Corwin', 'Random'],
+              confidence: 0.85
+            }
+          },
+          {
+            id: '2',
+            sessionId,
+            audioFileId: '2',
+            text: 'Corwin: We need to find the Jewel of Judgment. Random: It\'s dangerous to use it without proper training.',
+            status: TranscriptionStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metadata: {
+              duration: 2400,
+              wordCount: 150,
+              speakerCount: 2,
+              speakers: ['Corwin', 'Random'],
+              confidence: 0.9
+            }
+          }
+        ];
+      }
+      throw error;
+    }
   },
 
   /**

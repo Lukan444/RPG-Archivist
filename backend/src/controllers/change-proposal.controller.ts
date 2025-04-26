@@ -9,11 +9,29 @@ import {
   ProposalTemplate
 } from '../models/change-proposal.model';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    user_id?: string;
+    role?: string;
+  };
+}
+
 /**
  * Controller for change proposal endpoints
  */
 export class ChangeProposalController {
   private changeProposalService: ChangeProposalService;
+
+  /**
+   * Helper method to safely get error message
+   * @param error Any error object
+   * @returns Error message as string
+   */
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
 
   constructor(changeProposalService: ChangeProposalService) {
     this.changeProposalService = changeProposalService;
@@ -43,9 +61,9 @@ export class ChangeProposalController {
   public async getProposal(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const proposal = await this.changeProposalService.getProposal(id);
-      
+
       if (!proposal) {
         res.status(404).json({
           success: false,
@@ -55,7 +73,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: proposal
@@ -66,7 +84,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to get change proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -80,48 +98,48 @@ export class ChangeProposalController {
   public async getProposals(req: Request, res: Response): Promise<void> {
     try {
       const filter: ProposalFilterOptions = {};
-      
+
       // Parse filter options from query parameters
       if (req.query.status) {
         filter.status = (req.query.status as string).split(',') as ProposalStatus[];
       }
-      
+
       if (req.query.type) {
         filter.type = (req.query.type as string).split(',') as ProposalType[];
       }
-      
+
       if (req.query.entityType) {
         filter.entityType = (req.query.entityType as string).split(',') as ProposalEntityType[];
       }
-      
+
       if (req.query.entityId) {
         filter.entityId = req.query.entityId as string;
       }
-      
+
       if (req.query.contextId) {
         filter.contextId = req.query.contextId as string;
       }
-      
+
       if (req.query.createdBy) {
         filter.createdBy = req.query.createdBy as string;
       }
-      
+
       if (req.query.createdAfter) {
         filter.createdAfter = parseInt(req.query.createdAfter as string);
       }
-      
+
       if (req.query.createdBefore) {
         filter.createdBefore = parseInt(req.query.createdBefore as string);
       }
-      
+
       if (req.query.search) {
         filter.search = req.query.search as string;
       }
-      
+
       const proposals = await this.changeProposalService.getProposals(
         Object.keys(filter).length > 0 ? filter : undefined
       );
-      
+
       res.status(200).json({
         success: true,
         data: proposals
@@ -132,7 +150,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to get change proposals',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -143,11 +161,11 @@ export class ChangeProposalController {
    * @param req Request
    * @param res Response
    */
-  public async createProposal(req: Request, res: Response): Promise<void> {
+  public async createProposal(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const proposal = req.body;
       const userId = req.user?.id;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -157,9 +175,9 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const createdProposal = await this.changeProposalService.createProposal(proposal, userId);
-      
+
       res.status(201).json({
         success: true,
         data: createdProposal
@@ -170,7 +188,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to create change proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -185,9 +203,9 @@ export class ChangeProposalController {
     try {
       const { id } = req.params;
       const proposal = req.body;
-      
+
       const updatedProposal = await this.changeProposalService.updateProposal(id, proposal);
-      
+
       res.status(200).json({
         success: true,
         data: updatedProposal
@@ -198,7 +216,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to update change proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -212,9 +230,9 @@ export class ChangeProposalController {
   public async deleteProposal(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const deleted = await this.changeProposalService.deleteProposal(id);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -224,7 +242,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -237,7 +255,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to delete change proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -248,12 +266,12 @@ export class ChangeProposalController {
    * @param req Request
    * @param res Response
    */
-  public async addComment(req: Request, res: Response): Promise<void> {
+  public async addComment(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { content } = req.body;
       const userId = req.user?.id;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -263,7 +281,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       if (!content) {
         res.status(400).json({
           success: false,
@@ -273,9 +291,9 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const updatedProposal = await this.changeProposalService.addComment(id, content, userId);
-      
+
       res.status(200).json({
         success: true,
         data: updatedProposal
@@ -286,7 +304,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to add comment to proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -297,12 +315,12 @@ export class ChangeProposalController {
    * @param req Request
    * @param res Response
    */
-  public async reviewProposal(req: Request, res: Response): Promise<void> {
+  public async reviewProposal(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status, comment } = req.body;
       const userId = req.user?.id;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -312,7 +330,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       if (!status || !Object.values(ProposalStatus).includes(status as ProposalStatus)) {
         res.status(400).json({
           success: false,
@@ -322,14 +340,14 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const updatedProposal = await this.changeProposalService.reviewProposal(
         id,
         status as ProposalStatus,
         userId,
         comment
       );
-      
+
       res.status(200).json({
         success: true,
         data: updatedProposal
@@ -340,7 +358,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to review proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -351,11 +369,11 @@ export class ChangeProposalController {
    * @param req Request
    * @param res Response
    */
-  public async applyProposal(req: Request, res: Response): Promise<void> {
+  public async applyProposal(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -365,9 +383,9 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const result = await this.changeProposalService.applyProposal(id, userId);
-      
+
       if (!result.success) {
         res.status(400).json({
           success: false,
@@ -378,7 +396,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: result
@@ -389,7 +407,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to apply proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -400,11 +418,11 @@ export class ChangeProposalController {
    * @param req Request
    * @param res Response
    */
-  public async generateProposal(req: Request, res: Response): Promise<void> {
+  public async generateProposal(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const request: ProposalGenerationRequest = req.body;
       const userId = req.user?.id;
-      
+
       if (!userId) {
         res.status(401).json({
           success: false,
@@ -414,7 +432,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       if (!request.entityType) {
         res.status(400).json({
           success: false,
@@ -424,9 +442,9 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const proposal = await this.changeProposalService.generateProposal(request, userId);
-      
+
       res.status(201).json({
         success: true,
         data: proposal
@@ -437,7 +455,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to generate proposal',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -451,9 +469,9 @@ export class ChangeProposalController {
   public async getTemplate(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const template = await this.changeProposalService.getTemplate(id);
-      
+
       if (!template) {
         res.status(404).json({
           success: false,
@@ -463,7 +481,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: template
@@ -474,7 +492,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to get proposal template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -488,9 +506,9 @@ export class ChangeProposalController {
   public async getTemplates(req: Request, res: Response): Promise<void> {
     try {
       const entityType = req.query.entityType as ProposalEntityType | undefined;
-      
+
       const templates = await this.changeProposalService.getTemplates(entityType);
-      
+
       res.status(200).json({
         success: true,
         data: templates
@@ -501,7 +519,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to get proposal templates',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -515,7 +533,7 @@ export class ChangeProposalController {
   public async createTemplate(req: Request, res: Response): Promise<void> {
     try {
       const template: Omit<ProposalTemplate, 'id'> = req.body;
-      
+
       if (!template.name || !template.entityType || !template.promptTemplate) {
         res.status(400).json({
           success: false,
@@ -525,9 +543,9 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       const createdTemplate = await this.changeProposalService.createTemplate(template);
-      
+
       res.status(201).json({
         success: true,
         data: createdTemplate
@@ -538,7 +556,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to create proposal template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -553,9 +571,9 @@ export class ChangeProposalController {
     try {
       const { id } = req.params;
       const template: Partial<Omit<ProposalTemplate, 'id'>> = req.body;
-      
+
       const updatedTemplate = await this.changeProposalService.updateTemplate(id, template);
-      
+
       res.status(200).json({
         success: true,
         data: updatedTemplate
@@ -566,7 +584,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to update proposal template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -580,9 +598,9 @@ export class ChangeProposalController {
   public async deleteTemplate(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const deleted = await this.changeProposalService.deleteTemplate(id);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -592,7 +610,7 @@ export class ChangeProposalController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -605,7 +623,7 @@ export class ChangeProposalController {
         success: false,
         error: {
           message: 'Failed to delete proposal template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }

@@ -3,11 +3,28 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Campaign, CampaignUserRelationshipType } from '../models/campaign.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Campaign controller for handling campaign-related requests
  */
 export class CampaignController {
   private repositoryFactory: RepositoryFactory;
+
+  /**
+   * Helper method to safely get error message
+   * @param error Any error object
+   * @returns Error message as string
+   */
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
 
   constructor(repositoryFactory: RepositoryFactory) {
     this.repositoryFactory = repositoryFactory;
@@ -18,19 +35,19 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getAllCampaigns(req: Request, res: Response): Promise<void> {
+  public async getAllCampaigns(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.search as string;
-      const rpgWorldId = req.query.rpg_world_id as string;
+      const worldId = req.query.world_id as string;
       const userId = req.query.user_id as string || req.user?.user_id;
 
       // Get campaigns
       const { campaigns, total } = await this.repositoryFactory.getCampaignRepository().findAll(
         userId,
-        rpgWorldId,
+        worldId,
         page,
         limit,
         req.query.sort as string || 'created_at',
@@ -55,7 +72,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaigns'
+          message: 'An error occurred while getting campaigns',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -66,7 +84,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignById(req: Request, res: Response): Promise<void> {
+  public async getCampaignById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -97,7 +115,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign'
+          message: 'An error occurred while getting campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -108,7 +127,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async createCampaign(req: Request, res: Response): Promise<void> {
+  public async createCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -128,7 +147,7 @@ export class CampaignController {
       const userId = req.user?.user_id;
 
       // Check if RPG World exists
-      const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(req.body.rpg_world_id);
+      const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(req.body.world_id);
       if (!rpgWorld) {
         res.status(404).json({
           success: false,
@@ -141,7 +160,7 @@ export class CampaignController {
       }
 
       // Check if campaign with same name already exists in the same RPG World
-      const existingCampaign = await this.repositoryFactory.getCampaignRepository().findByName(req.body.name, req.body.rpg_world_id);
+      const existingCampaign = await this.repositoryFactory.getCampaignRepository().findByName(req.body.name, req.body.world_id);
       if (existingCampaign) {
         res.status(400).json({
           success: false,
@@ -157,10 +176,10 @@ export class CampaignController {
       const campaign = await this.repositoryFactory.getCampaignRepository().create({
         name: req.body.name,
         description: req.body.description,
-        rpg_world_id: req.body.rpg_world_id,
+        world_id: req.body.world_id,
         start_date: req.body.start_date,
         is_active: req.body.is_active
-      }, userId);
+      });
 
       // Return response
       res.status(201).json({
@@ -173,7 +192,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating campaign'
+          message: 'An error occurred while creating campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -184,7 +204,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateCampaign(req: Request, res: Response): Promise<void> {
+  public async updateCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -220,6 +240,19 @@ export class CampaignController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(campaignId, userId);
       if (!isOwner) {
         res.status(403).json({
@@ -233,8 +266,8 @@ export class CampaignController {
       }
 
       // Check if RPG World exists if provided
-      if (req.body.rpg_world_id) {
-        const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(req.body.rpg_world_id);
+      if (req.body.world_id) {
+        const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(req.body.world_id);
         if (!rpgWorld) {
           res.status(404).json({
             success: false,
@@ -249,8 +282,8 @@ export class CampaignController {
 
       // Check if name is being updated and if it already exists in the same RPG World
       if (req.body.name && req.body.name !== campaign.name) {
-        const rpgWorldId = req.body.rpg_world_id || campaign.rpg_world_id;
-        const existingCampaign = await this.repositoryFactory.getCampaignRepository().findByName(req.body.name, rpgWorldId);
+        const worldId = req.body.world_id || campaign.world_id;
+        const existingCampaign = await this.repositoryFactory.getCampaignRepository().findByName(req.body.name, worldId);
         if (existingCampaign && existingCampaign.campaign_id !== campaignId) {
           res.status(400).json({
             success: false,
@@ -267,7 +300,7 @@ export class CampaignController {
       const updatedCampaign = await this.repositoryFactory.getCampaignRepository().update(campaignId, {
         name: req.body.name,
         description: req.body.description,
-        rpg_world_id: req.body.rpg_world_id,
+        world_id: req.body.world_id,
         start_date: req.body.start_date,
         end_date: req.body.end_date,
         is_active: req.body.is_active
@@ -284,7 +317,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating campaign'
+          message: 'An error occurred while updating campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -295,7 +329,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteCampaign(req: Request, res: Response): Promise<void> {
+  public async deleteCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -317,6 +351,19 @@ export class CampaignController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(campaignId, userId);
       if (!isOwner) {
         res.status(403).json({
@@ -341,7 +388,7 @@ export class CampaignController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete campaign with associated sessions') {
+        if (error instanceof Error && error.message === 'Cannot delete campaign with associated sessions') {
           res.status(400).json({
             success: false,
             error: {
@@ -359,7 +406,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting campaign'
+          message: 'An error occurred while deleting campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -370,7 +418,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignUsers(req: Request, res: Response): Promise<void> {
+  public async getCampaignUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -392,6 +440,19 @@ export class CampaignController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -418,7 +479,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign users'
+          message: 'An error occurred while getting campaign users',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -429,7 +491,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async addUserToCampaign(req: Request, res: Response): Promise<void> {
+  public async addUserToCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -465,6 +527,19 @@ export class CampaignController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(campaignId, userId);
       if (!isOwner) {
         res.status(403).json({
@@ -508,7 +583,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding user to campaign'
+          message: 'An error occurred while adding user to campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -519,7 +595,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async removeUserFromCampaign(req: Request, res: Response): Promise<void> {
+  public async removeUserFromCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID and user ID from request parameters
       const campaignId = req.params.id;
@@ -542,6 +618,19 @@ export class CampaignController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(campaignId, userId);
       if (!isOwner && userId !== userIdToRemove) {
         res.status(403).json({
@@ -579,7 +668,7 @@ export class CampaignController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot remove the only owner of a campaign') {
+        if (error instanceof Error && error.message === 'Cannot remove the only owner of a campaign') {
           res.status(400).json({
             success: false,
             error: {
@@ -597,7 +686,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing user from campaign'
+          message: 'An error occurred while removing user from campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -608,7 +698,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateUserRoleInCampaign(req: Request, res: Response): Promise<void> {
+  public async updateUserRoleInCampaign(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -645,6 +735,19 @@ export class CampaignController {
 
       // Check if user is owner of campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isOwner = await this.repositoryFactory.getCampaignRepository().isOwner(campaignId, userId);
       if (!isOwner) {
         res.status(403).json({
@@ -688,7 +791,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating user role in campaign'
+          message: 'An error occurred while updating user role in campaign',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -699,7 +803,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignSessions(req: Request, res: Response): Promise<void> {
+  public async getCampaignSessions(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -721,6 +825,19 @@ export class CampaignController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -747,7 +864,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign sessions'
+          message: 'An error occurred while getting campaign sessions',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -758,7 +876,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignCharacters(req: Request, res: Response): Promise<void> {
+  public async getCampaignCharacters(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -780,6 +898,18 @@ export class CampaignController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -806,7 +936,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign characters'
+          message: 'An error occurred while getting campaign characters',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -817,7 +948,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignLocations(req: Request, res: Response): Promise<void> {
+  public async getCampaignLocations(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -839,6 +970,19 @@ export class CampaignController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -865,7 +1009,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign locations'
+          message: 'An error occurred while getting campaign locations',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -876,7 +1021,7 @@ export class CampaignController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCampaignStatistics(req: Request, res: Response): Promise<void> {
+  public async getCampaignStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get campaign ID from request parameters
       const campaignId = req.params.id;
@@ -898,6 +1043,19 @@ export class CampaignController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -924,7 +1082,8 @@ export class CampaignController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaign statistics'
+          message: 'An error occurred while getting campaign statistics',
+          details: this.getErrorMessage(error)
         }
       });
     }

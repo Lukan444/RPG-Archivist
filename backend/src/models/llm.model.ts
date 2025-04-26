@@ -44,6 +44,7 @@ export interface LLMConfig {
   provider: LLMProviderType;
   apiKey?: string;
   baseUrl?: string;
+  apiEndpoint?: string; // Added for compatibility
   models: LLMModel[];
   defaultModel: string;
   temperature: number;
@@ -149,6 +150,9 @@ export interface PromptTemplate {
   defaultModel?: string;
   defaultOptions?: Partial<LLMRequestOptions>;
   metadata?: Record<string, any>;
+  entityType?: string; // Added for compatibility
+  createdAt?: string; // Added for compatibility
+  updatedAt?: string; // Added for compatibility
 }
 
 /**

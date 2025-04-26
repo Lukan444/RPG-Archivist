@@ -28,8 +28,49 @@ import {
   Info as InfoIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
-import { LLMService } from '../../services/api/llm.service';
-import { ChangeProposalService, ProposalEntityType } from '../../services/api/change-proposal.service';
+// Import ProposalEntityType
+import { ProposalEntityType } from '../../services/api/change-proposal.service';
+
+// Mock LLM service
+const LLMService = {
+  chat: async (messages: any[]): Promise<any> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      id: 'mock-response-' + Date.now(),
+      model: 'gpt-3.5-turbo',
+      created: Date.now(),
+      message: {
+        role: 'assistant',
+        content: 'This is a mock response from the LLM service. In a real implementation, this would be a response from an AI model.'
+      },
+      usage: {
+        promptTokens: 100,
+        completionTokens: 50,
+        totalTokens: 150
+      },
+      finishReason: 'stop'
+    };
+  }
+};
+
+// Mock ChangeProposal service
+const ChangeProposalService = {
+  createProposal: async (proposal: any): Promise<any> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      id: 'mock-proposal-' + Date.now(),
+      ...proposal,
+      status: 'pending',
+      createdBy: 'user-1',
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+  }
+};
 
 interface Message {
   id: string;
@@ -70,7 +111,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
     const systemMessage: Message = {
       id: 'system-1',
       role: 'system',
-      content: mode === 'current' 
+      content: mode === 'current'
         ? 'I am your RPG campaign assistant. I can help you with your current session by answering questions and providing suggestions based on your campaign data.'
         : 'I am your RPG campaign assistant. Tell me about past sessions or events that weren\'t recorded, and I\'ll help extract important information to update your campaign database.',
       timestamp: Date.now()
@@ -112,7 +153,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
         { id: '3', name: 'The Battle of Neverwinter', type: 'event' },
         { id: '4', name: 'Sword of Kas', type: 'item' }
       ];
-      
+
       setEntities(mockEntities);
     } catch (error) {
       console.error('Error fetching entities:', error);
@@ -190,9 +231,9 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
     try {
       // Call LLM to extract information
       const response = await LLMService.chat([
-        { 
-          role: 'system', 
-          content: `You are an information extraction system for RPG campaigns. 
+        {
+          role: 'system',
+          content: `You are an information extraction system for RPG campaigns.
           Extract key information from the user's story about past sessions.
           Identify characters, locations, events, items, and relationships.
           Format your response as JSON with the following structure:
@@ -208,10 +249,10 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
       ]);
 
       // Parse the JSON response
-      const jsonMatch = response.message.content.match(/```json\n([\s\S]*?)\n```/) || 
+      const jsonMatch = response.message.content.match(/```json\n([\s\S]*?)\n```/) ||
                         response.message.content.match(/```\n([\s\S]*?)\n```/) ||
                         response.message.content.match(/({[\s\S]*})/);
-      
+
       if (jsonMatch) {
         const extractedData = JSON.parse(jsonMatch[1]);
         setExtractedInfo(extractedData);
@@ -371,7 +412,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
     const systemMessage: Message = {
       id: 'system-1',
       role: 'system',
-      content: mode === 'current' 
+      content: mode === 'current'
         ? 'I am your RPG campaign assistant. I can help you with your current session by answering questions and providing suggestions based on your campaign data.'
         : 'I am your RPG campaign assistant. Tell me about past sessions or events that weren\'t recorded, and I\'ll help extract important information to update your campaign database.',
       timestamp: Date.now()
@@ -400,7 +441,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
         <Typography variant="h6">
           {mode === 'current' ? 'Session Assistant' : 'Storytelling Mode'}
         </Typography>
-        
+
         <Box>
           <Button
             variant={mode === 'current' ? 'contained' : 'outlined'}
@@ -410,7 +451,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
           >
             Current Session
           </Button>
-          
+
           <Button
             variant={mode === 'past' ? 'contained' : 'outlined'}
             size="small"
@@ -420,13 +461,13 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
           </Button>
         </Box>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Grid container spacing={2} sx={{ flexGrow: 1 }}>
         <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', height: '70vh' }}>
           <Box
@@ -470,14 +511,14 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
             ))}
             <div ref={messagesEndRef} />
           </Box>
-          
+
           <Box sx={{ display: 'flex', mb: 2 }}>
             <TextField
               fullWidth
               multiline
               rows={3}
-              placeholder={mode === 'current' 
-                ? "Ask about your current session..." 
+              placeholder={mode === 'current'
+                ? "Ask about your current session..."
                 : "Tell me about a past session or event..."}
               value={input}
               onChange={handleInputChange}
@@ -485,7 +526,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
               disabled={loading}
               sx={{ mr: 1 }}
             />
-            
+
             <Button
               variant="contained"
               color="primary"
@@ -496,7 +537,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
               {loading ? <CircularProgress size={24} /> : <SendIcon />}
             </Button>
           </Box>
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Button
               variant="outlined"
@@ -505,7 +546,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
             >
               Clear Chat
             </Button>
-            
+
             {mode === 'current' && entities.length > 0 && (
               <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel id="entity-select-label">Reference Entity</InputLabel>
@@ -529,14 +570,14 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
             )}
           </Box>
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           {mode === 'past' && extractedInfo && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 Extracted Information
               </Typography>
-              
+
               {extractedInfo.characters && extractedInfo.characters.length > 0 && (
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
@@ -554,8 +595,8 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                     ))}
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       color="primary"
                       onClick={() => handleCreateProposal(ProposalEntityType.CHARACTER)}
                     >
@@ -564,7 +605,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                   </CardActions>
                 </Card>
               )}
-              
+
               {extractedInfo.locations && extractedInfo.locations.length > 0 && (
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
@@ -579,8 +620,8 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                     ))}
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       color="primary"
                       onClick={() => handleCreateProposal(ProposalEntityType.LOCATION)}
                     >
@@ -589,7 +630,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                   </CardActions>
                 </Card>
               )}
-              
+
               {extractedInfo.events && extractedInfo.events.length > 0 && (
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
@@ -614,8 +655,8 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                     ))}
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       color="primary"
                       onClick={() => handleCreateProposal(ProposalEntityType.EVENT)}
                     >
@@ -624,7 +665,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                   </CardActions>
                 </Card>
               )}
-              
+
               {extractedInfo.items && extractedInfo.items.length > 0 && (
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
@@ -642,8 +683,8 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                     ))}
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       color="primary"
                       onClick={() => handleCreateProposal(ProposalEntityType.ITEM)}
                     >
@@ -652,7 +693,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                   </CardActions>
                 </Card>
               )}
-              
+
               {extractedInfo.relationships && extractedInfo.relationships.length > 0 && (
                 <Card variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
@@ -669,8 +710,8 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                     ))}
                   </CardContent>
                   <CardActions>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       color="primary"
                       onClick={() => handleCreateProposal(ProposalEntityType.RELATIONSHIP)}
                     >
@@ -681,25 +722,25 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
               )}
             </Box>
           )}
-          
+
           {mode === 'current' && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 Session Context
               </Typography>
-              
+
               {campaignId && (
                 <Typography variant="body2" gutterBottom>
                   Campaign ID: {campaignId}
                 </Typography>
               )}
-              
+
               {sessionId && (
                 <Typography variant="body2" gutterBottom>
                   Session ID: {sessionId}
                 </Typography>
               )}
-              
+
               {entities.length > 0 && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
@@ -718,7 +759,7 @@ const StorytellingInterface: React.FC<StorytellingInterfaceProps> = ({
                   </Box>
                 </Box>
               )}
-              
+
               <Alert severity="info" sx={{ mt: 2 }}>
                 Ask questions about your current session, and I'll provide information and suggestions based on your campaign data.
               </Alert>

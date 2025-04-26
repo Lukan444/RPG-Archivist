@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200px" height="400px" viewBox="0 0 1200 400" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Default Campaign Banner</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="campaignGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="url(#campaignGradient)" x="0" y="0" width="1200" height="400"></rect>
+        
+        <!-- D20 Die -->
+        <polygon fill="#FFFFFF" opacity="0.2" points="600,50 650,150 550,150"></polygon>
+        <polygon fill="#FFFFFF" opacity="0.2" points="600,350 650,250 550,250"></polygon>
+        <polygon fill="#FFFFFF" opacity="0.2" points="500,200 550,150 550,250"></polygon>
+        <polygon fill="#FFFFFF" opacity="0.2" points="700,200 650,150 650,250"></polygon>
+        
+        <!-- Sword -->
+        <rect fill="url(#goldGradient)" x="300" y="175" width="200" height="10" rx="5"></rect>
+        <polygon fill="url(#goldGradient)" points="300,180 250,150 250,210"></polygon>
+        <rect fill="#CCCCCC" x="500" y="170" width="50" height="20" rx="5"></rect>
+        
+        <!-- Shield -->
+        <path d="M850,150 C900,150 950,170 950,220 C950,270 900,300 850,350 C800,300 750,270 750,220 C750,170 800,150 850,150 Z" fill="url(#goldGradient)" opacity="0.9"></path>
+        <path d="M850,170 C890,170 930,185 930,225 C930,265 890,290 850,330 C810,290 770,265 770,225 C770,185 810,170 850,170 Z" fill="#0d4b6e" opacity="0.8"></path>
+        <text x="850" y="250" font-family="Arial" font-size="40" font-weight="bold" fill="#FFFFFF" text-anchor="middle">RPG</text>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="200" cy="100" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="300" cy="300" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="1000" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="1100" cy="250" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Title -->
+        <text x="600" y="200" font-family="Arial" font-size="48" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Fantasy Campaign</text>
+        <text x="600" y="240" font-family="Arial" font-size="24" fill="#FFFFFF" text-anchor="middle">Begin Your Adventure</text>
+    </g>
+</svg>

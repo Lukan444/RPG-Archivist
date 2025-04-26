@@ -1,8 +1,8 @@
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../services/database.service';
-import { 
-  SessionAnalysis, 
-  SessionAnalysisCreationParams, 
+import {
+  SessionAnalysis,
+  SessionAnalysisCreationParams,
   SessionAnalysisUpdateParams,
   KeyPoint,
   CharacterInsight,
@@ -76,7 +76,7 @@ export class SessionAnalysisRepository extends BaseRepository {
         const result = await tx.run(characterInsightsQuery, { analysisId });
         return result.records.map(record => {
           const insight = record.get('characterInsight') as CharacterInsight;
-          
+
           // Get character interactions
           const interactionsQuery = `
             MATCH (i:CharacterInteraction)-[:PART_OF]->(c:CharacterInsight)-[:PART_OF]->(a:SessionAnalysis {analysis_id: $analysisId})
@@ -90,17 +90,17 @@ export class SessionAnalysisRepository extends BaseRepository {
             } as interaction
             ORDER BY i.interaction_count DESC
           `;
-          
+
           return this.dbService.readTransaction(async (tx) => {
-            const interactionsResult = await tx.run(interactionsQuery, { 
-              analysisId, 
-              characterInsightId: insight.id 
+            const interactionsResult = await tx.run(interactionsQuery, {
+              analysisId,
+              characterInsightId: insight.character_id || 'unknown'
             });
-            
-            insight.key_interactions = interactionsResult.records.map(record => 
+
+            insight.key_interactions = interactionsResult.records.map(record =>
               record.get('interaction')
             );
-            
+
             return insight;
           });
         });
@@ -117,7 +117,7 @@ export class SessionAnalysisRepository extends BaseRepository {
         const result = await tx.run(plotDevelopmentsQuery, { analysisId });
         return result.records.map(record => {
           const development = record.get('plotDevelopment') as PlotDevelopment;
-          
+
           // Get related entities
           const entitiesQuery = `
             MATCH (e:RelatedEntity)-[:PART_OF]->(p:PlotDevelopment)-[:PART_OF]->(a:SessionAnalysis {analysis_id: $analysisId})
@@ -125,17 +125,17 @@ export class SessionAnalysisRepository extends BaseRepository {
             RETURN e {.*} as entity
             ORDER BY e.relevance_score DESC
           `;
-          
+
           return this.dbService.readTransaction(async (tx) => {
-            const entitiesResult = await tx.run(entitiesQuery, { 
-              analysisId, 
-              plotDevelopmentId: development.id 
+            const entitiesResult = await tx.run(entitiesQuery, {
+              analysisId,
+              plotDevelopmentId: development.plot_development_id || 'unknown'
             });
-            
-            development.related_entities = entitiesResult.records.map(record => 
+
+            development.related_entities = entitiesResult.records.map(record =>
               record.get('entity')
             );
-            
+
             return development;
           });
         });
@@ -157,8 +157,11 @@ export class SessionAnalysisRepository extends BaseRepository {
         analysis_id: result.analysis_id,
         session_id: result.session_id,
         transcription_id: result.transcription_id,
+        recording_id: result.recording_id || '', // Default value for missing property
+        created_by: result.created_by || 'system', // Default value for missing property
         created_at: result.created_at,
         updated_at: result.updated_at,
+        status: result.status || 'completed', // Default value for missing property
         summary: result.summary,
         key_points: keyPoints,
         character_insights: await Promise.all(characterInsights),
@@ -288,8 +291,11 @@ export class SessionAnalysisRepository extends BaseRepository {
         analysis_id: result.analysis_id,
         session_id: result.session_id,
         transcription_id: result.transcription_id,
+        recording_id: result.recording_id || '', // Default value for missing property
+        created_by: params.created_by || 'system', // Use the provided created_by or default
         created_at: result.created_at,
         updated_at: result.updated_at,
+        status: result.status || 'pending', // Default value for missing property
         summary: result.summary,
         key_points: [],
         character_insights: [],
@@ -372,7 +378,7 @@ export class SessionAnalysisRepository extends BaseRepository {
         // Then create new key points
         for (const keyPoint of params.key_points) {
           const keyPointId = keyPoint.key_point_id || uuidv4();
-          
+
           const createKeyPointQuery = `
             MATCH (a:SessionAnalysis {analysis_id: $analysisId})
             CREATE (k:KeyPoint {
@@ -555,7 +561,7 @@ export class SessionAnalysisRepository extends BaseRepository {
         // Then create new plot developments
         for (const development of params.plot_developments) {
           const developmentId = development.plot_development_id || uuidv4();
-          
+
           const createDevelopmentQuery = `
             MATCH (a:SessionAnalysis {analysis_id: $analysisId})
             CREATE (p:PlotDevelopment {
@@ -622,7 +628,7 @@ export class SessionAnalysisRepository extends BaseRepository {
         // Then create new topics
         for (const topic of params.topics) {
           const topicId = topic.topic_id || uuidv4();
-          
+
           const createTopicQuery = `
             MATCH (a:SessionAnalysis {analysis_id: $analysisId})
             CREATE (t:Topic {

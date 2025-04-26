@@ -74,6 +74,7 @@ export class TranscriptionRepository extends BaseRepository {
         full_text: result.full_text,
         segments: segments,
         language_code: result.language_code,
+        language: result.language_code ? result.language_code.split('-')[0] : 'en', // Extract language from language_code
         confidence_score: result.confidence_score,
         word_count: result.word_count,
         processing_time_seconds: result.processing_time_seconds,
@@ -151,6 +152,7 @@ export class TranscriptionRepository extends BaseRepository {
         full_text: result.full_text,
         segments: segments,
         language_code: result.language_code,
+        language: result.language_code ? result.language_code.split('-')[0] : 'en', // Extract language from language_code
         confidence_score: result.confidence_score,
         word_count: result.word_count,
         processing_time_seconds: result.processing_time_seconds,
@@ -236,6 +238,7 @@ export class TranscriptionRepository extends BaseRepository {
         full_text: result.full_text,
         segments: [],
         language_code: result.language_code,
+        language: result.language_code ? result.language_code.split('-')[0] : 'en', // Extract language from language_code
         confidence_score: result.confidence_score,
         word_count: result.word_count,
         processing_time_seconds: result.processing_time_seconds,
@@ -322,7 +325,7 @@ export class TranscriptionRepository extends BaseRepository {
         // Then create new segments
         for (const segment of params.segments) {
           const segmentId = segment.segment_id || uuidv4();
-          
+
           // Create segment
           const createSegmentQuery = `
             MATCH (t:Transcription {transcription_id: $transcriptionId})
@@ -480,7 +483,7 @@ export class TranscriptionRepository extends BaseRepository {
         return result.records.length > 0;
       });
 
-      let query;
+      let query: string;
       if (speakerExists) {
         // Update existing speaker
         query = `

@@ -25,8 +25,10 @@ export const contentAnalysisRoutes = (
   // Create session analysis service
   const sessionAnalysisService = new SessionAnalysisService(
     repositoryFactory.getSessionAnalysisRepository(),
+    repositoryFactory.getTranscriptionRepository(),
     repositoryFactory.getSessionRepository(),
-    llmService
+    repositoryFactory.getCharacterRepository(),
+    repositoryFactory.getAudioRecordingRepository()
   );
 
   // Create transcription service
@@ -48,23 +50,23 @@ export const contentAnalysisRoutes = (
   const contentAnalysisController = new ContentAnalysisController(contentAnalysisService);
 
   // Suggestion routes
-  router.get('/suggestions', authenticate(), contentAnalysisController.getSuggestions);
-  router.get('/suggestions/:id', authenticate(), contentAnalysisController.getSuggestion);
-  router.put('/suggestions/:id', authenticate(), contentAnalysisController.updateSuggestion);
-  router.delete('/suggestions/:id', authenticate(), contentAnalysisController.deleteSuggestion);
+  router.get('/suggestions', authenticate, contentAnalysisController.getSuggestions);
+  router.get('/suggestions/:id', authenticate, contentAnalysisController.getSuggestion);
+  router.put('/suggestions/:id', authenticate, contentAnalysisController.updateSuggestion);
+  router.delete('/suggestions/:id', authenticate, contentAnalysisController.deleteSuggestion);
 
   // Suggestion actions
-  router.post('/suggestions/:id/accept', authenticate(), contentAnalysisController.acceptSuggestion);
-  router.post('/suggestions/:id/reject', authenticate(), contentAnalysisController.rejectSuggestion);
-  router.post('/suggestions/:id/modify', authenticate(), contentAnalysisController.modifySuggestion);
+  router.post('/suggestions/:id/accept', authenticate, contentAnalysisController.acceptSuggestion);
+  router.post('/suggestions/:id/reject', authenticate, contentAnalysisController.rejectSuggestion);
+  router.post('/suggestions/:id/modify', authenticate, contentAnalysisController.modifySuggestion);
 
   // Analysis result routes
-  router.get('/results', authenticate(), contentAnalysisController.getAnalysisResults);
-  router.get('/results/:id', authenticate(), contentAnalysisController.getAnalysisResult);
-  router.delete('/results/:id', authenticate(), contentAnalysisController.deleteAnalysisResult);
+  router.get('/results', authenticate, contentAnalysisController.getAnalysisResults);
+  router.get('/results/:id', authenticate, contentAnalysisController.getAnalysisResult);
+  router.delete('/results/:id', authenticate, contentAnalysisController.deleteAnalysisResult);
 
   // Analysis action
-  router.post('/analyze', authenticate(), contentAnalysisController.analyzeContent);
+  router.post('/analyze', authenticate, contentAnalysisController.analyzeContent);
 
   return router;
 };

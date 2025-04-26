@@ -11,10 +11,12 @@ import {
   FormControl,
   InputLabel,
   Select,
+  SelectChangeEvent,
   FormHelperText,
   CircularProgress,
 } from '@mui/material';
-import { ImageUpload } from '../../components/images';
+import { adaptSelectChangeHandlerForInput } from '../../utils/eventHandlers';
+import { ImageUploader } from '../../components/images';
 import { CampaignInput } from '../../services/api/campaign.service';
 import RPGWorldService, { RPGWorld } from '../../services/api/rpgWorld.service';
 
@@ -49,20 +51,20 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
     worldId: '',
     imageUrl: undefined,
   });
-  
+
   // RPG Worlds state
   const [worlds, setWorlds] = useState<RPGWorld[]>([]);
   const [loadingWorlds, setLoadingWorlds] = useState(false);
-  
+
   // Form validation
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Fetch RPG Worlds
   useEffect(() => {
     const fetchWorlds = async () => {
       try {
         setLoadingWorlds(true);
-        const data = await RPGWorldService.getAllWorlds();
+        const data = await RPGWorldService.getRPGWorlds();
         setWorlds(data);
       } catch (error) {
         console.error('Error fetching RPG Worlds:', error);
@@ -70,10 +72,10 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
         setLoadingWorlds(false);
       }
     };
-    
+
     fetchWorlds();
   }, []);
-  
+
   // Initialize form with initial data if provided
   useEffect(() => {
     if (initialData) {
@@ -85,7 +87,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
       }));
     }
   }, [initialData, preselectedWorldId]);
-  
+
   // Handle form field change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
@@ -94,7 +96,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
         ...formData,
         [name]: value,
       });
-      
+
       // Clear error for this field
       if (errors[name]) {
         setErrors({
@@ -104,19 +106,16 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
       }
     }
   };
-  
+
   // Handle image upload
-  const handleImageUpload = async (file: File): Promise<string> => {
-    // In a real implementation, this would upload the file to a server
-    // For now, we'll just create a local URL
-    const imageUrl = URL.createObjectURL(file);
+  const handleImageUpload = (imageUrl: string): void => {
+    // Update the form data with the image URL
     setFormData({
       ...formData,
       imageUrl,
     });
-    return imageUrl;
   };
-  
+
   // Handle image generation
   const handleImageGenerate = async (prompt: string): Promise<string> => {
     // In a real implementation, this would call an AI image generation API
@@ -128,7 +127,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
     });
     return imageUrl;
   };
-  
+
   // Handle image delete
   const handleImageDelete = () => {
     setFormData({
@@ -136,74 +135,74 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
       imageUrl: undefined,
     });
   };
-  
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
-    if (!formData.description.trim()) {
+
+    if (!formData.description?.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     if (!formData.worldId) {
       newErrors.worldId = 'RPG World is required';
     }
-    
+
     if (!formData.status) {
       newErrors.status = 'Status is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       await onSubmit(formData);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <Grid container spacing={3}>
         {/* Left column - Image upload */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant= h6 gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Campaign Image
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <ImageUpload
+            <ImageUploader
               onImageUpload={handleImageUpload}
               onImageGenerate={handleImageGenerate}
               onImageDelete={handleImageDelete}
               imageUrl={formData.imageUrl}
-              entityType=campaign
+              entityType="campaign"
               entityName={formData.name}
             />
           </Paper>
         </Grid>
-        
+
         {/* Right column - Form fields */}
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant=h6 gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Campaign Details
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            
+
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
-                  name=name
-                  label=Campaign Name
+                  name="name"
+                  label="Campaign Name"
                   value={formData.name}
                   onChange={handleChange}
                   fullWidth
@@ -212,21 +211,21 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
                   helperText={errors.name}
                 />
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth required error={!!errors.worldId}>
-                  <InputLabel id=world-select-label>RPG World</InputLabel>
+                  <InputLabel id="world-select-label">RPG World</InputLabel>
                   <Select
-                    labelId=world-select-label
-                    id=world-select
-                    name=worldId
+                    labelId="world-select-label"
+                    id="world-select"
+                    name="worldId"
                     value={formData.worldId}
-                    label=RPG World
-                    onChange={handleChange}
+                    label="RPG World"
+                    onChange={adaptSelectChangeHandlerForInput(handleChange)}
                     disabled={loadingWorlds}
                   >
                     {loadingWorlds ? (
-                      <MenuItem value=">
+                      <MenuItem value="">
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <CircularProgress size={20} sx={{ mr: 1 }} />
                           Loading worlds...
@@ -235,7 +234,7 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
                     ) : (
                       worlds.map((world) => (
                         <MenuItem key={world.id} value={world.id}>
-                          {world.name} ({world.system})
+                          {world.name} {world.gameSystem ? `(${world.gameSystem})` : ''}
                         </MenuItem>
                       ))
                     )}
@@ -243,17 +242,17 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
                   {errors.worldId && <FormHelperText>{errors.worldId}</FormHelperText>}
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth required error={!!errors.status}>
-                  <InputLabel id=status-select-label>Status</InputLabel>
+                  <InputLabel id="status-select-label">Status</InputLabel>
                   <Select
-                    labelId=status-select-label
-                    id=status-select
-                    name=status
+                    labelId="status-select-label"
+                    id="status-select"
+                    name="status"
                     value={formData.status}
-                    label=Status
-                    onChange={handleChange}
+                    label="Status"
+                    onChange={adaptSelectChangeHandlerForInput(handleChange)}
                   >
                     {statusOptions.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -264,11 +263,11 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
                   {errors.status && <FormHelperText>{errors.status}</FormHelperText>}
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
-                  name=description
-                  label=Description
+                  name="description"
+                  label="Description"
                   value={formData.description}
                   onChange={handleChange}
                   fullWidth
@@ -280,20 +279,20 @@ const CampaignForm: React.FC<CampaignFormProps> = ({
                 />
               </Grid>
             </Grid>
-            
+
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
-                variant=outlined
-                color=inherit
+                variant="outlined"
+                color="inherit"
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
-                type=submit
-                variant=contained
-                color=primary
+                type="submit"
+                variant="contained"
+                color="primary"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : initialData ? 'Update Campaign' : 'Create Campaign'}

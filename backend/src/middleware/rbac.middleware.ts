@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthRequest } from './auth.middleware';
 import { Permission, ROLE_PERMISSIONS } from '../models/permission.model';
 import { UserRole } from '../models/user.model';
 
@@ -10,7 +11,7 @@ export const checkPermission = (permission: Permission) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       // Get user from request
-      const user = req.user;
+      const user = (req as AuthRequest).user;
 
       // Check if user exists
       if (!user) {

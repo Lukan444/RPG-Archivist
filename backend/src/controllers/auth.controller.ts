@@ -1,1 +1,243 @@
-import { Request, Response, NextFunction } from 'express';\nimport { AuthService } from '../services/auth.service';\nimport { RepositoryFactory } from '../repositories/repository.factory';\nimport { UserCreationParams, UserRole } from '../models/user.model';\nimport { validationResult, body } from 'express-validator';\n\n/**\n * Authentication controller\n */\nexport class AuthController {\n  private authService: AuthService;\n\n  constructor(repositoryFactory: RepositoryFactory) {\n    this.authService = new AuthService(repositoryFactory);\n  }\n\n  /**\n   * Register validation rules\n   */\n  public static registerValidationRules = [\n    body('username')\n      .isString()\n      .isLength({ min: 3, max: 30 })\n      .withMessage('Username must be between 3 and 30 characters')\n      .matches(/^[a-zA-Z0-9_-]+$/)\n      .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),\n    body('email')\n      .isEmail()\n      .withMessage('Email must be valid')\n      .normalizeEmail(),\n    body('password')\n      .isString()\n      .isLength({ min: 8 })\n      .withMessage('Password must be at least 8 characters long')\n      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)/)\n      .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),\n    body('first_name')\n      .optional()\n      .isString()\n      .isLength({ max: 50 })\n      .withMessage('First name must be less than 50 characters'),\n    body('last_name')\n      .optional()\n      .isString()\n      .isLength({ max: 50 })\n      .withMessage('Last name must be less than 50 characters'),\n    body('role')\n      .optional()\n      .isIn(Object.values(UserRole))\n      .withMessage('Role must be a valid user role')\n  ];\n\n  /**\n   * Login validation rules\n   */\n  public static loginValidationRules = [\n    body('usernameOrEmail')\n      .isString()\n      .notEmpty()\n      .withMessage('Username or email is required'),\n    body('password')\n      .isString()\n      .notEmpty()\n      .withMessage('Password is required')\n  ];\n\n  /**\n   * Register a new user\n   * @param req Express request\n   * @param res Express response\n   * @param next Express next function\n   */\n  public register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {\n    try {\n      // Validate request\n      const errors = validationResult(req);\n      if (!errors.isEmpty()) {\n        res.status(400).json({ errors: errors.array() });\n        return;\n      }\n\n      // Extract user data from request\n      const userData: UserCreationParams = {\n        username: req.body.username,\n        email: req.body.email,\n        password: req.body.password,\n        first_name: req.body.first_name,\n        last_name: req.body.last_name,\n        role: req.body.role || UserRole.PLAYER\n      };\n\n      // Register user\n      const user = await this.authService.register(userData);\n\n      // Return user data\n      res.status(201).json({\n        message: 'User registered successfully',\n        user\n      });\n    } catch (error) {\n      // Handle specific errors\n      if (error instanceof Error) {\n        if (error.message === 'Username already exists' || error.message === 'Email already exists') {\n          res.status(409).json({ message: error.message });\n          return;\n        }\n      }\n\n      // Pass other errors to error handler\n      next(error);\n    }\n  };\n\n  /**\n   * Login user\n   * @param req Express request\n   * @param res Express response\n   * @param next Express next function\n   */\n  public login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {\n    try {\n      // Validate request\n      const errors = validationResult(req);\n      if (!errors.isEmpty()) {\n        res.status(400).json({ errors: errors.array() });\n        return;\n      }\n\n      // Extract login data from request\n      const { usernameOrEmail, password } = req.body;\n\n      // Login user\n      const authResult = await this.authService.login(usernameOrEmail, password);\n\n      // Return auth result\n      res.status(200).json({\n        message: 'Login successful',\n        user: authResult.user,\n        token: authResult.token,\n        refresh_token: authResult.refresh_token\n      });\n    } catch (error) {\n      // Handle specific errors\n      if (error instanceof Error) {\n        if (\n          error.message === 'Invalid username/email or password' ||\n          error.message === 'User account is inactive'\n        ) {\n          res.status(401).json({ message: error.message });\n          return;\n        }\n      }\n\n      // Pass other errors to error handler\n      next(error);\n    }\n  };\n}
+import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { RepositoryFactory } from '../repositories/repository.factory';
+import { User, UserRole } from '../models/user.model';
+import config from '../config';
+
+/**
+ * Authentication controller
+ */
+export class AuthController {
+  private repositoryFactory: RepositoryFactory;
+
+  /**
+   * Constructor
+   * @param repositoryFactory Repository factory
+   */
+  constructor(repositoryFactory: RepositoryFactory) {
+    this.repositoryFactory = repositoryFactory;
+  }
+
+  /**
+   * Register a new user
+   * @param req Request
+   * @param res Response
+   */
+  async register(req: Request, res: Response): Promise<void> {
+    try {
+      const { username, email, password, name } = req.body;
+
+      // Check if user already exists
+      const userRepository = this.repositoryFactory.getUserRepository();
+      const existingUserByUsername = await userRepository.getByUsername(username);
+      const existingUserByEmail = await userRepository.getByEmail(email);
+
+      if (existingUserByUsername) {
+        res.status(409).json({
+          success: false,
+          error: {
+            code: 'USER_EXISTS',
+            message: 'User with this username already exists'
+          }
+        });
+        return;
+      }
+
+      if (existingUserByEmail) {
+        res.status(409).json({
+          success: false,
+          error: {
+            code: 'USER_EXISTS',
+            message: 'User with this email already exists'
+          }
+        });
+        return;
+      }
+
+      // Create user
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newUser: Omit<User, 'user_id'> = {
+        username,
+        email,
+        password: hashedPassword,
+        name,
+        role: UserRole.PLAYER, // Default role
+        created_at: Date.now(),
+        updated_at: Date.now()
+      };
+
+      const user = await userRepository.create(newUser);
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+
+      res.status(201).json({
+        success: true,
+        data: {
+          user: userWithoutPassword
+        }
+      });
+    } catch (error) {
+      console.error('Error registering user:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'An error occurred while registering user'
+        }
+      });
+    }
+  }
+
+  /**
+   * Login user
+   * @param req Request
+   * @param res Response
+   */
+  async login(req: Request, res: Response): Promise<void> {
+    try {
+      const { username, password } = req.body;
+
+      // Get user
+      const userRepository = this.repositoryFactory.getUserRepository();
+      const user = await userRepository.getByUsername(username);
+
+      if (!user || !user.password) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Invalid username or password'
+          }
+        });
+        return;
+      }
+
+      // Check password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Invalid username or password'
+          }
+        });
+        return;
+      }
+
+      // Generate tokens
+      const accessToken = jwt.sign(
+        { user_id: user.user_id, username: user.username, role: user.role },
+        config.jwt.secret as jwt.Secret,
+        { expiresIn: config.jwt.accessExpiration as jwt.SignOptions['expiresIn'] }
+      );
+
+      const refreshToken = jwt.sign(
+        { user_id: user.user_id },
+        config.jwt.secret as jwt.Secret,
+        { expiresIn: config.jwt.refreshExpiration as jwt.SignOptions['expiresIn'] }
+      );
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+
+      res.status(200).json({
+        success: true,
+        data: {
+          user: userWithoutPassword,
+          tokens: {
+            access: accessToken,
+            refresh: refreshToken
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error logging in user:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'An error occurred while logging in'
+        }
+      });
+    }
+  }
+
+  /**
+   * Refresh access token
+   * @param req Request
+   * @param res Response
+   */
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { refreshToken } = req.body;
+
+      // Verify refresh token
+      let decoded: any;
+      try {
+        decoded = jwt.verify(refreshToken, config.jwt.secret);
+      } catch (error) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_TOKEN',
+            message: 'Invalid or expired refresh token'
+          }
+        });
+        return;
+      }
+
+      // Get user
+      const userRepository = this.repositoryFactory.getUserRepository();
+      const user = await userRepository.getById(decoded.user_id);
+
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_TOKEN',
+            message: 'Invalid or expired refresh token'
+          }
+        });
+        return;
+      }
+
+      // Generate new tokens
+      const accessToken = jwt.sign(
+        { user_id: user.user_id, username: user.username, role: user.role },
+        config.jwt.secret as jwt.Secret,
+        { expiresIn: config.jwt.accessExpiration as jwt.SignOptions['expiresIn'] }
+      );
+
+      const newRefreshToken = jwt.sign(
+        { user_id: user.user_id },
+        config.jwt.secret as jwt.Secret,
+        { expiresIn: config.jwt.refreshExpiration as jwt.SignOptions['expiresIn'] }
+      );
+
+      res.status(200).json({
+        success: true,
+        data: {
+          tokens: {
+            access: accessToken,
+            refresh: newRefreshToken
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'An error occurred while refreshing token'
+        }
+      });
+    }
+  }
+}

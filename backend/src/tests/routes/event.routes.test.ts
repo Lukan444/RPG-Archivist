@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app } from '../../app';
+import app from '../../app';
 import { DatabaseService } from '../../services/database.service';
 import { RepositoryFactory } from '../../repositories/repository.factory';
 import { EventRepository } from '../../repositories/event.repository';
@@ -12,7 +12,15 @@ import { UserRepository } from '../../repositories/user.repository';
 import { v4 as uuidv4 } from 'uuid';
 import { UserRole } from '../../models/user.model';
 import { EventType } from '../../models/event.model';
-import { generateToken } from '../../utils/auth';
+import jwt from 'jsonwebtoken';
+import config from '../../config';
+
+// Helper function to generate JWT token
+function generateToken(user: { user_id: string; username: string; email: string; role: UserRole }): string {
+  return jwt.sign(user, config.jwt.secret, {
+    expiresIn: config.jwt.accessExpiration
+  });
+}
 
 // Mock repositories
 jest.mock('../../repositories/event.repository');
@@ -59,14 +67,14 @@ describe('Event Routes', () => {
     // Create tokens
     const adminId = uuidv4();
     const userId = uuidv4();
-    
+
     adminToken = generateToken({
       user_id: adminId,
       username: 'admin',
       email: 'admin@example.com',
       role: UserRole.ADMIN
     });
-    
+
     userToken = generateToken({
       user_id: userId,
       username: 'user',
@@ -115,7 +123,7 @@ describe('Event Routes', () => {
           {
             event_id: uuidv4(),
             campaign_id: campaignId,
-            name: 'Battle of Helm\\'s Deep',
+            name: "Battle of Helm's Deep",
             description: 'A major battle in the War of the Ring',
             event_type: EventType.BATTLE,
             event_date: '3019-03-03',
@@ -142,14 +150,14 @@ describe('Event Routes', () => {
 
       // Make request
       const response = await request(app)
-        .get(/api/v1/events?campaign_id=)
-        .set('Authorization', Bearer );
+        .get(`/api/v1/events?campaign_id=${campaignId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
 
       // Check response
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
-      expect(response.body.data[0].name).toBe('Battle of Helm\\'s Deep');
+      expect(response.body.data[0].name).toBe("Battle of Helm's Deep");
       expect(response.body.data[1].name).toBe('Council of Elrond');
     });
 
@@ -157,7 +165,7 @@ describe('Event Routes', () => {
       // Make request
       const response = await request(app)
         .get('/api/v1/events')
-        .set('Authorization', Bearer );
+        .set('Authorization', `Bearer ${adminToken}`);
 
       // Check response
       expect(response.status).toBe(400);
@@ -174,8 +182,8 @@ describe('Event Routes', () => {
 
       // Make request
       const response = await request(app)
-        .get(/api/v1/events?campaign_id=)
-        .set('Authorization', Bearer );
+        .get(`/api/v1/events?campaign_id=${campaignId}`)
+        .set('Authorization', `Bearer ${userToken}`);
 
       // Check response
       expect(response.status).toBe(403);
@@ -192,7 +200,7 @@ describe('Event Routes', () => {
       const event = {
         event_id: eventId,
         campaign_id: campaignId,
-        name: 'Battle of Helm\\'s Deep',
+        name: "Battle of Helm's Deep",
         description: 'A major battle in the War of the Ring',
         event_type: EventType.BATTLE,
         event_date: '3019-03-03',
@@ -208,15 +216,15 @@ describe('Event Routes', () => {
 
       // Make request
       const response = await request(app)
-        .get(/api/v1/events/)
-        .set('Authorization', Bearer );
+        .get(`/api/v1/events/${eventId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
 
       // Check response
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(expect.objectContaining({
         event_id: eventId,
-        name: 'Battle of Helm\\'s Deep',
+        name: "Battle of Helm's Deep",
         description: 'A major battle in the War of the Ring'
       }));
     });
@@ -227,8 +235,8 @@ describe('Event Routes', () => {
 
       // Make request
       const response = await request(app)
-        .get(/api/v1/events/)
-        .set('Authorization', Bearer );
+        .get(`/api/v1/events/${uuidv4()}`) // Use a random ID that doesn't exist
+        .set('Authorization', `Bearer ${adminToken}`);
 
       // Check response
       expect(response.status).toBe(404);
@@ -243,7 +251,7 @@ describe('Event Routes', () => {
       const event = {
         event_id: eventId,
         campaign_id: campaignId,
-        name: 'Battle of Helm\\'s Deep',
+        name: "Battle of Helm's Deep",
         description: 'A major battle in the War of the Ring',
         event_type: EventType.BATTLE,
         event_date: '3019-03-03',
@@ -259,8 +267,8 @@ describe('Event Routes', () => {
 
       // Make request
       const response = await request(app)
-        .get(/api/v1/events/)
-        .set('Authorization', Bearer );
+        .get(`/api/v1/events/${eventId}`)
+        .set('Authorization', `Bearer ${userToken}`);
 
       // Check response
       expect(response.status).toBe(403);

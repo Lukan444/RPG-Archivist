@@ -11,6 +11,9 @@ import { store } from './store';
 import { ThemeProvider } from './theme';
 import { initErrorReporting } from './utils/errorReporting';
 
+// Import debug script
+import './debug';
+
 // Initialize error reporting
 initErrorReporting();
 

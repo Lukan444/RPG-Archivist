@@ -3,16 +3,41 @@ echo.
 echo  ____  ____   ____    _              _     _       _     _
 echo ^|  _ \^|  _ \ / ___|  / \   _ __ ___^| ^|__ ^(_)_   _^(_)___^| ^|_
 echo ^| ^|_) ^| ^|_) ^| ^|  _  / _ \ ^| '__/ __^| '_ \^| \ \ / / / __^| __^|
-echo ^|  _ <^|  __/^| ^|_^| ^|/ ___ \^| ^| ^| (__^| ^| ^| ^| ^|\ V /^| \__ \ ^|_
+echo ^|  _ ^<^|  __/^| ^|_^| ^|/ ___ \^| ^| ^| (__^| ^| ^| ^| ^|\ V /^| \__ \ ^|_
 echo ^|_^| \_\_^|    \____/_/   \_\_^|  \___)_^| ^|_^|_^| \_/ ^|_^|___/\__^|
 echo.
 echo Starting RPG Archivist Application...
 echo.
 
 :: Check for running processes and kill them if needed
-echo Checking for existing processes...
-taskkill /f /im node.exe >nul 2>&1
-echo Cleared any existing Node.js processes.
+echo Checking for existing RPG Archivist processes...
+
+:: Enable delayed expansion for variables inside loops
+setlocal EnableDelayedExpansion
+
+:: Check for processes using port 3000 (frontend)
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000 ^| findstr LISTENING') do (
+    echo Found process using port 3000 (Frontend): %%a
+    taskkill /F /PID %%a >nul 2>&1
+    if !ERRORLEVEL! EQU 0 (
+        echo Successfully terminated frontend process.
+    ) else (
+        echo Failed to terminate frontend process. You may need to close it manually.
+    )
+)
+
+:: Check for processes using port 4000 (backend)
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :4000 ^| findstr LISTENING') do (
+    echo Found process using port 4000 (Backend): %%a
+    taskkill /F /PID %%a >nul 2>&1
+    if !ERRORLEVEL! EQU 0 (
+        echo Successfully terminated backend process.
+    ) else (
+        echo Failed to terminate backend process. You may need to close it manually.
+    )
+)
+
+echo Cleared any existing RPG Archivist processes.
 
 :: Set the project directory - use the directory where the batch file is located
 set PROJECT_DIR=%~dp0

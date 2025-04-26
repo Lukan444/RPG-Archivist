@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>RPG Archivist Logo</title>
+    <g id="Logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Background" fill="#3f51b5" cx="100" cy="100" r="90"></circle>
+        <path d="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z M100,40 C66.86,40 40,66.86 40,100 C40,133.14 66.86,160 100,160 C133.14,160 160,133.14 160,100 C160,66.86 133.14,40 100,40 Z" id="Ring" fill="#f5f5f5" fill-rule="nonzero"></path>
+        <g id="Book" transform="translate(60.000000, 60.000000)" fill="#f5f5f5">
+            <path d="M10,0 L70,0 C75.52,0 80,4.48 80,10 L80,70 C80,75.52 75.52,80 70,80 L10,80 C4.48,80 0,75.52 0,70 L0,10 C0,4.48 4.48,0 10,0 Z" id="Cover"></path>
+        </g>
+        <g id="Pages" transform="translate(70.000000, 65.000000)" fill="#3f51b5">
+            <path d="M5,0 L55,0 C57.76,0 60,2.24 60,5 L60,65 C60,67.76 57.76,70 55,70 L5,70 C2.24,70 0,67.76 0,65 L0,5 C0,2.24 2.24,0 5,0 Z" id="Pages"></path>
+        </g>
+        <g id="D20" transform="translate(85.000000, 75.000000)" fill="#f5f5f5">
+            <path d="M15,0 L28.66,7.5 L28.66,22.5 L15,30 L1.34,22.5 L1.34,7.5 L15,0 Z" id="D20"></path>
+        </g>
+        <g id="Quill" transform="translate(125.000000, 50.000000) rotate(45.000000) translate(-125.000000, -50.000000) translate(120.000000, 20.000000)" fill="#f50057">
+            <path d="M5,0 C7.76,0 10,2.24 10,5 L10,50 C10,52.76 7.76,55 5,55 C2.24,55 0,52.76 0,50 L0,5 C0,2.24 2.24,0 5,0 Z" id="Quill"></path>
+        </g>
+    </g>
+</svg>

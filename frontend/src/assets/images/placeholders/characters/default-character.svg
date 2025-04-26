@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400px" height="600px" viewBox="0 0 400 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Default Character Portrait</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="characterGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="url(#characterGradient)" x="0" y="0" width="400" height="600"></rect>
+        
+        <!-- Character Silhouette -->
+        <path d="M200,150 C230,150 255,175 255,205 C255,235 230,260 200,260 C170,260 145,235 145,205 C145,175 170,150 200,150 Z" fill="#FFFFFF" opacity="0.8"></path>
+        <path d="M200,260 C240,260 280,280 280,350 C280,420 240,500 200,500 C160,500 120,420 120,350 C120,280 160,260 200,260 Z" fill="#FFFFFF" opacity="0.8"></path>
+        
+        <!-- Weapon -->
+        <rect fill="url(#goldGradient)" x="280" y="300" width="10" height="200" rx="5"></rect>
+        <polygon fill="url(#goldGradient)" points="285,300 310,270 260,270"></polygon>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="100" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="300" cy="200" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="150" cy="450" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="250" cy="500" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Character Class Icon -->
+        <circle fill="url(#goldGradient)" cx="200" cy="100" r="30" opacity="0.9"></circle>
+        <text x="200" y="110" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">?</text>
+        
+        <!-- Title -->
+        <text x="200" y="550" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Character Name</text>
+    </g>
+</svg>

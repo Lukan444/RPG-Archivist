@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient from './api-client';
 import { AxiosResponse } from 'axios';
 
 // User interface
@@ -9,6 +9,9 @@ export interface User {
   role: string;
   created_at: string;
   updated_at?: string;
+  name?: string;
+  bio?: string;
+  avatar?: string;
 }
 
 // Auth response interface

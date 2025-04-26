@@ -16,7 +16,8 @@ import {
   IconButton,
   Tooltip,
   Paper,
-  Divider
+  Divider,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -52,12 +53,26 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
     cacheTTL: config.cacheTTL
   });
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  // Handle Select component changes
+  const handleSelectChange = (event: SelectChangeEvent<unknown>) => {
     const { name, value } = event.target;
-    setFormValues({
-      ...formValues,
-      [name as string]: value
-    });
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
+  };
+
+  // Handle TextField component changes
+  const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
   };
 
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +114,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
                 id="provider"
                 name="provider"
                 value={formValues.provider}
-                onChange={handleChange}
+                onChange={handleSelectChange}
                 label="LLM Provider"
                 disabled={loading}
               >
@@ -117,7 +132,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
                 id="defaultModel"
                 name="defaultModel"
                 value={formValues.defaultModel}
-                onChange={handleChange}
+                onChange={handleSelectChange}
                 label="Default Model"
                 disabled={loading}
               >
@@ -136,7 +151,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
               name="apiKey"
               label="API Key"
               value={formValues.apiKey}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               disabled={loading || formValues.provider === LLMProviderType.OLLAMA}
               type={showApiKey ? 'text' : 'password'}
               InputProps={{
@@ -161,7 +176,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
               name="baseUrl"
               label="Base URL"
               value={formValues.baseUrl}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               disabled={loading}
               helperText={
                 formValues.provider === LLMProviderType.OPENAI
@@ -240,7 +255,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
               label="Max Tokens"
               type="number"
               value={formValues.maxTokens}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               disabled={loading}
               InputProps={{
                 endAdornment: (
@@ -263,7 +278,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
               label="Timeout (ms)"
               type="number"
               value={formValues.timeout}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               disabled={loading}
               InputProps={{
                 endAdornment: (
@@ -364,7 +379,7 @@ const GeneralLLMSettings: React.FC<GeneralLLMSettingsProps> = ({
               label="Cache TTL (ms)"
               type="number"
               value={formValues.cacheTTL}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               disabled={loading || !formValues.cacheEnabled}
               InputProps={{
                 endAdornment: (

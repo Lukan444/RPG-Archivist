@@ -2,22 +2,29 @@ import React, { useState, useRef } from 'react';
 import ImageCropper from './ImageCropper';
 
 interface ImageUploaderProps {
-  entityId: string;
   entityType: string;
-  onUploadComplete?: (imageUrl: string) => void;
+  entityName?: string;
+  imageUrl?: string;
+  // Updated to support both string and File parameters
+  onImageUpload?: ((imageUrl: string) => void) | ((file: File) => Promise<string>);
+  onImageGenerate?: (prompt: string) => Promise<string>;
+  onImageDelete?: () => void;
   maxSizeMB?: number;
   allowedTypes?: string[];
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
-  entityId,
   entityType,
-  onUploadComplete,
+  entityName,
+  imageUrl: initialImageUrl,
+  onImageUpload,
+  onImageGenerate,
+  onImageDelete,
   maxSizeMB = 5,
   allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
@@ -68,22 +75,37 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     try {
       // This is a placeholder for actual API call
       // In a real implementation, you would upload the file to your server
-      console.log(`Uploading image for ${entityType} with ID: ${entityId}`);
+      console.log(`Uploading image for ${entityType} with name: ${entityName || 'unnamed'}`);
 
-      // Create form data
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('entityId', entityId);
-      formData.append('entityType', entityType);
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Placeholder result - in real implementation this would be the URL from the API
-      const uploadedImageUrl = croppedImageUrl || previewUrl;
-
-      if (uploadedImageUrl && onUploadComplete) {
-        onUploadComplete(uploadedImageUrl);
+      // Call the onImageUpload handler with the appropriate parameter
+      if (onImageUpload) {
+        // Check if the function expects a File or a string
+        if (selectedFile) {
+          // If the function expects a File, pass the File object
+          try {
+            // Try to call with File parameter first (Promise<string> return type)
+            const uploadFunction = onImageUpload as (file: File) => Promise<string>;
+            const resultUrl = await uploadFunction(selectedFile);
+            // If successful, update the preview URL
+            if (resultUrl) {
+              setPreviewUrl(resultUrl);
+            }
+          } catch (error) {
+            // If that fails, try with string parameter
+            const imageUrl = croppedImageUrl || previewUrl;
+            if (imageUrl) {
+              const stringUploadFunction = onImageUpload as (imageUrl: string) => void;
+              stringUploadFunction(imageUrl);
+            }
+          }
+        } else {
+          // If no file is selected but we have a URL, use that
+          const imageUrl = croppedImageUrl || previewUrl;
+          if (imageUrl) {
+            const stringUploadFunction = onImageUpload as (imageUrl: string) => void;
+            stringUploadFunction(imageUrl);
+          }
+        }
       }
 
       // Reset state
@@ -108,39 +130,78 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   };
 
   return (
-    <div className="image-uploader">
-      <div className="upload-container">
+    <div className="image-uploader" style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '4px' }}>
+      {initialImageUrl && (
+        <div className="current-image-container" style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <img
+            src={initialImageUrl}
+            alt="Current image"
+            style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }}
+          />
+          <div style={{ marginTop: '10px' }}>
+            <button
+              onClick={onImageDelete}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+              disabled={isUploading}
+            >
+              Delete Image
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginBottom: '20px' }}>
         <input
           type="file"
           accept={allowedTypes.join(',')}
           onChange={handleFileChange}
           disabled={isUploading}
           ref={fileInputRef}
-          className="file-input"
+          style={{ marginBottom: '10px' }}
         />
-        <p className="file-info">
+        <p style={{ fontSize: '0.8rem', color: '#666' }}>
           Max size: {maxSizeMB}MB. Allowed types: {allowedTypes.map(type => type.replace('image/', '')).join(', ')}
         </p>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
       {previewUrl && !showCropper && !croppedImageUrl && (
-        <div className="preview-container">
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
           <h4>Preview</h4>
-          <img src={previewUrl} alt="Preview" className="preview-image" />
-          <button
-            onClick={() => setShowCropper(true)}
-            className="crop-button"
-            disabled={isUploading}
-          >
-            Crop Image
-          </button>
+          <img
+            src={previewUrl}
+            alt="Preview"
+            style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', marginBottom: '10px' }}
+          />
+          <div>
+            <button
+              onClick={() => setShowCropper(true)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#2196f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+              disabled={isUploading}
+            >
+              Crop Image
+            </button>
+          </div>
         </div>
       )}
 
       {showCropper && previewUrl && (
-        <div className="cropper-container">
+        <div style={{ marginBottom: '20px' }}>
           <h4>Crop Image</h4>
           <ImageCropper
             imageUrl={previewUrl}
@@ -150,25 +211,69 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
 
       {croppedImageUrl && (
-        <div className="preview-container">
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
           <h4>Cropped Image</h4>
-          <img src={croppedImageUrl} alt="Cropped preview" className="preview-image" />
+          <img
+            src={croppedImageUrl}
+            alt="Cropped preview"
+            style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }}
+          />
         </div>
       )}
 
-      <div className="button-container">
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
         <button
           onClick={handleUpload}
           disabled={isUploading || (!previewUrl && !croppedImageUrl)}
-          className="upload-button"
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isUploading || (!previewUrl && !croppedImageUrl) ? 'not-allowed' : 'pointer',
+            opacity: isUploading || (!previewUrl && !croppedImageUrl) ? 0.7 : 1
+          }}
         >
           {isUploading ? 'Uploading...' : 'Upload Image'}
         </button>
 
+        {onImageGenerate && (
+          <button
+            onClick={() => {
+              const prompt = window.prompt('Enter a description for the image you want to generate:');
+              if (prompt && onImageGenerate) {
+                setIsUploading(true);
+                onImageGenerate(prompt)
+                  .then(() => {
+                    setIsUploading(false);
+                  })
+                  .catch((err) => {
+                    console.error('Error generating image:', err);
+                    setError('Failed to generate image. Please try again.');
+                    setIsUploading(false);
+                  });
+              }
+            }}
+            disabled={isUploading}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#9c27b0',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isUploading ? 'not-allowed' : 'pointer',
+              opacity: isUploading ? 0.7 : 1
+            }}
+          >
+            Generate Image
+          </button>
+        )}
+
         <button
           onClick={() => {
             setSelectedFile(null);
-            setPreviewUrl(null);
+            setPreviewUrl(initialImageUrl || null);
             setCroppedImageUrl(null);
             setShowCropper(false);
             setError(null);
@@ -177,7 +282,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             }
           }}
           disabled={isUploading || (!previewUrl && !croppedImageUrl)}
-          className="cancel-button"
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f5f5f5',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            cursor: isUploading || (!previewUrl && !croppedImageUrl) ? 'not-allowed' : 'pointer',
+            opacity: isUploading || (!previewUrl && !croppedImageUrl) ? 0.7 : 1
+          }}
         >
           Cancel
         </button>

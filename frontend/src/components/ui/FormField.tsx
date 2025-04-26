@@ -17,7 +17,9 @@ import {
   FormLabel,
   Autocomplete,
   Chip,
+  SelectChangeEvent,
 } from '@mui/material';
+import { adaptSelectChangeHandler } from '../../utils/eventHandlers';
 
 // Base form field props
 interface BaseFormFieldProps {
@@ -140,6 +142,9 @@ export const SelectField = ({
     helpers.setValue(event.target.value);
   };
 
+  // Adapter for Material UI's SelectChangeEvent
+  const adaptedHandleChange = adaptSelectChangeHandler(handleChange);
+
   return (
     <FormControl
       variant={variant}
@@ -150,14 +155,14 @@ export const SelectField = ({
       size={size}
       {...props}
     >
-      <InputLabel id={${name}-label}>{label}</InputLabel>
+      <InputLabel id={`${name}-label`}>{label}</InputLabel>
       <Select
         {...field}
-        labelId={${name}-label}
+        labelId={`${name}-label`}
         id={name}
         label={label}
         multiple={multiple}
-        onChange={handleChange}
+        onChange={adaptedHandleChange}
       >
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
@@ -269,9 +274,9 @@ export const RadioGroupField = ({
 
   return (
     <FormControl error={hasError} required={required} disabled={disabled} {...props}>
-      <FormLabel id={${name}-label}>{label}</FormLabel>
+      <FormLabel id={`${name}-label`}>{label}</FormLabel>
       <RadioGroup
-        aria-labelledby={${name}-label}
+        aria-labelledby={`${name}-label`}
         name={name}
         value={field.value}
         onChange={handleChange}
@@ -337,7 +342,7 @@ export const AutocompleteField = ({
           <Chip
             label={typeof option === 'string' ? option : option.label}
             {...getTagProps({ index })}
-            size= small
+            size="small"
           />
         ))
       }

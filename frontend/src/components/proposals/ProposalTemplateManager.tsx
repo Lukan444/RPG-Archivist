@@ -25,7 +25,8 @@ import {
   Alert,
   Tabs,
   Tab,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -39,6 +40,7 @@ import {
   ProposalTemplate,
   ProposalEntityType
 } from '../../services/api/change-proposal.service';
+import { adaptSelectChangeHandlerForInput } from '../../utils/eventHandlers';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -95,7 +97,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const templates = await ChangeProposalService.getTemplates(entityType);
       setTemplates(templates);
     } catch (error) {
@@ -146,7 +148,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = event.target;
-    
+
     if (name) {
       setFormValues({
         ...formValues,
@@ -155,9 +157,12 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
     }
   };
 
+  // Create an adapter for Material UI's SelectChangeEvent
+  const adaptedHandleChange = adaptSelectChangeHandlerForInput(handleChange);
+
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = event.target;
-    
+
     setFormValues({
       ...formValues,
       [name]: checked
@@ -167,12 +172,12 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
   const handleSaveTemplate = async () => {
     try {
       setLoading(true);
-      
+
       if (!formValues.name || !formValues.entityType || !formValues.promptTemplate) {
         setError('Name, entity type, and prompt template are required');
         return;
       }
-      
+
       if (editingTemplate) {
         // Update existing template
         await ChangeProposalService.updateTemplate(
@@ -183,10 +188,10 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
         // Create new template
         await ChangeProposalService.createTemplate(formValues as Omit<ProposalTemplate, 'id'>);
       }
-      
+
       // Refresh templates
       await fetchTemplates();
-      
+
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving template:', error);
@@ -199,9 +204,9 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
   const handleDeleteTemplate = async (templateId: string) => {
     try {
       setLoading(true);
-      
+
       await ChangeProposalService.deleteTemplate(templateId);
-      
+
       // Refresh templates
       await fetchTemplates();
     } catch (error) {
@@ -218,8 +223,13 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
       name: `${template.name} (Copy)`,
       id: undefined
     };
-    
-    handleOpenDialog(duplicatedTemplate as ProposalTemplate);
+
+    // Generate a temporary ID for the duplicated template
+    const tempId = `temp-${Date.now()}`;
+    handleOpenDialog({
+      ...duplicatedTemplate,
+      id: tempId
+    });
   };
 
   const getEntityTypeName = (type: ProposalEntityType): string => {
@@ -254,7 +264,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
           Proposal Templates
           {templates.length > 0 && ` (${templates.length})`}
         </Typography>
-        
+
         <Button
           variant="contained"
           color="primary"
@@ -265,13 +275,13 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
           Create Template
         </Button>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
@@ -370,7 +380,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
           ))}
         </List>
       )}
-      
+
       {/* Create/Edit Template Dialog */}
       <Dialog
         open={dialogOpen}
@@ -389,7 +399,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               <Tab label="System Prompt" />
             </Tabs>
           </Box>
-          
+
           <TabPanel value={tabValue} index={0}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
@@ -421,7 +431,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
                     id="entityType"
                     name="entityType"
                     value={formValues.entityType || ProposalEntityType.CHARACTER}
-                    onChange={handleChange}
+                    onChange={adaptedHandleChange}
                     label="Entity Type"
                     disabled={!!entityType}
                   >
@@ -458,7 +468,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               </Grid>
             </Grid>
           </TabPanel>
-          
+
           <TabPanel value={tabValue} index={1}>
             <Typography variant="body2" color="text.secondary" paragraph>
               Use the following variables in your template:
@@ -473,7 +483,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               <br />
               <code>{'{{contextData}}'}</code> - Data of the context
             </Typography>
-            
+
             <TextField
               fullWidth
               label="Prompt Template"
@@ -485,12 +495,12 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               required
             />
           </TabPanel>
-          
+
           <TabPanel value={tabValue} index={2}>
             <Typography variant="body2" color="text.secondary" paragraph>
               The system prompt sets the context for the LLM. It can include instructions on how to format the response and what to include.
             </Typography>
-            
+
             <TextField
               fullWidth
               label="System Prompt"
@@ -515,7 +525,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* View Template Dialog */}
       <Dialog
         open={viewDialogOpen}
@@ -531,7 +541,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
           <Typography variant="body1" paragraph>
             {viewingTemplate?.description || 'No description provided.'}
           </Typography>
-          
+
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
             <Chip
               label={viewingTemplate?.entityType ? getEntityTypeName(viewingTemplate.entityType) : ''}
@@ -548,9 +558,9 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               />
             )}
           </Box>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             Prompt Template
           </Typography>
@@ -559,7 +569,7 @@ const ProposalTemplateManager: React.FC<ProposalTemplateManagerProps> = ({
               {viewingTemplate?.promptTemplate}
             </Typography>
           </Paper>
-          
+
           {viewingTemplate?.systemPrompt && (
             <React.Fragment>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>

@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Item, ItemType, ItemRarity } from '../models/item.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Item controller for handling item-related requests
  */
@@ -14,11 +22,23 @@ export class ItemController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all items
    * @param req Express request
    * @param res Express response
    */
-  public async getAllItems(req: Request, res: Response): Promise<void> {
+  public async getAllItems(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
@@ -42,7 +62,7 @@ export class ItemController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -83,7 +103,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting items'
+          message: 'An error occurred while getting items',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -94,7 +115,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async getItemById(req: Request, res: Response): Promise<void> {
+  public async getItemById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID from request parameters
       const itemId = req.params.id;
@@ -116,7 +137,7 @@ export class ItemController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -139,7 +160,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting item'
+          message: 'An error occurred while getting item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -150,7 +172,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async createItem(req: Request, res: Response): Promise<void> {
+  public async createItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -183,7 +205,7 @@ export class ItemController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -205,7 +227,7 @@ export class ItemController {
         value: req.body.value,
         weight: req.body.weight,
         properties: req.body.properties
-      }, userId);
+      }, userId || 'system');
 
       // Return response
       res.status(201).json({
@@ -218,7 +240,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating item'
+          message: 'An error occurred while creating item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -229,7 +252,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateItem(req: Request, res: Response): Promise<void> {
+  public async updateItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -267,7 +290,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -301,7 +324,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating item'
+          message: 'An error occurred while updating item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -312,7 +336,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteItem(req: Request, res: Response): Promise<void> {
+  public async deleteItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID from request parameters
       const itemId = req.params.id;
@@ -336,7 +360,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -360,7 +384,7 @@ export class ItemController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete item with associated characters or locations') {
+        if (error instanceof Error && error.message === 'Cannot delete item with associated characters or locations') {
           res.status(400).json({
             success: false,
             error: {
@@ -378,7 +402,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting item'
+          message: 'An error occurred while deleting item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -389,7 +414,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCharactersWithItem(req: Request, res: Response): Promise<void> {
+  public async getCharactersWithItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID from request parameters
       const itemId = req.params.id;
@@ -413,7 +438,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -439,7 +464,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting characters with item'
+          message: 'An error occurred while getting characters with item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -450,7 +476,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async addItemToCharacter(req: Request, res: Response): Promise<void> {
+  public async addItemToCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -516,7 +542,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -566,7 +592,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding item to character'
+          message: 'An error occurred while adding item to character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -577,7 +604,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateCharacterItem(req: Request, res: Response): Promise<void> {
+  public async updateCharacterItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -631,7 +658,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -674,7 +701,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating character item'
+          message: 'An error occurred while updating character item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -685,7 +713,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async removeItemFromCharacter(req: Request, res: Response): Promise<void> {
+  public async removeItemFromCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID and character ID from request parameters
       const itemId = req.params.id;
@@ -725,7 +753,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -766,7 +794,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing item from character'
+          message: 'An error occurred while removing item from character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -777,7 +806,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async getLocationsWithItem(req: Request, res: Response): Promise<void> {
+  public async getLocationsWithItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID from request parameters
       const itemId = req.params.id;
@@ -801,7 +830,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -827,7 +856,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting locations with item'
+          message: 'An error occurred while getting locations with item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -838,7 +868,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async addItemToLocation(req: Request, res: Response): Promise<void> {
+  public async addItemToLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -904,7 +934,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -952,7 +982,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding item to location'
+          message: 'An error occurred while adding item to location',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -963,7 +994,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateLocationItem(req: Request, res: Response): Promise<void> {
+  public async updateLocationItem(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -1017,7 +1048,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1059,7 +1090,8 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating location item'
+          message: 'An error occurred while updating location item',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -1070,7 +1102,7 @@ export class ItemController {
    * @param req Express request
    * @param res Express response
    */
-  public async removeItemFromLocation(req: Request, res: Response): Promise<void> {
+  public async removeItemFromLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get item ID and location ID from request parameters
       const itemId = req.params.id;
@@ -1110,7 +1142,7 @@ export class ItemController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(item.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -1151,11 +1183,10 @@ export class ItemController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing item from location'
+          message: 'An error occurred while removing item from location',
+          details: this.getErrorMessage(error)
         }
       });
     }
   }
-}
-}
 }

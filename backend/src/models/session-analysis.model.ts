@@ -42,6 +42,7 @@ export enum KeyPointCategory {
   INTERACTION = 'interaction',
   QUEST = 'quest',
   LORE = 'lore',
+  PLOT = 'plot', // Added for compatibility
   OTHER = 'other'
 }
 

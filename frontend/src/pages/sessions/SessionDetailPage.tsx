@@ -63,11 +63,10 @@ const TabPanel = (props: TabPanelProps) => {
 
   return (
     <div
-      role=\
-tabpanel\
+      role="tabpanel"
       hidden={value !== index}
-      id={session-tabpanel-}
-      aria-labelledby={session-tab-}
+      id={`session-tabpanel-${index}`}
+      aria-labelledby={`session-tab-${index}`}
       {...other}
     >
       {value === index && (
@@ -120,19 +119,19 @@ const SessionDetailPage: React.FC = () => {
       id: '1',
       url: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d',
       title: 'Session Map',
-      createdAt: '2023-01-15',
+      description: 'Created on 2023-01-15',
     },
     {
       id: '2',
       url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23',
       title: 'Battle Scene',
-      createdAt: '2023-02-20',
+      description: 'Created on 2023-02-20',
     },
     {
       id: '3',
       url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96',
       title: 'Treasure',
-      createdAt: '2023-03-10',
+      description: 'Created on 2023-03-10',
     },
   ]);
 
@@ -156,7 +155,7 @@ const SessionDetailPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await SessionService.getSessionById(id);
+        const data = await SessionService.getSession(id);
         setSession(data);
 
         // If session has transcription, fetch it
@@ -215,7 +214,7 @@ const SessionDetailPage: React.FC = () => {
   // Handle edit
   const handleEdit = () => {
     if (id) {
-      navigate(/sessions//edit);
+      navigate(`/sessions/${id}/edit`);
     }
     handleMenuClose();
   };
@@ -254,16 +253,16 @@ const SessionDetailPage: React.FC = () => {
   // Handle navigation to related entities
   const handleCampaignClick = () => {
     if (session?.campaignId) {
-      navigate(/campaigns/);
+      navigate(`/campaigns/${session.campaignId}`);
     }
   };
 
   const handleCharacterClick = (characterId: string) => {
-    navigate(/characters/);
+    navigate(`/characters/${characterId}`);
   };
 
   const handleLocationClick = (locationId: string) => {
-    navigate(/locations/);
+    navigate(`/locations/${locationId}`);
   };
 
   // Format date
@@ -276,28 +275,28 @@ const SessionDetailPage: React.FC = () => {
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return ${hours}h m;
+    return `${hours}h ${mins}m`;
   };
 
   // Render loading skeleton
   if (loading) {
     return (
-      <Container maxWidth=\lg\>
+      <Container maxWidth="lg">
         <Box sx={{ mb: 3 }}>
-          <Skeleton variant=\text\ height={40} width=\50%\ />
-          <Skeleton variant=\text\ height={24} width=\30%\ />
+          <Skeleton variant="text" height={40} width="50%" />
+          <Skeleton variant="text" height={24} width="30%" />
         </Box>
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            <Skeleton variant=\rectangular\ height={300} sx={{ borderRadius: 1 }} />
+            <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
           </Grid>
           <Grid item xs={12} md={8}>
-            <Skeleton variant=\text\ height={32} width=\40%\ />
-            <Skeleton variant=\text\ height={24} width=\20%\ sx={{ mb: 2 }} />
-            <Skeleton variant=\text\ height={20} />
-            <Skeleton variant=\text\ height={20} />
-            <Skeleton variant=\text\ height={20} width=\80%\ />
+            <Skeleton variant="text" height={32} width="40%" />
+            <Skeleton variant="text" height={24} width="20%" sx={{ mb: 2 }} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" height={20} />
+            <Skeleton variant="text" height={20} width="80%" />
           </Grid>
         </Grid>
       </Container>
@@ -307,12 +306,12 @@ const SessionDetailPage: React.FC = () => {
   // Render error state
   if (error || !session) {
     return (
-      <Container maxWidth=\lg\>
-        <Alert severity=\error\ sx={{ mt: 3 }}>
+      <Container maxWidth="lg">
+        <Alert severity="error" sx={{ mt: 3 }}>
           {error || 'Session not found'}
         </Alert>
         <Button
-          variant=\contained\
+          variant="contained"
           onClick={() => navigate('/sessions')}
           sx={{ mt: 2 }}
         >
@@ -323,20 +322,19 @@ const SessionDetailPage: React.FC = () => {
   }
 
   return (
-    <Container maxWidth=\lg\>
+    <Container maxWidth="lg">
       <PageHeader
         title={session.name}
-        subtitle={${formatDate(session.date)} | }
+        subtitle={`${formatDate(session.date)} | ${session.campaignName || 'No Campaign'}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Sessions', href: '/sessions' },
           { label: session.name },
         ]}
-        action={
+        actions={
           <>
             <IconButton
-              aria-label=\session
-options\
+              aria-label="session options"
               onClick={handleMenuOpen}
             >
               <MoreVertIcon />
@@ -348,13 +346,13 @@ options\
             >
               <MenuItem onClick={handleEdit}>
                 <ListItemIcon>
-                  <EditIcon fontSize=\small\ />
+                  <EditIcon fontSize="small" />
                 </ListItemIcon>
                 Edit
               </MenuItem>
               <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
                 <ListItemIcon>
-                  <DeleteIcon fontSize=\small\ color=\error\ />
+                  <DeleteIcon fontSize="small" color="error" />
                 </ListItemIcon>
                 Delete
               </MenuItem>
@@ -368,7 +366,7 @@ options\
         <Grid item xs={12} md={4}>
           <Paper sx={{ overflow: 'hidden', borderRadius: 2, mb: 3 }}>
             <Box
-              component=\img\
+              component="img"
               src={session.imageUrl || '/placeholder-session.jpg'}
               alt={session.name}
               sx={{
@@ -381,38 +379,38 @@ options\
           </Paper>
 
           <Paper sx={{ p: 2, borderRadius: 2 }}>
-            <Typography variant=\h6\ gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Session Details
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant=\subtitle2\ color=\text.secondary\>
+              <Typography variant="subtitle2" color="text.secondary">
                 Date
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <CalendarTodayIcon color=\action\ sx={{ mr: 1 }} />
-                <Typography variant=\body1\>{formatDate(session.date)}</Typography>
+                <CalendarTodayIcon color="action" sx={{ mr: 1 }} />
+                <Typography variant="body1">{formatDate(session.date)}</Typography>
               </Box>
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant=\subtitle2\ color=\text.secondary\>
+              <Typography variant="subtitle2" color="text.secondary">
                 Duration
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccessTimeIcon color=\action\ sx={{ mr: 1 }} />
-                <Typography variant=\body1\>{formatDuration(session.duration)}</Typography>
+                <AccessTimeIcon color="action" sx={{ mr: 1 }} />
+                <Typography variant="body1">{formatDuration(session.duration)}</Typography>
               </Box>
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant=\subtitle2\ color=\text.secondary\>
+              <Typography variant="subtitle2" color="text.secondary">
                 Campaign
               </Typography>
               <Button
-                variant=\text\
-                color=\primary\
+                variant="text"
+                color="primary"
                 startIcon={<CampaignIcon />}
                 onClick={handleCampaignClick}
                 sx={{ pl: 0 }}
@@ -422,13 +420,13 @@ options\
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant=\subtitle2\ color=\text.secondary\>
+              <Typography variant="subtitle2" color="text.secondary">
                 Recordings & Analysis
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
                 <Button
-                  variant=\outlined\
-                  size=\small\
+                  variant="outlined"
+                  size="small"
                   startIcon={<AudioFileIcon />}
                   onClick={() => navigate(`/sessions/${id}/recordings`)}
                   fullWidth
@@ -436,8 +434,8 @@ options\
                   Recordings
                 </Button>
                 <Button
-                  variant=\outlined\
-                  size=\small\
+                  variant="outlined"
+                  size="small"
                   startIcon={<AnalyticsIcon />}
                   onClick={() => navigate(`/sessions/${id}/analysis`)}
                   fullWidth
@@ -449,10 +447,10 @@ options\
             </Box>
 
             <Box>
-              <Typography variant=\subtitle2\ color=\text.secondary\>
+              <Typography variant="subtitle2" color="text.secondary">
                 Created
               </Typography>
-              <Typography variant=\body2\>
+              <Typography variant="body2">
                 {new Date(session.createdAt).toLocaleDateString()}
               </Typography>
             </Box>
@@ -466,64 +464,63 @@ options\
               <Tabs
                 value={tabValue}
                 onChange={handleTabChange}
-                aria-label=\session
-tabs\
+                aria-label="session tabs"
                 sx={{ px: 2 }}
               >
-                <Tab label=\Overview\ id=\session-tab-0\ aria-controls=\session-tabpanel-0\ />
-                <Tab label=\Transcription\ id=\session-tab-1\ aria-controls=\session-tabpanel-1\ disabled={!session.hasTranscription} />
-                <Tab label=\Characters\ id=\session-tab-2\ aria-controls=\session-tabpanel-2\ />
-                <Tab label=\Locations\ id=\session-tab-3\ aria-controls=\session-tabpanel-3\ />
-                <Tab label=\Gallery\ id=\session-tab-4\ aria-controls=\session-tabpanel-4\ />
+                <Tab label="Overview" id="session-tab-0" aria-controls="session-tabpanel-0" />
+                <Tab label="Transcription" id="session-tab-1" aria-controls="session-tabpanel-1" disabled={!session.hasTranscription} />
+                <Tab label="Characters" id="session-tab-2" aria-controls="session-tabpanel-2" />
+                <Tab label="Locations" id="session-tab-3" aria-controls="session-tabpanel-3" />
+                <Tab label="Gallery" id="session-tab-4" aria-controls="session-tabpanel-4" />
               </Tabs>
             </Box>
 
             {/* Overview Tab */}
             <TabPanel value={tabValue} index={0}>
-              <Typography variant=\h6\ gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Description
               </Typography>
-              <Typography variant=\body1\ paragraph>
+              <Typography variant="body1" paragraph>
                 {session.description}
               </Typography>
 
               <Box sx={{ mt: 4 }}>
-                <Typography variant=\h6\ gutterBottom>
+                <Typography variant="h6" gutterBottom>
                   Statistics
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6} sm={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <PersonIcon color=\primary\ sx={{ fontSize: 32, mb: 1 }} />
-                      <Typography variant=\h4\>{characters.length}</Typography>
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <PersonIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4">{characters.length}</Typography>
+                      <Typography variant="body2" color="text.secondary">
                         Characters
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <LocationIcon color=\primary\ sx={{ fontSize: 32, mb: 1 }} />
-                      <Typography variant=\h4\>{locations.length}</Typography>
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <LocationIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4">{locations.length}</Typography>
+                      <Typography variant="body2" color="text.secondary">
                         Locations
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <AccessTimeIcon color=\primary\ sx={{ fontSize: 32, mb: 1 }} />
-                      <Typography variant=\h4\>{formatDuration(session.duration)}</Typography>
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <AccessTimeIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4">{formatDuration(session.duration)}</Typography>
+                      <Typography variant="body2" color="text.secondary">
                         Duration
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <MicIcon color=\primary\ sx={{ fontSize: 32, mb: 1 }} />
-                      <Typography variant=\h4\>{session.hasTranscription ? 'Yes' : 'No'}</Typography>
-                      <Typography variant=\body2\ color=\text.secondary\>
+                      <MicIcon color="primary" sx={{ fontSize: 32, mb: 1 }} />
+                      <Typography variant="h4">{session.hasTranscription ? 'Yes' : 'No'}</Typography>
+                      <Typography variant="body2" color="text.secondary">
                         Transcribed
                       </Typography>
                     </Paper>
@@ -535,12 +532,12 @@ tabs\
             {/* Transcription Tab */}
             <TabPanel value={tabValue} index={1}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant=\h6\>
+                <Typography variant="h6">
                   Transcription
                 </Typography>
                 <Button
-                  variant=\contained\
-                  color=\primary\
+                  variant="contained"
+                  color="primary"
                   startIcon={<MicIcon />}
                 >
                   Edit Transcription
@@ -549,14 +546,14 @@ tabs\
 
               {loadingTranscription ? (
                 <Box sx={{ py: 4 }}>
-                  <Skeleton variant=\text\ height={40} />
-                  <Skeleton variant=\text\ height={40} />
-                  <Skeleton variant=\text\ height={40} />
-                  <Skeleton variant=\text\ height={40} />
-                  <Skeleton variant=\text\ height={40} />
+                  <Skeleton variant="text" height={40} />
+                  <Skeleton variant="text" height={40} />
+                  <Skeleton variant="text" height={40} />
+                  <Skeleton variant="text" height={40} />
+                  <Skeleton variant="text" height={40} />
                 </Box>
               ) : transcriptionError ? (
-                <Alert severity=\error\ sx={{ mb: 3 }}>
+                <Alert severity="error" sx={{ mb: 3 }}>
                   {transcriptionError}
                 </Alert>
               ) : transcription ? (
@@ -565,7 +562,7 @@ tabs\
                     {transcription.segments.map((segment: any) => (
                       <ListItem
                         key={segment.id}
-                        alignItems=\flex-start\
+                        alignItems="flex-start"
                         sx={{
                           mb: 1,
                           bgcolor: 'background.paper',
@@ -580,9 +577,9 @@ tabs\
                         </ListItemAvatar>
                         <ListItemText
                           primary={
-                            <Typography variant=\subtitle1\>
+                            <Typography variant="subtitle1">
                               {segment.speaker}
-                              <Typography variant=\caption\ sx={{ ml: 1, color: 'text.secondary' }}>
+                              <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
                                 {Math.floor(segment.start / 60)}:{(segment.start % 60).toString().padStart(2, '0')} -
                                 {Math.floor(segment.end / 60)}:{(segment.end % 60).toString().padStart(2, '0')}
                               </Typography>
@@ -590,8 +587,8 @@ tabs\
                           }
                           secondary={segment.text}
                         />
-                        <IconButton size=\small\ sx={{ ml: 1 }}>
-                          <PlayArrowIcon fontSize=\small\ />
+                        <IconButton size="small" sx={{ ml: 1 }}>
+                          <PlayArrowIcon fontSize="small" />
                         </IconButton>
                       </ListItem>
                     ))}
@@ -600,7 +597,7 @@ tabs\
               ) : (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <MicIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant=\body2\ color=\text.secondary\>
+                  <Typography variant="body2" color="text.secondary">
                     No transcription available for this session
                   </Typography>
                 </Box>
@@ -609,14 +606,14 @@ tabs\
 
             {/* Characters Tab */}
             <TabPanel value={tabValue} index={2}>
-              <Typography variant=\h6\ gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Characters
               </Typography>
 
               {characters.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <PersonIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant=\body2\ color=\text.secondary\>
+                  <Typography variant="body2" color="text.secondary">
                     No characters in this session yet
                   </Typography>
                 </Box>
@@ -629,17 +626,17 @@ tabs\
                           sx={{ cursor: 'pointer' }}
                           onClick={() => handleCharacterClick(character.id)}
                         >
-                          <Typography variant=\h6\ component=\div\>
+                          <Typography variant="h6" component="div">
                             {character.name}
                           </Typography>
-                          <Typography variant=\body2\ color=\text.secondary\>
+                          <Typography variant="body2" color="text.secondary">
                             {character.race} {character.class}
                           </Typography>
                           <Box sx={{ mt: 1 }}>
                             <Chip
                               label={character.type}
                               color={character.type === 'PC' ? 'primary' : 'secondary'}
-                              size=\small\
+                              size="small"
                             />
                           </Box>
                         </CardContent>
@@ -652,14 +649,14 @@ tabs\
 
             {/* Locations Tab */}
             <TabPanel value={tabValue} index={3}>
-              <Typography variant=\h6\ gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Locations
               </Typography>
 
               {locations.length === 0 ? (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <LocationIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant=\body2\ color=\text.secondary\>
+                  <Typography variant="body2" color="text.secondary">
                     No locations in this session yet
                   </Typography>
                 </Box>
@@ -672,17 +669,17 @@ tabs\
                           sx={{ cursor: 'pointer' }}
                           onClick={() => handleLocationClick(location.id)}
                         >
-                          <Typography variant=\h6\ component=\div\>
+                          <Typography variant="h6" component="div">
                             {location.name}
                           </Typography>
-                          <Typography variant=\body2\ color=\text.secondary\>
+                          <Typography variant="body2" color="text.secondary">
                             {location.description}
                           </Typography>
                           <Box sx={{ mt: 1 }}>
                             <Chip
                               label={location.type}
-                              variant=\outlined\
-                              size=\small\
+                              variant="outlined"
+                              size="small"
                             />
                           </Box>
                         </CardContent>
@@ -696,12 +693,12 @@ tabs\
             {/* Gallery Tab */}
             <TabPanel value={tabValue} index={4}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant=\h6\>
+                <Typography variant="h6">
                   Image Gallery
                 </Typography>
                 <Button
-                  variant=\contained\
-                  color=\primary\
+                  variant="contained"
+                  color="primary"
                   startIcon={<AddIcon />}
                   onClick={() => console.log('Add image')}
                 >
@@ -711,8 +708,8 @@ tabs\
 
               <ImageGallery
                 images={images}
-                onDelete={handleImageDelete}
-                onEdit={handleImageEdit}
+                // onDelete={handleImageDelete}
+                // onEdit={handleImageEdit}
               />
             </TabPanel>
           </Paper>
@@ -727,15 +724,13 @@ tabs\
         <DialogTitle>Delete Session</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete \
-session.name
-\? This action cannot be undone.
+            Are you sure you want to delete {session.name}? This action cannot be undone.
             All associated transcriptions and data will be permanently deleted.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color=\error\ variant=\contained\>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

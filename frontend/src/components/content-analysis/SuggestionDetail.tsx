@@ -51,7 +51,18 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'accept' | 'reject' | 'delete' | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [editedSuggestion, setEditedSuggestion] = useState<Partial<ContentSuggestion>>({});
+  // Use a more flexible type for editedSuggestion to handle all possible suggestion types
+  const [editedSuggestion, setEditedSuggestion] = useState<{
+    title?: string;
+    description?: string;
+    characterData?: any;
+    locationData?: any;
+    relationshipData?: any;
+    loreData?: any;
+    dialogData?: any;
+    eventData?: any;
+    noteData?: any;
+  }>({});
 
   useEffect(() => {
     fetchSuggestion();
@@ -255,11 +266,11 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
                   <Grid item xs={12} key={index}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="body2">
-                        {relationship.sourceName} →
+                        {relationship.source?.name || relationship.relationshipData?.sourceName || 'Unknown'} →
                       </Typography>
-                      <Chip label={relationship.relationshipType} size="small" />
+                      <Chip label={relationship.type || relationship.relationshipData?.relationshipType || 'Unknown'} size="small" />
                       <Typography variant="body2">
-                        → {relationship.targetName}
+                        → {relationship.target?.name || relationship.relationshipData?.targetName || 'Unknown'}
                       </Typography>
                     </Box>
                     {relationship.description && (
@@ -725,7 +736,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
       setError(null);
 
       // Prepare modified suggestion data
-      const modifiedData: Partial<ContentSuggestion> = {
+      const modifiedData: any = {
         title: editedSuggestion.title,
         description: editedSuggestion.description
       };
@@ -816,7 +827,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
   const renderCharacterEditFields = (character: CharacterSuggestion) => {
     // Initialize character data in edited suggestion if not already present
     if (!editedSuggestion.characterData) {
-      setEditedSuggestion(prev => ({
+      setEditedSuggestion((prev: any) => ({
         ...prev,
         characterData: { ...character.characterData }
       }));
@@ -830,7 +841,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             fullWidth
             label="Character Name"
             value={editedSuggestion.characterData?.name || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               characterData: { ...prev.characterData, name: e.target.value }
             }))}
@@ -844,7 +855,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Appearance"
             value={editedSuggestion.characterData?.appearance || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               characterData: { ...prev.characterData, appearance: e.target.value }
             }))}
@@ -858,7 +869,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Background"
             value={editedSuggestion.characterData?.background || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               characterData: { ...prev.characterData, background: e.target.value }
             }))}
@@ -872,7 +883,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Personality"
             value={editedSuggestion.characterData?.personality || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               characterData: { ...prev.characterData, personality: e.target.value }
             }))}
@@ -886,7 +897,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Goals"
             value={editedSuggestion.characterData?.goals || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               characterData: { ...prev.characterData, goals: e.target.value }
             }))}
@@ -901,7 +912,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
   const renderLocationEditFields = (location: LocationSuggestion) => {
     // Initialize location data in edited suggestion if not already present
     if (!editedSuggestion.locationData) {
-      setEditedSuggestion(prev => ({
+      setEditedSuggestion((prev: any) => ({
         ...prev,
         locationData: { ...location.locationData }
       }));
@@ -915,7 +926,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             fullWidth
             label="Location Name"
             value={editedSuggestion.locationData?.name || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               locationData: { ...prev.locationData, name: e.target.value }
             }))}
@@ -929,7 +940,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Features"
             value={editedSuggestion.locationData?.features || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               locationData: { ...prev.locationData, features: e.target.value }
             }))}
@@ -943,7 +954,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="History"
             value={editedSuggestion.locationData?.history || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               locationData: { ...prev.locationData, history: e.target.value }
             }))}
@@ -957,7 +968,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
             rows={3}
             label="Inhabitants"
             value={editedSuggestion.locationData?.inhabitants || ''}
-            onChange={(e) => setEditedSuggestion(prev => ({
+            onChange={(e) => setEditedSuggestion((prev: any) => ({
               ...prev,
               locationData: { ...prev.locationData, inhabitants: e.target.value }
             }))}
@@ -1166,6 +1177,7 @@ const SuggestionDetail: React.FC<SuggestionDetailProps> = ({
               </Button>
             </Box>
           </Box>
+          )}  {/* Close the editMode conditional */}
 
           <Box>
             <Typography variant="body1" paragraph>

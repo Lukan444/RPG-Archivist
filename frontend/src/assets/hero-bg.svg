@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1440px" height="800px" viewBox="0 0 1440 800" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>RPG Hero Background</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#3f51b5" offset="0%"></stop>
+            <stop stop-color="#303f9f" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#f50057" stop-opacity="0.2" offset="0%"></stop>
+            <stop stop-color="#f50057" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Background" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Base" fill="url(#linearGradient-1)" x="0" y="0" width="1440" height="800"></rect>
+        <path d="M0,800 L1440,800 L1440,400 C1200,500 960,450 720,350 C480,250 240,300 0,400 L0,800 Z" id="Wave" fill="#1a237e" opacity="0.3"></path>
+        <path d="M0,800 L1440,800 L1440,500 C1200,600 960,550 720,450 C480,350 240,400 0,500 L0,800 Z" id="Wave" fill="#1a237e" opacity="0.4"></path>
+        <path d="M0,800 L1440,800 L1440,600 C1200,700 960,650 720,550 C480,450 240,500 0,600 L0,800 Z" id="Wave" fill="#1a237e" opacity="0.5"></path>
+        <circle id="Circle1" fill="url(#linearGradient-2)" cx="200" cy="200" r="100"></circle>
+        <circle id="Circle2" fill="url(#linearGradient-2)" cx="1200" cy="300" r="150"></circle>
+        <g id="D20Pattern" opacity="0.1" transform="translate(0.000000, 0.000000)" fill="#FFFFFF">
+            <path d="M100,50 L120,80 L100,110 L80,80 L100,50 Z" id="D20-1"></path>
+            <path d="M300,150 L320,180 L300,210 L280,180 L300,150 Z" id="D20-2"></path>
+            <path d="M500,250 L520,280 L500,310 L480,280 L500,250 Z" id="D20-3"></path>
+            <path d="M700,50 L720,80 L700,110 L680,80 L700,50 Z" id="D20-4"></path>
+            <path d="M900,150 L920,180 L900,210 L880,180 L900,150 Z" id="D20-5"></path>
+            <path d="M1100,250 L1120,280 L1100,310 L1080,280 L1100,250 Z" id="D20-6"></path>
+            <path d="M1300,50 L1320,80 L1300,110 L1280,80 L1300,50 Z" id="D20-7"></path>
+            <path d="M200,350 L220,380 L200,410 L180,380 L200,350 Z" id="D20-8"></path>
+            <path d="M400,450 L420,480 L400,510 L380,480 L400,450 Z" id="D20-9"></path>
+            <path d="M600,350 L620,380 L600,410 L580,380 L600,350 Z" id="D20-10"></path>
+            <path d="M800,450 L820,480 L800,510 L780,480 L800,450 Z" id="D20-11"></path>
+            <path d="M1000,350 L1020,380 L1000,410 L980,380 L1000,350 Z" id="D20-12"></path>
+            <path d="M1200,450 L1220,480 L1200,510 L1180,480 L1200,450 Z" id="D20-13"></path>
+        </g>
+    </g>
+</svg>

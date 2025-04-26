@@ -17,7 +17,7 @@ const ProfilePage: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user?.username || '',
     email: user?.email || '',
     bio: user?.bio || '',
   });
@@ -81,16 +81,16 @@ const ProfilePage: React.FC = () => {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Avatar
-              src={user?.avatar || ''}
-              alt={user?.name || 'User'}
+              src={`/avatars/${user?.username?.charAt(0).toLowerCase() || 'u'}.png`}
+              alt={user?.username || 'User'}
               sx={{ width: 150, height: 150, mb: 2 }}
             >
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
             </Avatar>
 
             {!isEditing && (
               <Typography variant="h5" gutterBottom>
-                {user?.name || 'User'}
+                {user?.username || 'User'}
               </Typography>
             )}
           </Grid>

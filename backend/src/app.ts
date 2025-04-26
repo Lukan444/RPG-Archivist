@@ -5,6 +5,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import { initErrorReporting, sentryRequestHandler, sentryErrorHandler } from './utils/errorReporting';
 import config from './config';
+import { swaggerRouter } from './routes/swagger.routes';
 
 // Initialize error reporting
 initErrorReporting();
@@ -36,6 +37,9 @@ app.get('/api/health', (req, res) => {
 // app.use('/api/users', userRoutes);
 // ... other routes
 
+// Apply Swagger documentation routes
+app.use('/api-docs', swaggerRouter);
+
 // Apply Sentry error handler
 app.use(sentryErrorHandler);
 
@@ -43,10 +47,10 @@ app.use(sentryErrorHandler);
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
-  
+
   console.error(`Error: ${message}`);
   console.error(err.stack);
-  
+
   res.status(statusCode).json({
     error: {
       message,

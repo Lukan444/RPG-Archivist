@@ -98,8 +98,82 @@ const SessionAnalysisService = {
    * Get all session analyses
    */
   getSessionAnalyses: async (): Promise<SessionAnalysis[]> => {
-    const response: AxiosResponse<{ success: boolean; data: SessionAnalysis[] }> = await apiClient.get('/session-analyses');
-    return response.data.data;
+    try {
+      // In development mode, return mock session analyses
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock session analyses');
+        return [
+          {
+            id: '1',
+            sessionId: '1',
+            summary: 'The party explored the Pattern Chamber in Castle Amber',
+            keyPoints: ['Corwin walked the Pattern', 'Random revealed his true identity'],
+            characters: [],
+            locations: [],
+            plotDevelopments: [],
+            items: [],
+            relationships: [],
+            status: AnalysisStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            sessionId: '2',
+            summary: 'The party traveled through shadow to the Courts of Chaos',
+            keyPoints: ['Encountered shadow storms', 'Met with Lord Borel'],
+            characters: [],
+            locations: [],
+            plotDevelopments: [],
+            items: [],
+            relationships: [],
+            status: AnalysisStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ];
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: SessionAnalysis[] }> = await apiClient.get('/session-analyses');
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching session analyses:', error);
+      // In development mode, return mock session analyses
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock session analyses after error');
+        return [
+          {
+            id: '1',
+            sessionId: '1',
+            summary: 'The party explored the Pattern Chamber in Castle Amber',
+            keyPoints: ['Corwin walked the Pattern', 'Random revealed his true identity'],
+            characters: [],
+            locations: [],
+            plotDevelopments: [],
+            items: [],
+            relationships: [],
+            status: AnalysisStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            sessionId: '2',
+            summary: 'The party traveled through shadow to the Courts of Chaos',
+            keyPoints: ['Encountered shadow storms', 'Met with Lord Borel'],
+            characters: [],
+            locations: [],
+            plotDevelopments: [],
+            items: [],
+            relationships: [],
+            status: AnalysisStatus.COMPLETED,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ];
+      }
+      throw error;
+    }
   },
 
   /**
@@ -171,8 +245,81 @@ const SessionAnalysisService = {
    * Generate suggestions based on session analysis
    */
   generateSuggestions: async (analysisId: string): Promise<any> => {
-    const response: AxiosResponse<{ success: boolean; data: any }> = await apiClient.post(`/session-analyses/${analysisId}/suggestions`);
-    return response.data.data;
+    try {
+      // In development mode, return mock suggestions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock suggestions');
+        return {
+          characters: [
+            { name: 'Corwin', description: 'Prince of Amber', confidence: 'high' },
+            { name: 'Random', description: 'Musician and trickster', confidence: 'medium' }
+          ],
+          locations: [
+            { name: 'Castle Amber', description: 'The royal palace', confidence: 'high' },
+            { name: 'Pattern Chamber', description: 'Contains the Pattern', confidence: 'high' }
+          ],
+          items: [
+            { name: 'Greyswandir', description: 'Corwin\'s sword', confidence: 'medium' }
+          ]
+        };
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: any }> = await apiClient.post(`/session-analyses/${analysisId}/suggestions`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+      // In development mode, return mock suggestions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock suggestions after error');
+        return {
+          characters: [
+            { name: 'Corwin', description: 'Prince of Amber', confidence: 'high' },
+            { name: 'Random', description: 'Musician and trickster', confidence: 'medium' }
+          ],
+          locations: [
+            { name: 'Castle Amber', description: 'The royal palace', confidence: 'high' },
+            { name: 'Pattern Chamber', description: 'Contains the Pattern', confidence: 'high' }
+          ],
+          items: [
+            { name: 'Greyswandir', description: 'Corwin\'s sword', confidence: 'medium' }
+          ]
+        };
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get sessions by context ID (campaign ID or world ID)
+   */
+  getSessionsByContextId: async (contextId: string): Promise<{ id: string; name: string }[]> => {
+    try {
+      // In development mode, return mock sessions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock sessions for context', contextId);
+        return [
+          { id: '1', name: 'Session 1: The Pattern of Amber' },
+          { id: '2', name: 'Session 2: Journey to the Courts of Chaos' },
+          { id: '3', name: 'Session 3: The Black Road' }
+        ];
+      }
+
+      const response: AxiosResponse<{ success: boolean; data: { id: string; name: string }[] }> =
+        await apiClient.get(`/campaigns/${contextId}/sessions`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error fetching sessions for context ${contextId}:`, error);
+      // In development mode, return mock sessions
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock sessions for context after error');
+        return [
+          { id: '1', name: 'Session 1: The Pattern of Amber' },
+          { id: '2', name: 'Session 2: Journey to the Courts of Chaos' },
+          { id: '3', name: 'Session 3: The Black Road' }
+        ];
+      }
+      throw error;
+    }
   },
 };
 

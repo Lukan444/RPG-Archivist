@@ -20,7 +20,8 @@ import {
   Select,
   MenuItem,
   Grid,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Visibility as ViewIcon,
@@ -70,23 +71,23 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
     const initialFilter: ContentAnalysisFilterOptions = {
       status: [SuggestionStatus.PENDING]
     };
-    
+
     if (contextId) {
       initialFilter.contextId = contextId;
     }
-    
+
     if (contextType) {
       initialFilter.contextType = contextType;
     }
-    
+
     if (sourceId) {
       initialFilter.sourceId = sourceId;
     }
-    
+
     if (sourceType) {
       initialFilter.sourceType = sourceType;
     }
-    
+
     setFilter(initialFilter);
   }, [contextId, contextType, sourceId, sourceType]);
 
@@ -98,13 +99,13 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Apply search to filter if provided
       const searchFilter = { ...filter };
       if (search) {
         searchFilter.search = search;
       }
-      
+
       const suggestions = await ContentAnalysisService.getSuggestions(searchFilter);
       setSuggestions(suggestions);
     } catch (error) {
@@ -129,9 +130,9 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
     }
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+  const handleFilterChange = (event: SelectChangeEvent<any>) => {
     const { name, value } = event.target;
-    
+
     if (name) {
       setFilter(prevFilter => ({
         ...prevFilter,
@@ -146,24 +147,24 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
 
   const handleClearFilters = () => {
     const baseFilter: ContentAnalysisFilterOptions = {};
-    
+
     // Keep context and source filters if provided as props
     if (contextId) {
       baseFilter.contextId = contextId;
     }
-    
+
     if (contextType) {
       baseFilter.contextType = contextType;
     }
-    
+
     if (sourceId) {
       baseFilter.sourceId = sourceId;
     }
-    
+
     if (sourceType) {
       baseFilter.sourceType = sourceType;
     }
-    
+
     setFilter(baseFilter);
     setSearch('');
   };
@@ -176,10 +177,10 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
 
   const handleDeleteSuggestion = async (suggestionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ContentAnalysisService.deleteSuggestion(suggestionId);
-      
+
       // Refresh suggestions
       fetchSuggestions();
     } catch (error) {
@@ -190,10 +191,10 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
 
   const handleAcceptSuggestion = async (suggestionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ContentAnalysisService.acceptSuggestion(suggestionId);
-      
+
       // Refresh suggestions
       fetchSuggestions();
     } catch (error) {
@@ -204,10 +205,10 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
 
   const handleRejectSuggestion = async (suggestionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    
+
     try {
       await ContentAnalysisService.rejectSuggestion(suggestionId);
-      
+
       // Refresh suggestions
       fetchSuggestions();
     } catch (error) {
@@ -295,7 +296,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           Suggestions
           {suggestions.length > 0 && ` (${suggestions.length})`}
         </Typography>
-        
+
         <Box>
           <Button
             variant="outlined"
@@ -306,7 +307,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           >
             {showFilters ? 'Hide Filters' : 'Show Filters'}
           </Button>
-          
+
           <Button
             variant="outlined"
             size="small"
@@ -316,13 +317,13 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           </Button>
         </Box>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
@@ -351,7 +352,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           }}
         />
       </Box>
-      
+
       {showFilters && (
         <Box sx={{ mb: 2 }}>
           <Grid container spacing={2}>
@@ -387,7 +388,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <FormControl fullWidth size="small">
                 <InputLabel id="type-filter-label">Type</InputLabel>
@@ -419,7 +420,7 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <FormControl fullWidth size="small">
                 <InputLabel id="confidence-filter-label">Confidence</InputLabel>
@@ -455,9 +456,9 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           </Grid>
         </Box>
       )}
-      
+
       <Divider sx={{ mb: 2 }} />
-      
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
           <CircularProgress />
@@ -471,10 +472,9 @@ const SuggestionList: React.FC<SuggestionListProps> = ({
           {suggestions.map((suggestion) => (
             <React.Fragment key={suggestion.id}>
               <ListItem
-                button
                 onClick={() => handleSelectSuggestion(suggestion.id)}
                 alignItems="flex-start"
-                sx={{ py: 2 }}
+                sx={{ py: 2, cursor: 'pointer' }}
               >
                 <ListItemText
                   primary={

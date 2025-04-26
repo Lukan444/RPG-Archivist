@@ -1,5 +1,10 @@
 # RPG Archivist Web
 
+[![CI](https://github.com/Lukan444/RPG-Archivist/actions/workflows/ci.yml/badge.svg)](https://github.com/Lukan444/RPG-Archivist/actions/workflows/ci.yml)
+[![CD](https://github.com/Lukan444/RPG-Archivist/actions/workflows/cd.yml/badge.svg)](https://github.com/Lukan444/RPG-Archivist/actions/workflows/cd.yml)
+[![CodeQL](https://github.com/Lukan444/RPG-Archivist/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Lukan444/RPG-Archivist/actions/workflows/codeql-analysis.yml)
+[![Dependency Scanning](https://github.com/Lukan444/RPG-Archivist/actions/workflows/dependency-scan.yml/badge.svg)](https://github.com/Lukan444/RPG-Archivist/actions/workflows/dependency-scan.yml)
+
 A web-based version of RPG Archivist - A tool for recording, transcribing, and managing RPG session data.
 
 ## Overview

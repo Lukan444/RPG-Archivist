@@ -1,24 +1,28 @@
-import { SessionAnalysisRepository } from '../repositories/sessionAnalysisRepository';
-import { TranscriptionRepository } from '../repositories/transcriptionRepository';
-import { SessionRepository } from '../repositories/sessionRepository';
-import { AudioRecordingRepository } from '../repositories/audioRecordingRepository';
-import { SessionAnalysis } from '../models/sessionAnalysis';
+import { SessionAnalysisRepository } from '../repositories/session-analysis.repository';
+import { TranscriptionRepository } from '../repositories/transcription.repository';
+import { SessionRepository } from '../repositories/session.repository';
+import { CharacterRepository } from '../repositories/character.repository';
+import { AudioRecordingRepository } from '../repositories/audio-recording.repository';
+import { SessionAnalysis, SessionAnalysisCreationParams, SessionAnalysisUpdateParams, KeyPointCategory, KeyPoint, CharacterInsight, PlotDevelopment, SentimentAnalysis, Topic, AnalysisProcessingOptions } from '../models/session-analysis.model';
 
 export class SessionAnalysisService {
   private sessionAnalysisRepository: SessionAnalysisRepository;
   private transcriptionRepository: TranscriptionRepository;
   private sessionRepository: SessionRepository;
+  private characterRepository: CharacterRepository;
   private audioRecordingRepository: AudioRecordingRepository;
 
   constructor(
     sessionAnalysisRepository: SessionAnalysisRepository,
     transcriptionRepository: TranscriptionRepository,
     sessionRepository: SessionRepository,
+    characterRepository: CharacterRepository,
     audioRecordingRepository: AudioRecordingRepository
   ) {
     this.sessionAnalysisRepository = sessionAnalysisRepository;
     this.transcriptionRepository = transcriptionRepository;
     this.sessionRepository = sessionRepository;
+    this.characterRepository = characterRepository;
     this.audioRecordingRepository = audioRecordingRepository;
   }
 
@@ -36,13 +40,13 @@ export class SessionAnalysisService {
   ): Promise<SessionAnalysis> {
     try {
       // Check if session exists
-      const session = await this.sessionRepository.getById(sessionId);
+      const session = await this.sessionRepository.findById(sessionId);
       if (!session) {
         throw new Error('Session not found');
       }
 
       // Check if transcription exists
-      const transcription = await this.transcriptionRepository.getById(transcriptionId);
+      const transcription = await this.transcriptionRepository.findById(transcriptionId);
       if (!transcription) {
         throw new Error('Transcription not found');
       }
@@ -77,7 +81,7 @@ export class SessionAnalysisService {
   async getSessionAnalysisById(analysisId: string): Promise<SessionAnalysis> {
     try {
       // Get session analysis
-      const sessionAnalysis = await this.sessionAnalysisRepository.getById(analysisId);
+      const sessionAnalysis = await this.sessionAnalysisRepository.findById(analysisId);
       if (!sessionAnalysis) {
         throw new Error('Session analysis not found');
       }
@@ -97,7 +101,7 @@ export class SessionAnalysisService {
   async getSessionAnalysisBySessionId(sessionId: string): Promise<SessionAnalysis> {
     try {
       // Get session analysis
-      const sessionAnalysis = await this.sessionAnalysisRepository.getBySessionId(sessionId);
+      const sessionAnalysis = await this.sessionAnalysisRepository.findBySessionId(sessionId);
       if (!sessionAnalysis) {
         throw new Error('No analysis found for this session');
       }
@@ -117,7 +121,7 @@ export class SessionAnalysisService {
   async getSessionAnalysisByTranscriptionId(transcriptionId: string): Promise<SessionAnalysis> {
     try {
       // Get session analysis
-      const sessionAnalysis = await this.sessionAnalysisRepository.getByTranscriptionId(transcriptionId);
+      const sessionAnalysis = await this.sessionAnalysisRepository.findByTranscriptionId(transcriptionId);
       if (!sessionAnalysis) {
         throw new Error('No analysis found for this transcription');
       }
@@ -138,13 +142,13 @@ export class SessionAnalysisService {
   async processSessionAnalysis(analysisId: string, options: any = {}): Promise<SessionAnalysis> {
     try {
       // Get session analysis
-      const sessionAnalysis = await this.sessionAnalysisRepository.getById(analysisId);
+      const sessionAnalysis = await this.sessionAnalysisRepository.findById(analysisId);
       if (!sessionAnalysis) {
         throw new Error('Session analysis not found');
       }
 
       // Get transcription
-      const transcription = await this.transcriptionRepository.getById(sessionAnalysis.transcription_id);
+      const transcription = await this.transcriptionRepository.findById(sessionAnalysis.transcription_id);
       if (!transcription) {
         throw new Error('Transcription not found');
       }
@@ -152,40 +156,43 @@ export class SessionAnalysisService {
       // Update status to processing
       sessionAnalysis.status = 'processing';
       sessionAnalysis.updated_at = new Date().toISOString();
-      await this.sessionAnalysisRepository.update(sessionAnalysis);
+      await this.sessionAnalysisRepository.update(sessionAnalysis.analysis_id!, {
+        status: sessionAnalysis.status,
+        updated_at: sessionAnalysis.updated_at
+      });
 
       try {
         // Process transcription to generate analysis
         // This would typically involve NLP processing, but for now we'll create mock data
-        
+
         // Generate summary
         sessionAnalysis.summary = this.generateSummary(transcription);
-        
+
         // Extract key points
         if (options.include_key_points !== false) {
           sessionAnalysis.key_points = this.extractKeyPoints(transcription, options.max_key_points || 10);
         }
-        
+
         // Generate character insights
         if (options.include_character_insights !== false) {
           sessionAnalysis.character_insights = this.generateCharacterInsights(transcription);
         }
-        
+
         // Extract plot developments
         if (options.include_plot_developments !== false) {
           sessionAnalysis.plot_developments = this.extractPlotDevelopments(transcription);
         }
-        
+
         // Analyze sentiment
         if (options.include_sentiment_analysis !== false) {
           sessionAnalysis.sentiment_analysis = this.analyzeSentiment(transcription);
         }
-        
+
         // Extract topics
         if (options.include_topics !== false) {
           sessionAnalysis.topics = this.extractTopics(transcription, options.max_topics || 5);
         }
-        
+
         // Add metadata
         sessionAnalysis.metadata = {
           model_version: 'GPT-4',
@@ -193,22 +200,36 @@ export class SessionAnalysisService {
           word_count: transcription.word_count || 0,
           confidence_score: Math.random() * 0.3 + 0.7
         };
-        
+
         // Update status to completed
         sessionAnalysis.status = 'completed';
         sessionAnalysis.updated_at = new Date().toISOString();
-        
+
         // Save updated session analysis
-        return await this.sessionAnalysisRepository.update(sessionAnalysis);
+        return await this.sessionAnalysisRepository.update(sessionAnalysis.analysis_id!, {
+          summary: sessionAnalysis.summary,
+          key_points: sessionAnalysis.key_points,
+          character_insights: sessionAnalysis.character_insights,
+          plot_developments: sessionAnalysis.plot_developments,
+          sentiment_analysis: sessionAnalysis.sentiment_analysis,
+          topics: sessionAnalysis.topics,
+          metadata: sessionAnalysis.metadata,
+          status: sessionAnalysis.status,
+          updated_at: sessionAnalysis.updated_at
+        });
       } catch (processingError) {
         console.error('Error processing session analysis:', processingError);
-        
+
         // Update status to failed
         sessionAnalysis.status = 'failed';
-        sessionAnalysis.error = processingError.message;
+        sessionAnalysis.error = processingError instanceof Error ? processingError.message : String(processingError);
         sessionAnalysis.updated_at = new Date().toISOString();
-        await this.sessionAnalysisRepository.update(sessionAnalysis);
-        
+        await this.sessionAnalysisRepository.update(sessionAnalysis.analysis_id!, {
+          status: sessionAnalysis.status,
+          error: sessionAnalysis.error,
+          updated_at: sessionAnalysis.updated_at
+        });
+
         throw processingError;
       }
     } catch (error) {
@@ -225,7 +246,7 @@ export class SessionAnalysisService {
   async deleteSessionAnalysis(analysisId: string): Promise<boolean> {
     try {
       // Check if session analysis exists
-      const sessionAnalysis = await this.sessionAnalysisRepository.getById(analysisId);
+      const sessionAnalysis = await this.sessionAnalysisRepository.findById(analysisId);
       if (!sessionAnalysis) {
         throw new Error('Session analysis not found');
       }
@@ -248,8 +269,8 @@ export class SessionAnalysisService {
   private generateSummary(transcription: any): string {
     // In a real implementation, this would use NLP to generate a summary
     // For now, we'll return a mock summary
-    return `This session involved the party exploring a new area and encountering several challenges. 
-    They made important decisions about their next steps and had significant character interactions. 
+    return `This session involved the party exploring a new area and encountering several challenges.
+    They made important decisions about their next steps and had significant character interactions.
     The session included combat, exploration, and role-playing elements.`;
   }
 
@@ -262,8 +283,15 @@ export class SessionAnalysisService {
   private extractKeyPoints(transcription: any, maxKeyPoints: number): any[] {
     // In a real implementation, this would use NLP to extract key points
     // For now, we'll return mock key points
-    const categories = ['decision', 'combat', 'discovery', 'interaction', 'quest', 'lore'];
-    
+    const categories = [
+      KeyPointCategory.DECISION,
+      KeyPointCategory.COMBAT,
+      KeyPointCategory.DISCOVERY,
+      KeyPointCategory.INTERACTION,
+      KeyPointCategory.QUEST,
+      KeyPointCategory.LORE
+    ];
+
     return Array.from({ length: Math.min(maxKeyPoints, 10) }, (_, i) => ({
       key_point_id: `kp-${i + 1}`,
       text: `Key point ${i + 1}: ${this.getRandomSentence()}`,
@@ -281,10 +309,10 @@ export class SessionAnalysisService {
   private generateCharacterInsights(transcription: any): any[] {
     // In a real implementation, this would analyze character participation and interactions
     // For now, we'll return mock character insights
-    
+
     // Get unique speakers from transcription
     const speakers = transcription.segments
-      ? Array.from(new Set(transcription.segments.map(segment => segment.speaker_name)))
+      ? Array.from(new Set(transcription.segments.map((segment: { speaker_name: string }) => segment.speaker_name)))
         .filter(Boolean)
         .map(name => ({
           name,
@@ -295,7 +323,7 @@ export class SessionAnalysisService {
         { name: 'Player 1', speaker_id: 'speaker-p1' },
         { name: 'Player 2', speaker_id: 'speaker-p2' }
       ];
-    
+
     return speakers.map((speaker, i) => ({
       speaker_id: speaker.speaker_id,
       name: speaker.name,
@@ -356,7 +384,7 @@ export class SessionAnalysisService {
     const positive = Math.random() * 0.6 + 0.2;
     const negative = Math.random() * 0.3;
     const neutral = 1 - positive - negative;
-    
+
     return {
       overall_sentiment: overallSentiment,
       sentiment_distribution: {
@@ -382,13 +410,13 @@ export class SessionAnalysisService {
     // In a real implementation, this would use NLP to extract topics
     // For now, we'll return mock topics
     const topicNames = ['Combat', 'Magic', 'Exploration', 'Lore', 'Politics', 'Treasure', 'Monsters'];
-    
+
     return Array.from({ length: Math.min(maxTopics, topicNames.length) }, (_, i) => ({
       topic_id: `topic-${i + 1}`,
       name: topicNames[i],
       keywords: Array.from({ length: Math.floor(Math.random() * 3) + 2 }, (_, j) => `keyword-${j + 1}`),
       relevance_score: Math.random() * 0.5 + 0.5,
-      segment_ids: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, j) => 
+      segment_ids: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, (_, j) =>
         transcription.segments?.[j % transcription.segments.length]?.segment_id || `segment-${j + 1}`
       )
     }));
@@ -411,7 +439,7 @@ export class SessionAnalysisService {
       'The characters formed an alliance with a previously hostile faction.',
       'A character\'s backstory was explored, revealing important motivations.'
     ];
-    
+
     return sentences[Math.floor(Math.random() * sentences.length)];
   }
 }

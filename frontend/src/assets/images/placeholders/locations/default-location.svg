@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800px" height="600px" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Default Location</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="locationGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="stoneGradient">
+            <stop stop-color="#888888" offset="0%"></stop>
+            <stop stop-color="#555555" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="url(#locationGradient)" x="0" y="0" width="800" height="600"></rect>
+        
+        <!-- Sky -->
+        <rect fill="#0d4b6e" x="0" y="0" width="800" height="300" opacity="0.5"></rect>
+        
+        <!-- Moon -->
+        <circle fill="#FFFFFF" cx="650" cy="100" r="50" opacity="0.8"></circle>
+        <circle fill="#0d4b6e" cx="630" cy="90" r="45" opacity="0.8"></circle>
+        
+        <!-- Stars -->
+        <circle fill="#FFFFFF" cx="100" cy="50" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="200" cy="80" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="300" cy="40" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="400" cy="90" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="500" cy="60" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="150" cy="120" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="250" cy="150" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="350" cy="100" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="450" cy="130" r="2" opacity="0.8"></circle>
+        <circle fill="#FFFFFF" cx="550" cy="170" r="2" opacity="0.8"></circle>
+        
+        <!-- Ground -->
+        <rect fill="#00696b" x="0" y="300" width="800" height="300" opacity="0.5"></rect>
+        
+        <!-- Castle -->
+        <rect fill="url(#stoneGradient)" x="250" y="200" width="300" height="200"></rect>
+        <rect fill="url(#stoneGradient)" x="300" y="150" width="200" height="50"></rect>
+        <rect fill="url(#stoneGradient)" x="200" y="250" width="50" height="150"></rect>
+        <rect fill="url(#stoneGradient)" x="550" y="250" width="50" height="150"></rect>
+        
+        <!-- Castle Towers -->
+        <rect fill="url(#stoneGradient)" x="200" y="200" width="50" height="50"></rect>
+        <rect fill="url(#stoneGradient)" x="550" y="200" width="50" height="50"></rect>
+        <polygon fill="url(#stoneGradient)" points="225,200 250,150 275,200"></polygon>
+        <polygon fill="url(#stoneGradient)" points="575,200 600,150 550,150"></polygon>
+        
+        <!-- Castle Door -->
+        <rect fill="#4e3b15" x="350" y="300" width="100" height="100"></rect>
+        <rect fill="url(#goldGradient)" x="390" y="350" width="20" height="10"></rect>
+        
+        <!-- Castle Windows -->
+        <rect fill="#4ecdc4" x="275" y="250" width="50" height="50" opacity="0.8"></rect>
+        <rect fill="#4ecdc4" x="475" y="250" width="50" height="50" opacity="0.8"></rect>
+        <rect fill="#4ecdc4" x="325" y="175" width="50" height="25" opacity="0.8"></rect>
+        <rect fill="#4ecdc4" x="425" y="175" width="50" height="25" opacity="0.8"></rect>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="100" cy="350" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="700" cy="400" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="200" cy="500" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="600" cy="450" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Title -->
+        <text x="400" y="550" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Mysterious Castle</text>
+    </g>
+</svg>

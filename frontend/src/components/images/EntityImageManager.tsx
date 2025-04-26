@@ -98,9 +98,8 @@ const EntityImageManager: React.FC<EntityImageManagerProps> = ({
       <div className="tab-content">
         {activeTab === 'upload' && (
           <ImageUploader
-            entityId={entityId}
             entityType={entityType}
-            onUploadComplete={handleImageUpload}
+            onImageUpload={handleImageUpload}
           />
         )}
 

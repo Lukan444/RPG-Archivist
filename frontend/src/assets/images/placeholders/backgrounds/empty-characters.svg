@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600px" height="400px" viewBox="0 0 600 400" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Empty Characters</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="emptyGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="#FFFFFF" x="0" y="0" width="600" height="400"></rect>
+        
+        <!-- Decorative Elements -->
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="100" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="80" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="60" opacity="0.1"></circle>
+        
+        <!-- Character Silhouette -->
+        <circle fill="url(#emptyGradient)" cx="300" cy="120" r="30" opacity="0.8"></circle>
+        <rect fill="url(#emptyGradient)" x="290" y="150" width="20" height="60" opacity="0.8"></rect>
+        <rect fill="url(#emptyGradient)" x="270" y="170" width="20" height="40" opacity="0.8" transform="rotate(-30 270 170)"></rect>
+        <rect fill="url(#emptyGradient)" x="310" y="170" width="20" height="40" opacity="0.8" transform="rotate(30 330 170)"></rect>
+        <rect fill="url(#emptyGradient)" x="290" y="210" width="10" height="40" opacity="0.8"></rect>
+        <rect fill="url(#emptyGradient)" x="300" y="210" width="10" height="40" opacity="0.8"></rect>
+        
+        <!-- Character Sheet -->
+        <rect fill="#FFFFFF" x="350" y="120" width="50" height="70" stroke="#CCCCCC" stroke-width="1"></rect>
+        <rect fill="#EEEEEE" x="355" y="130" width="40" height="5" rx="2"></rect>
+        <rect fill="#EEEEEE" x="355" y="140" width="30" height="5" rx="2"></rect>
+        <rect fill="#EEEEEE" x="355" y="150" width="35" height="5" rx="2"></rect>
+        <rect fill="#EEEEEE" x="355" y="160" width="25" height="5" rx="2"></rect>
+        <rect fill="#EEEEEE" x="355" y="170" width="30" height="5" rx="2"></rect>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="150" cy="100" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="450" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="200" cy="300" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="400" cy="250" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Message -->
+        <text x="300" y="280" font-family="Arial" font-size="18" font-weight="bold" fill="#1a9b9b" text-anchor="middle">No Characters Found</text>
+        <text x="300" y="305" font-family="Arial" font-size="14" fill="#666666" text-anchor="middle">Create your first character to join the adventure</text>
+    </g>
+</svg>

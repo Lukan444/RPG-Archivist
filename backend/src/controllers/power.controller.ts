@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Power, PowerType } from '../models/power.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
+
 /**
  * Power controller for handling power-related requests
  */
@@ -14,11 +22,23 @@ export class PowerController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all powers
    * @param req Express request
    * @param res Express response
    */
-  public async getAllPowers(req: Request, res: Response): Promise<void> {
+  public async getAllPowers(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
@@ -41,7 +61,7 @@ export class PowerController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -81,7 +101,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting powers'
+          message: 'An error occurred while getting powers',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -92,7 +113,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async getPowerById(req: Request, res: Response): Promise<void> {
+  public async getPowerById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get power ID from request parameters
       const powerId = req.params.id;
@@ -114,7 +135,7 @@ export class PowerController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -137,7 +158,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting power'
+          message: 'An error occurred while getting power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -148,7 +170,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async createPower(req: Request, res: Response): Promise<void> {
+  public async createPower(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -181,7 +203,7 @@ export class PowerController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -201,7 +223,7 @@ export class PowerController {
         power_type: req.body.power_type,
         effect: req.body.effect,
         requirements: req.body.requirements
-      }, userId);
+      }, userId || '');
 
       // Return response
       res.status(201).json({
@@ -214,7 +236,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating power'
+          message: 'An error occurred while creating power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -225,7 +248,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async updatePower(req: Request, res: Response): Promise<void> {
+  public async updatePower(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -263,7 +286,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -295,7 +318,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating power'
+          message: 'An error occurred while updating power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -306,7 +330,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async deletePower(req: Request, res: Response): Promise<void> {
+  public async deletePower(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get power ID from request parameters
       const powerId = req.params.id;
@@ -330,7 +354,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -354,7 +378,7 @@ export class PowerController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete power with associated characters') {
+        if (error instanceof Error && error.message === 'Cannot delete power with associated characters') {
           res.status(400).json({
             success: false,
             error: {
@@ -372,7 +396,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting power'
+          message: 'An error occurred while deleting power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -383,7 +408,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCharactersWithPower(req: Request, res: Response): Promise<void> {
+  public async getCharactersWithPower(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get power ID from request parameters
       const powerId = req.params.id;
@@ -407,7 +432,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -433,7 +458,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting characters with power'
+          message: 'An error occurred while getting characters with power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -444,7 +470,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async addPowerToCharacter(req: Request, res: Response): Promise<void> {
+  public async addPowerToCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -510,7 +536,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -554,7 +580,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while adding power to character'
+          message: 'An error occurred while adding power to character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -565,7 +592,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateCharacterPower(req: Request, res: Response): Promise<void> {
+  public async updateCharacterPower(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -619,7 +646,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -661,7 +688,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating character power'
+          message: 'An error occurred while updating character power',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -672,7 +700,7 @@ export class PowerController {
    * @param req Express request
    * @param res Express response
    */
-  public async removePowerFromCharacter(req: Request, res: Response): Promise<void> {
+  public async removePowerFromCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get power ID and character ID from request parameters
       const powerId = req.params.id;
@@ -712,7 +740,7 @@ export class PowerController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(power.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -753,7 +781,8 @@ export class PowerController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while removing power from character'
+          message: 'An error occurred while removing power from character',
+          details: this.getErrorMessage(error)
         }
       });
     }

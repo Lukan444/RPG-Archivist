@@ -16,7 +16,8 @@ import {
   FormControl,
   InputLabel,
   Chip,
-  Alert
+  Alert,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -65,7 +66,7 @@ const BrainPage: React.FC = () => {
     try {
       const models = await LLMService.getModels();
       setModels(models);
-      
+
       // Set default model
       if (models.length > 0) {
         const config = await LLMService.getConfig();
@@ -85,8 +86,8 @@ const BrainPage: React.FC = () => {
     setInput(e.target.value);
   };
 
-  const handleModelChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedModel(event.target.value as string);
+  const handleModelChange = (event: SelectChangeEvent<string>) => {
+    setSelectedModel(event.target.value);
   };
 
   const handleSendMessage = async () => {

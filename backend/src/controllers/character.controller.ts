@@ -3,11 +3,28 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { Character } from '../models/character.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+}
+
 /**
  * Character controller for handling character-related requests
  */
 export class CharacterController {
   private repositoryFactory: RepositoryFactory;
+
+  /**
+   * Helper method to safely get error message
+   * @param error Any error object
+   * @returns Error message as string
+   */
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
 
   constructor(repositoryFactory: RepositoryFactory) {
     this.repositoryFactory = repositoryFactory;
@@ -18,14 +35,14 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async getAllCharacters(req: Request, res: Response): Promise<void> {
+  public async getAllCharacters(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.search as string;
       const campaignId = req.query.campaign_id as string;
-      const isPlayerCharacter = req.query.is_player_character ? 
+      const isPlayerCharacter = req.query.is_player_character ?
         req.query.is_player_character === 'true' : undefined;
       const characterType = req.query.character_type as string;
 
@@ -58,7 +75,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting characters'
+          message: 'An error occurred while getting characters',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -69,7 +87,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCharacterById(req: Request, res: Response): Promise<void> {
+  public async getCharacterById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get character ID from request parameters
       const characterId = req.params.id;
@@ -91,6 +109,19 @@ export class CharacterController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
+
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
       if (!isParticipant) {
         res.status(403).json({
@@ -114,7 +145,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting character'
+          message: 'An error occurred while getting character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -125,7 +157,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async createCharacter(req: Request, res: Response): Promise<void> {
+  public async createCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -143,6 +175,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if campaign exists
       const campaign = await this.repositoryFactory.getCampaignRepository().findById(req.body.campaign_id);
@@ -218,7 +262,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating character'
+          message: 'An error occurred while creating character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -229,7 +274,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateCharacter(req: Request, res: Response): Promise<void> {
+  public async updateCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -265,6 +310,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -326,7 +383,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating character'
+          message: 'An error occurred while updating character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -337,7 +395,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteCharacter(req: Request, res: Response): Promise<void> {
+  public async deleteCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get character ID from request parameters
       const characterId = req.params.id;
@@ -359,6 +417,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -385,7 +455,7 @@ export class CharacterController {
           }
         });
       } catch (error) {
-        if (error.message === 'Cannot delete character with associated relationships') {
+        if (error instanceof Error && error.message === 'Cannot delete character with associated relationships') {
           res.status(400).json({
             success: false,
             error: {
@@ -403,7 +473,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting character'
+          message: 'An error occurred while deleting character',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -414,7 +485,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async getCharacterRelationships(req: Request, res: Response): Promise<void> {
+  public async getCharacterRelationships(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get character ID from request parameters
       const characterId = req.params.id;
@@ -436,6 +507,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -464,7 +547,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting character relationships'
+          message: 'An error occurred while getting character relationships',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -475,7 +559,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async createCharacterRelationship(req: Request, res: Response): Promise<void> {
+  public async createCharacterRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -511,6 +595,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -569,7 +665,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating character relationship'
+          message: 'An error occurred while creating character relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -580,7 +677,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateCharacterRelationship(req: Request, res: Response): Promise<void> {
+  public async updateCharacterRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -617,6 +714,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -675,7 +784,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating character relationship'
+          message: 'An error occurred while updating character relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -686,7 +796,7 @@ export class CharacterController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteCharacterRelationship(req: Request, res: Response): Promise<void> {
+  public async deleteCharacterRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get character ID and relationship ID from request parameters
       const characterId = req.params.id;
@@ -709,6 +819,18 @@ export class CharacterController {
 
       // Get user ID from request
       const userId = req.user?.user_id;
+
+      // If userId is undefined, user is not authenticated
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'You must be authenticated to access this resource'
+          }
+        });
+        return;
+      }
 
       // Check if user is participant in campaign
       const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(character.campaign_id, userId);
@@ -766,7 +888,8 @@ export class CharacterController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting character relationship'
+          message: 'An error occurred while deleting character relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }

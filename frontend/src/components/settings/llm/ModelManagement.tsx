@@ -24,7 +24,8 @@ import {
   FormControlLabel,
   Checkbox,
   Grid,
-  Tooltip
+  Tooltip,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -88,12 +89,26 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
     setEditingModel(null);
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  // Handle Select component changes
+  const handleSelectChange = (event: SelectChangeEvent<unknown>) => {
     const { name, value } = event.target;
-    setFormValues({
-      ...formValues,
-      [name as string]: value
-    });
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
+  };
+
+  // Handle TextField component changes
+  const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
   };
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +124,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
     const newCapabilities = capabilities.includes(capability)
       ? capabilities.filter(c => c !== capability)
       : [...capabilities, capability];
-    
+
     setFormValues({
       ...formValues,
       capabilities: newCapabilities
@@ -122,10 +137,10 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
     }
 
     let updatedModels: LLMModel[];
-    
+
     if (editingModel) {
       // Update existing model
-      updatedModels = models.map(model => 
+      updatedModels = models.map(model =>
         model.id === editingModel.id ? { ...formValues as LLMModel } : model
       );
     } else {
@@ -281,7 +296,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
                 label="Model Name"
                 name="name"
                 value={formValues.name || ''}
-                onChange={handleChange}
+                onChange={handleTextFieldChange}
                 required
               />
             </Grid>
@@ -291,7 +306,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
                 label="Model ID"
                 name="id"
                 value={formValues.id || ''}
-                onChange={handleChange}
+                onChange={handleTextFieldChange}
                 required
                 disabled={!!editingModel}
                 helperText={editingModel ? "Model ID cannot be changed" : "Unique identifier for the model"}
@@ -303,7 +318,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
                 <Select
                   name="provider"
                   value={formValues.provider || LLMProviderType.OPENAI}
-                  onChange={handleChange}
+                  onChange={handleSelectChange}
                   label="Provider"
                 >
                   <MenuItem value={LLMProviderType.OPENAI}>OpenAI</MenuItem>
@@ -331,7 +346,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
                 name="contextWindow"
                 type="number"
                 value={formValues.contextWindow || 4096}
-                onChange={handleChange}
+                onChange={handleTextFieldChange}
                 InputProps={{ inputProps: { min: 1 } }}
               />
             </Grid>
@@ -342,7 +357,7 @@ const ModelManagement: React.FC<ModelManagementProps> = ({
                 name="maxTokens"
                 type="number"
                 value={formValues.maxTokens || 1000}
-                onChange={handleChange}
+                onChange={handleTextFieldChange}
                 InputProps={{ inputProps: { min: 1 } }}
               />
             </Grid>

@@ -198,8 +198,8 @@ const MindMapPage: React.FC = () => {
               eventId={eventId || undefined}
               powerId={powerId || undefined}
               initialDepth={depth}
-              nodeTypes={nodeTypeFilters}
-              edgeTypes={edgeTypeFilters}
+              nodeTypeFilters={nodeTypeFilters}
+              edgeTypeFilters={edgeTypeFilters}
               layout={layout}
               height="100%"
               onNodeClick={handleNodeClick}
@@ -213,7 +213,7 @@ const MindMapPage: React.FC = () => {
               worldId={worldId || undefined}
               campaignId={campaignId || undefined}
               height="100%"
-              onNodeClick={handleNodeClick}
+              onNodeClick={(node) => handleNodeClick(node.data as GraphNode)}
             />
           </Box>
         </TabPanel>

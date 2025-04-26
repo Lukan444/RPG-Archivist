@@ -98,6 +98,17 @@ export interface RelationshipSuggestion extends ContentSuggestion {
     description?: string;
     strength?: number; // 1-10 scale
   };
+  // Added properties to fix UI issues
+  source?: {
+    id?: string;
+    name?: string;
+    type?: string;
+  };
+  target?: {
+    id?: string;
+    name?: string;
+    type?: string;
+  };
 }
 
 // Lore suggestion
@@ -236,53 +247,53 @@ export const ContentAnalysisService = {
   getSuggestions: async (filter?: ContentAnalysisFilterOptions): Promise<ContentSuggestion[]> => {
     // Build query parameters
     const params: Record<string, string> = {};
-    
+
     if (filter) {
       if (filter.types && filter.types.length > 0) {
         params.types = filter.types.join(',');
       }
-      
+
       if (filter.status && filter.status.length > 0) {
         params.status = filter.status.join(',');
       }
-      
+
       if (filter.confidence && filter.confidence.length > 0) {
         params.confidence = filter.confidence.join(',');
       }
-      
+
       if (filter.sourceId) {
         params.sourceId = filter.sourceId;
       }
-      
+
       if (filter.sourceType) {
         params.sourceType = filter.sourceType;
       }
-      
+
       if (filter.contextId) {
         params.contextId = filter.contextId;
       }
-      
+
       if (filter.contextType) {
         params.contextType = filter.contextType;
       }
-      
+
       if (filter.createdAfter) {
         params.createdAfter = filter.createdAfter.toString();
       }
-      
+
       if (filter.createdBefore) {
         params.createdBefore = filter.createdBefore.toString();
       }
-      
+
       if (filter.search) {
         params.search = filter.search;
       }
     }
-    
+
     const response: AxiosResponse<{ success: boolean; data: ContentSuggestion[] }> = await apiClient.get('/content-analysis/suggestions', {
       params
     });
-    
+
     return response.data.data;
   },
 
@@ -355,15 +366,15 @@ export const ContentAnalysisService = {
    */
   getAnalysisResults: async (contextId?: string): Promise<ContentAnalysisResult[]> => {
     const params: Record<string, string> = {};
-    
+
     if (contextId) {
       params.contextId = contextId;
     }
-    
+
     const response: AxiosResponse<{ success: boolean; data: ContentAnalysisResult[] }> = await apiClient.get('/content-analysis/results', {
       params
     });
-    
+
     return response.data.data;
   },
 

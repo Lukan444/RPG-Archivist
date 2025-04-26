@@ -75,7 +75,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const proposal = await ChangeProposalService.getProposal(proposalId);
       setProposal(proposal);
     } catch (error) {
@@ -92,13 +92,13 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
 
   const handleAddComment = async () => {
     if (!comment.trim()) return;
-    
+
     try {
       setSubmitting(true);
-      
+
       await ChangeProposalService.addComment(proposalId, comment);
       setComment('');
-      
+
       // Refresh proposal
       await fetchProposal();
     } catch (error) {
@@ -112,13 +112,13 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
   const handleReviewProposal = async (status: ProposalStatus) => {
     try {
       setSubmitting(true);
-      
+
       await ChangeProposalService.reviewProposal(proposalId, status, comment);
       setComment('');
-      
+
       // Refresh proposal
       await fetchProposal();
-      
+
       // Call onStatusChange callback if provided
       if (onStatusChange) {
         onStatusChange(status);
@@ -143,17 +143,17 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
     try {
       setSubmitting(true);
       setApplyResult(null);
-      
+
       const result = await ChangeProposalService.applyProposal(proposalId);
-      
+
       setApplyResult({
         success: result.success,
         message: result.message
       });
-      
+
       // Refresh proposal
       await fetchProposal();
-      
+
       // Call onApplied callback if provided and successful
       if (result.success && onApplied) {
         onApplied();
@@ -274,36 +274,36 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           {error}
         </Alert>
       )}
-      
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
         <Box>
           <Typography variant="h5" gutterBottom>
             {proposal.title}
           </Typography>
-          
+
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
             <Chip
               label={getStatusLabel(proposal.status)}
               color={getStatusColor(proposal.status)}
             />
-            
+
             <Chip
               label={getProposalTypeName(proposal.type)}
               variant="outlined"
             />
-            
+
             <Chip
               label={getEntityTypeName(proposal.entityType)}
               variant="outlined"
             />
-            
+
             {proposal.entityDetails && (
               <Chip
                 label={`Entity: ${proposal.entityDetails.name}`}
                 variant="outlined"
               />
             )}
-            
+
             {proposal.contextDetails && (
               <Chip
                 label={`Context: ${proposal.contextDetails.name}`}
@@ -312,7 +312,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
             )}
           </Box>
         </Box>
-        
+
         <Box>
           {proposal.status === ProposalStatus.APPROVED && (
             <Button
@@ -328,30 +328,30 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           )}
         </Box>
       </Box>
-      
+
       <Typography variant="body1" paragraph>
         {proposal.description}
       </Typography>
-      
+
       <Typography variant="subtitle1" gutterBottom>
         Reason
       </Typography>
       <Typography variant="body2" paragraph>
         {proposal.reason}
       </Typography>
-      
+
       <Divider sx={{ my: 2 }} />
-      
+
       <Typography variant="h6" gutterBottom>
         Proposed Changes
       </Typography>
-      
+
       {proposal.changes.length === 0 && proposal.relationshipChanges?.length === 0 && (
         <Typography variant="body2" color="text.secondary">
           No changes proposed
         </Typography>
       )}
-      
+
       {proposal.changes.length > 0 && (
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -401,7 +401,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           </AccordionDetails>
         </Accordion>
       )}
-      
+
       {proposal.relationshipChanges && proposal.relationshipChanges.length > 0 && (
         <Accordion defaultExpanded sx={{ mt: 2 }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -453,13 +453,13 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           </AccordionDetails>
         </Accordion>
       )}
-      
+
       <Divider sx={{ my: 2 }} />
-      
+
       <Typography variant="h6" gutterBottom>
         Comments
       </Typography>
-      
+
       {proposal.comments && proposal.comments.length > 0 ? (
         <Box sx={{ mb: 3 }}>
           {proposal.comments.map((comment, index) => (
@@ -476,7 +476,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           No comments yet
         </Typography>
       )}
-      
+
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
@@ -487,7 +487,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           onChange={handleCommentChange}
           disabled={submitting}
         />
-        
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
           <Button
             variant="outlined"
@@ -499,7 +499,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           </Button>
         </Box>
       </Box>
-      
+
       {proposal.status === ProposalStatus.PENDING && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           <Button
@@ -511,7 +511,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           >
             Reject
           </Button>
-          
+
           <Button
             variant="outlined"
             color="info"
@@ -521,7 +521,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           >
             Mark as Modified
           </Button>
-          
+
           <Button
             variant="contained"
             color="success"
@@ -533,14 +533,14 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           </Button>
         </Box>
       )}
-      
+
       <Box sx={{ mt: 3 }}>
         <Typography variant="caption" color="text.secondary">
           Created {formatDate(proposal.createdAt)}
           {proposal.reviewedAt && ` • Reviewed ${formatDate(proposal.reviewedAt)}`}
         </Typography>
       </Box>
-      
+
       {/* Apply Dialog */}
       <Dialog
         open={applyDialogOpen}
@@ -552,7 +552,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           <DialogContentText>
             Are you sure you want to apply the changes from this proposal? This action will modify the data in your campaign.
           </DialogContentText>
-          
+
           {applyResult && (
             <Alert
               severity={applyResult.success ? 'success' : 'error'}
@@ -569,7 +569,7 @@ const ProposalReview: React.FC<ProposalReviewProps> = ({
           <Button
             onClick={handleApplyProposal}
             color="primary"
-            disabled={submitting || (applyResult && applyResult.success)}
+            disabled={!!submitting || !!(applyResult && applyResult.success)}
             startIcon={submitting ? <CircularProgress size={20} /> : undefined}
           >
             {submitting ? 'Applying...' : 'Apply Changes'}

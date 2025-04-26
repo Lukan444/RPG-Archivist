@@ -18,6 +18,7 @@ import {
   Chip,
   Tooltip,
   Dialog,
+  ListItemIcon,
   DialogTitle,
   DialogContent,
   DialogContentText,
@@ -37,35 +38,37 @@ import {
   Sort as SortIcon,
 } from '@mui/icons-material';
 import { PageHeader } from '../../components/ui';
+import { EntityList } from '../../components/common';
 import RPGWorldService, { RPGWorld } from '../../services/api/rpgWorld.service';
+import { EmptyWorldsState } from '../../assets';
 
 const RPGWorldListPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State for RPG Worlds
   const [worlds, setWorlds] = useState<RPGWorld[]>([]);
   const [filteredWorlds, setFilteredWorlds] = useState<RPGWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for search and sort
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
+
   // State for menu and dialog
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   // Fetch RPG Worlds
   useEffect(() => {
     const fetchWorlds = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await RPGWorldService.getAllWorlds();
+        const data = await RPGWorldService.getRPGWorlds();
         setWorlds(data);
         setFilteredWorlds(data);
       } catch (error) {
@@ -75,73 +78,73 @@ const RPGWorldListPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchWorlds();
   }, []);
-  
+
   // Filter and sort worlds when search query or sort options change
   useEffect(() => {
     let result = [...worlds];
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (world) =>
           world.name.toLowerCase().includes(query) ||
-          world.description.toLowerCase().includes(query) ||
-          world.genre.toLowerCase().includes(query) ||
-          world.system.toLowerCase().includes(query)
+          (world.description ? world.description.toLowerCase().includes(query) : false) ||
+          (world.genre ? world.genre.toLowerCase().includes(query) : false) ||
+          (world.system ? world.system.toLowerCase().includes(query) : false)
       );
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortOption) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
         case 'genre':
-          comparison = a.genre.localeCompare(b.genre);
+          comparison = (a.genre && b.genre) ? a.genre.localeCompare(b.genre) : 0;
           break;
         case 'system':
-          comparison = a.system.localeCompare(b.system);
+          comparison = (a.system && b.system) ? a.system.localeCompare(b.system) : 0;
           break;
         case 'campaigns':
           comparison = (a.campaignCount || 0) - (b.campaignCount || 0);
           break;
         case 'created':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          comparison = (a.createdAt && b.createdAt) ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() : 0;
           break;
         case 'updated':
-          comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          comparison = (a.updatedAt && b.updatedAt) ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime() : 0;
           break;
         default:
           comparison = a.name.localeCompare(b.name);
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    
+
     setFilteredWorlds(result);
   }, [worlds, searchQuery, sortOption, sortDirection]);
-  
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
+
   // Handle sort menu
   const handleSortMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSortMenuAnchorEl(event.currentTarget);
   };
-  
+
   const handleSortMenuClose = () => {
     setSortMenuAnchorEl(null);
   };
-  
+
   const handleSortOptionSelect = (option: string) => {
     if (option === sortOption) {
       // Toggle direction if same option
@@ -153,46 +156,46 @@ const RPGWorldListPage: React.FC = () => {
     }
     handleSortMenuClose();
   };
-  
+
   // Handle world menu
   const handleWorldMenuOpen = (event: React.MouseEvent<HTMLElement>, worldId: string) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
     setSelectedWorldId(worldId);
   };
-  
+
   const handleWorldMenuClose = () => {
     setMenuAnchorEl(null);
     setSelectedWorldId(null);
   };
-  
+
   // Handle world actions
   const handleViewWorld = (worldId: string) => {
-    navigate(/rpg-worlds/);
+    navigate(`/rpg-worlds/${worldId}`);
     handleWorldMenuClose();
   };
-  
+
   const handleEditWorld = (event: React.MouseEvent, worldId: string) => {
     event.stopPropagation();
-    navigate(/rpg-worlds//edit);
+    navigate(`/rpg-worlds/${worldId}/edit`);
     handleWorldMenuClose();
   };
-  
+
   const handleDeleteClick = () => {
     setDeleteDialogOpen(true);
     handleWorldMenuClose();
   };
-  
+
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
     setSelectedWorldId(null);
   };
-  
+
   const handleDeleteConfirm = async () => {
     if (!selectedWorldId) return;
-    
+
     try {
-      await RPGWorldService.deleteWorld(selectedWorldId);
+      await RPGWorldService.deleteRPGWorld(selectedWorldId);
       setWorlds(worlds.filter((world) => world.id !== selectedWorldId));
       setDeleteDialogOpen(false);
       setSelectedWorldId(null);
@@ -201,45 +204,106 @@ const RPGWorldListPage: React.FC = () => {
       setError('Failed to delete RPG World. Please try again.');
     }
   };
-  
+
   const handleCreateWorld = () => {
     navigate('/rpg-worlds/create');
   };
-  
+
   const handleWorldClick = (worldId: string) => {
-    navigate(/rpg-worlds/);
+    navigate(`/rpg-worlds/${worldId}`);
   };
-  
-  // Render loading skeletons
-  const renderSkeletons = () => {
-    return Array.from({ length: 6 }).map((_, index) => (
-      <Grid item xs={12} sm={6} md={4} key={skeleton-}>
-        <Card sx={{ height: '100%' }}>
-          <Skeleton variant= rectangular height={140} />
-          <CardContent>
-            <Skeleton variant=text height={32} width=80% />
-            <Skeleton variant=text height={20} width=50% />
-            <Skeleton variant=text height={20} width=40% />
-            <Skeleton variant=text height={80} />
-          </CardContent>
-        </Card>
-      </Grid>
-    ));
+
+  // Render a world card
+  const renderWorldCard = (world: RPGWorld) => {
+    return (
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          cursor: 'pointer',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: 6,
+          },
+        }}
+        onClick={() => handleWorldClick(world.id)}
+      >
+        <CardMedia
+          component="img"
+          height="140"
+          image={world.imageUrl || '/placeholder-world.jpg'}
+          alt={world.name}
+        />
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Typography variant="h6" component="div" gutterBottom>
+              {world.name}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={(e) => handleWorldMenuOpen(e, world.id)}
+              aria-label="world options"
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+            <Chip
+              label={world.genre}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+            <Chip
+              label={world.system}
+              size="small"
+              color="secondary"
+              variant="outlined"
+            />
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              mb: 2,
+            }}
+          >
+            {world.description}
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 'auto' }}>
+            <CampaignIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+            <Typography variant="body2" color="text.secondary">
+              {world.campaignCount || 0} {world.campaignCount === 1 ? 'Campaign' : 'Campaigns'}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
   };
-  
+
   return (
-    <Container maxWidth=lg>
+    <Container maxWidth="lg">
       <PageHeader
-        title=RPG Worlds
-        subtitle=Manage your RPG worlds and systems
+        title="RPG Worlds"
+        subtitle="Manage your RPG worlds and systems"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'RPG Worlds' },
         ]}
-        action={
+        actions={
           <Button
-            variant=contained
-            color=primary
+            variant="contained"
+            color="primary"
             startIcon={<AddIcon />}
             onClick={handleCreateWorld}
           >
@@ -247,204 +311,112 @@ const RPGWorldListPage: React.FC = () => {
           </Button>
         }
       />
-      
+
       {/* Search and filter bar */}
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <TextField
-          placeholder=Search worlds...
-          variant=outlined
-          size=small
+          placeholder="Search worlds..."
+          variant="outlined"
+          size="small"
           fullWidth
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
             startAdornment: (
-              <InputAdornment position=start>
-                <SearchIcon color=action />
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
               </InputAdornment>
             ),
           }}
         />
-        
-        <Tooltip title=Sort worlds>
+
+        <Tooltip title="Sort worlds">
           <Button
-            variant=outlined
+            variant="outlined"
             startIcon={<SortIcon />}
             onClick={handleSortMenuOpen}
-            size=medium
+            size="medium"
           >
-            {sortOption === 'name' ? 'Name' : 
-             sortOption === 'genre' ? 'Genre' : 
-             sortOption === 'system' ? 'System' : 
-             sortOption === 'campaigns' ? 'Campaigns' : 
-             sortOption === 'created' ? 'Created' : 
+            {sortOption === 'name' ? 'Name' :
+             sortOption === 'genre' ? 'Genre' :
+             sortOption === 'system' ? 'System' :
+             sortOption === 'campaigns' ? 'Campaigns' :
+             sortOption === 'created' ? 'Created' :
              sortOption === 'updated' ? 'Updated' : 'Sort'}
-            {sortDirection === 'asc' ? ' ^' : ' ¡'}
+            {sortDirection === 'asc' ? ' ^' : ' ï¿½'}
           </Button>
         </Tooltip>
-        
+
         <Menu
           anchorEl={sortMenuAnchorEl}
           open={Boolean(sortMenuAnchorEl)}
           onClose={handleSortMenuClose}
         >
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('name')}
             selected={sortOption === 'name'}
           >
-            Name {sortOption === 'name' && (sortDirection === 'asc' ? '^' : '¡')}
+            Name {sortOption === 'name' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('genre')}
             selected={sortOption === 'genre'}
           >
-            Genre {sortOption === 'genre' && (sortDirection === 'asc' ? '^' : '¡')}
+            Genre {sortOption === 'genre' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('system')}
             selected={sortOption === 'system'}
           >
-            System {sortOption === 'system' && (sortDirection === 'asc' ? '^' : '¡')}
+            System {sortOption === 'system' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('campaigns')}
             selected={sortOption === 'campaigns'}
           >
-            Campaigns {sortOption === 'campaigns' && (sortDirection === 'asc' ? '^' : '¡')}
+            Campaigns {sortOption === 'campaigns' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
           <Divider />
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('created')}
             selected={sortOption === 'created'}
           >
-            Created Date {sortOption === 'created' && (sortDirection === 'asc' ? '^' : '¡')}
+            Created Date {sortOption === 'created' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
-          <MenuItem 
+          <MenuItem
             onClick={() => handleSortOptionSelect('updated')}
             selected={sortOption === 'updated'}
           >
-            Updated Date {sortOption === 'updated' && (sortDirection === 'asc' ? '^' : '¡')}
+            Updated Date {sortOption === 'updated' && (sortDirection === 'asc' ? '^' : 'ï¿½')}
           </MenuItem>
         </Menu>
       </Box>
-      
+
       {/* Error message */}
       {error && (
-        <Alert severity=error sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
-      
-      {/* Empty state */}
-      {!loading && filteredWorlds.length === 0 && (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <PublicIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant=h6 gutterBottom>
-            {searchQuery ? 'No worlds match your search' : 'No RPG Worlds yet'}
-          </Typography>
-          <Typography variant=body1 color=text.secondary paragraph>
-            {searchQuery
-              ? 'Try adjusting your search terms'
-              : 'Create your first RPG world to get started'}
-          </Typography>
-          {!searchQuery && (
-            <Button
-              variant=contained
-              color=primary
-              startIcon={<AddIcon />}
-              onClick={handleCreateWorld}
-              sx={{ mt: 2 }}
-            >
-              Create World
-            </Button>
-          )}
-        </Box>
-      )}
-      
-      {/* World grid */}
-      <Grid container spacing={3}>
-        {loading ? (
-          renderSkeletons()
-        ) : (
-          filteredWorlds.map((world) => (
-            <Grid item xs={12} sm={6} md={4} key={world.id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6,
-                  },
-                }}
-                onClick={() => handleWorldClick(world.id)}
-              >
-                <CardMedia
-                  component=img
-                  height=140
-                  image={world.imageUrl || '/placeholder-world.jpg'}
-                  alt={world.name}
-                />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Typography variant=h6 component=div gutterBottom>
-                      {world.name}
-                    </Typography>
-                    <IconButton
-                      size=small
-                      onClick={(e) => handleWorldMenuOpen(e, world.id)}
-                      aria-label=world options
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                    <Chip 
-                      label={world.genre} 
-                      size=small 
-                      color=primary 
-                      variant=outlined 
-                    />
-                    <Chip 
-                      label={world.system} 
-                      size=small 
-                      color=secondary 
-                      variant=outlined 
-                    />
-                  </Box>
-                  
-                  <Typography 
-                    variant=body2 
-                    color=text.secondary
-                    sx={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      mb: 2,
-                    }}
-                  >
-                    {world.description}
-                  </Typography>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 'auto' }}>
-                    <CampaignIcon fontSize=small color=action sx={{ mr: 0.5 }} />
-                    <Typography variant=body2 color=text.secondary>
-                      {world.campaignCount || 0} {world.campaignCount === 1 ? 'Campaign' : 'Campaigns'}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))
-        )}
-      </Grid>
-      
+
+      {/* Entity List with Empty State */}
+      <EntityList
+        title="RPG Worlds"
+        entities={filteredWorlds}
+        renderEntity={renderWorldCard}
+        isLoading={loading}
+        error={error ? new Error(error) : null}
+        onAddNew={handleCreateWorld}
+        addNewLabel="Create World"
+        emptyStateProps={{
+          title: searchQuery ? 'No worlds match your search' : 'No RPG Worlds yet',
+          description: searchQuery
+            ? 'Try adjusting your search terms'
+            : 'Create your first RPG world to get started',
+          image: EmptyWorldsState
+        }}
+      />
+
       {/* World options menu */}
       <Menu
         anchorEl={menuAnchorEl}
@@ -453,25 +425,25 @@ const RPGWorldListPage: React.FC = () => {
       >
         <MenuItem onClick={() => selectedWorldId && handleViewWorld(selectedWorldId)}>
           <ListItemIcon>
-            <VisibilityIcon fontSize=small />
+            <VisibilityIcon fontSize="small" />
           </ListItemIcon>
           View
         </MenuItem>
         <MenuItem onClick={(e) => selectedWorldId && handleEditWorld(e, selectedWorldId)}>
           <ListItemIcon>
-            <EditIcon fontSize=small />
+            <EditIcon fontSize="small" />
           </ListItemIcon>
           Edit
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <ListItemIcon>
-            <DeleteIcon fontSize=small color=error />
+            <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
           Delete
         </MenuItem>
       </Menu>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteDialogOpen}
@@ -486,7 +458,7 @@ const RPGWorldListPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color=error variant=contained>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
           </Button>
         </DialogActions>

@@ -1,1 +1,166 @@
-import { Router } from 'express';\nimport { AuthMiddleware, AuthRequest } from '../middleware/auth.middleware';\nimport { UserRole } from '../models/user.model';\nimport { RepositoryFactory } from '../repositories/repository.factory';\nimport { DatabaseService } from '../services/database.service';\n\n/**\n * User routes\n * @param repositoryFactory Repository factory\n */\nexport const userRouter = (repositoryFactory: RepositoryFactory): Router => {\n  const router = Router();\n  const authMiddleware = new AuthMiddleware();\n\n  /**\n   * @swagger\n   * /users/profile:\n   *   get:\n   *     summary: Get user profile\n   *     tags: [Users]\n   *     security:\n   *       - bearerAuth: []\n   *     responses:\n   *       200:\n   *         description: User profile\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 user:\n   *                   type: object\n   *                   properties:\n   *                     user_id:\n   *                       type: string\n   *                       example: 123e4567-e89b-12d3-a456-426614174000\n   *                     username:\n   *                       type: string\n   *                       example: johndoe\n   *                     email:\n   *                       type: string\n   *                       example: john.doe@example.com\n   *                     role:\n   *                       type: string\n   *                       example: PLAYER\n   *       401:\n   *         description: Unauthorized\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Invalid or expired token\n   */\n  router.get('/profile', authMiddleware.authenticate, (req: AuthRequest, res) => {\n    res.status(200).json({ user: req.user });\n  });\n\n  /**\n   * @swagger\n   * /users/admin:\n   *   get:\n   *     summary: Admin only endpoint\n   *     tags: [Users]\n   *     security:\n   *       - bearerAuth: []\n   *     responses:\n   *       200:\n   *         description: Admin access granted\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Admin access granted\n   *       401:\n   *         description: Unauthorized\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Invalid or expired token\n   *       403:\n   *         description: Forbidden\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Insufficient permissions\n   */\n  router.get(\n    '/admin',\n    authMiddleware.authenticate,\n    authMiddleware.hasRole(UserRole.ADMIN),\n    (req, res) => {\n      res.status(200).json({ message: 'Admin access granted' });\n    }\n  );\n\n  /**\n   * @swagger\n   * /users/game-master:\n   *   get:\n   *     summary: Game master or admin endpoint\n   *     tags: [Users]\n   *     security:\n   *       - bearerAuth: []\n   *     responses:\n   *       200:\n   *         description: Game master access granted\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Game master access granted\n   *       401:\n   *         description: Unauthorized\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Invalid or expired token\n   *       403:\n   *         description: Forbidden\n   *         content:\n   *           application/json:\n   *             schema:\n   *               type: object\n   *               properties:\n   *                 message:\n   *                   type: string\n   *                   example: Insufficient permissions\n   */\n  router.get(\n    '/game-master',\n    authMiddleware.authenticate,\n    authMiddleware.hasRole([UserRole.ADMIN, UserRole.GAME_MASTER]),\n    (req, res) => {\n      res.status(200).json({ message: 'Game master access granted' });\n    }\n  );\n\n  return router;\n};\n\n/**\n * Create user router\n */\nexport const createUserRouter = (): Router => {\n  const dbService = new DatabaseService();\n  const repositoryFactory = new RepositoryFactory(dbService);\n  return userRouter(repositoryFactory);\n};
+import { Router } from 'express';
+import { authenticate, AuthRequest } from '../middleware/auth.middleware';
+import { UserRole } from '../models/user.model';
+import { RepositoryFactory } from '../repositories/repository.factory';
+import { DatabaseService } from '../services/database.service';
+
+/**
+ * User routes
+ * @param repositoryFactory Repository factory
+ */
+export const userRouter = (repositoryFactory: RepositoryFactory): Router => {
+  const router = Router();
+
+  /**
+   * @swagger
+   * /users/profile:
+   *   get:
+   *     summary: Get user profile
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: User profile
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   type: object
+   *                   properties:
+   *                     user_id:
+   *                       type: string
+   *                       example: 123e4567-e89b-12d3-a456-426614174000
+   *                     username:
+   *                       type: string
+   *                       example: johndoe
+   *                     email:
+   *                       type: string
+   *                       example: john.doe@example.com
+   *                     role:
+   *                       type: string
+   *                       example: PLAYER
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Invalid or expired token
+   */
+  router.get('/profile', authenticate, (req: AuthRequest, res) => {
+    res.status(200).json({ user: req.user });
+  });
+
+  /**
+   * @swagger
+   * /users/admin:
+   *   get:
+   *     summary: Admin only endpoint
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Admin access granted
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Admin access granted
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Invalid or expired token
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Insufficient permissions
+   */
+  router.get(
+    '/admin',
+    authenticate,
+    (req, res) => {
+      res.status(200).json({ message: 'Admin access granted' });
+    }
+  );
+
+  /**
+   * @swagger
+   * /users/game-master:
+   *   get:
+   *     summary: Game master or admin endpoint
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Game master access granted
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Game master access granted
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Invalid or expired token
+   *       403:
+   *         description: Forbidden
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Insufficient permissions
+   */
+  router.get(
+    '/game-master',
+    authenticate,
+    (req, res) => {
+      res.status(200).json({ message: 'Game master access granted' });
+    }
+  );
+
+  return router;
+};
+
+/**
+ * Create user router
+ */
+export const createUserRouter = (): Router => {
+  const dbService = new DatabaseService();
+  const repositoryFactory = new RepositoryFactory(dbService);
+  return userRouter(repositoryFactory);
+};

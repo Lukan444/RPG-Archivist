@@ -78,4 +78,4 @@ export const sentryRequestHandler = Sentry.Handlers.requestHandler();
 /**
  * Sentry error handler
  */
-export const sentryErrorHandler = Sentry.Handlers.errorHandler();
+export const sentryErrorHandler = Sentry.Handlers.errorHandler() as express.ErrorRequestHandler;

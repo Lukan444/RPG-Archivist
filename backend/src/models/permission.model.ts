@@ -1,1 +1,155 @@
-/**\n * Permission model\n */\n\n/**\n * Permission enum\n */\nexport enum Permission {\n  // User permissions\n  VIEW_USERS = 'VIEW_USERS',\n  CREATE_USER = 'CREATE_USER',\n  UPDATE_USER = 'UPDATE_USER',\n  DELETE_USER = 'DELETE_USER',\n  \n  // Campaign permissions\n  VIEW_CAMPAIGNS = 'VIEW_CAMPAIGNS',\n  CREATE_CAMPAIGN = 'CREATE_CAMPAIGN',\n  UPDATE_CAMPAIGN = 'UPDATE_CAMPAIGN',\n  DELETE_CAMPAIGN = 'DELETE_CAMPAIGN',\n  \n  // Session permissions\n  VIEW_SESSIONS = 'VIEW_SESSIONS',\n  CREATE_SESSION = 'CREATE_SESSION',\n  UPDATE_SESSION = 'UPDATE_SESSION',\n  DELETE_SESSION = 'DELETE_SESSION',\n  \n  // Character permissions\n  VIEW_CHARACTERS = 'VIEW_CHARACTERS',\n  CREATE_CHARACTER = 'CREATE_CHARACTER',\n  UPDATE_CHARACTER = 'UPDATE_CHARACTER',\n  DELETE_CHARACTER = 'DELETE_CHARACTER',\n  \n  // Location permissions\n  VIEW_LOCATIONS = 'VIEW_LOCATIONS',\n  CREATE_LOCATION = 'CREATE_LOCATION',\n  UPDATE_LOCATION = 'UPDATE_LOCATION',\n  DELETE_LOCATION = 'DELETE_LOCATION',\n  \n  // Transcription permissions\n  VIEW_TRANSCRIPTIONS = 'VIEW_TRANSCRIPTIONS',\n  CREATE_TRANSCRIPTION = 'CREATE_TRANSCRIPTION',\n  UPDATE_TRANSCRIPTION = 'UPDATE_TRANSCRIPTION',\n  DELETE_TRANSCRIPTION = 'DELETE_TRANSCRIPTION',\n  \n  // RPG World permissions\n  VIEW_RPG_WORLDS = 'VIEW_RPG_WORLDS',\n  CREATE_RPG_WORLD = 'CREATE_RPG_WORLD',\n  UPDATE_RPG_WORLD = 'UPDATE_RPG_WORLD',\n  DELETE_RPG_WORLD = 'DELETE_RPG_WORLD',\n  \n  // System permissions\n  MANAGE_SYSTEM = 'MANAGE_SYSTEM',\n  VIEW_LOGS = 'VIEW_LOGS',\n  MANAGE_SETTINGS = 'MANAGE_SETTINGS'\n}\n\n/**\n * Role permissions map\n */\nimport { UserRole } from './user.model';\n\n/**\n * Role permissions map\n */\nexport const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {\n  [UserRole.ADMIN]: [\n    // Admin has all permissions\n    ...Object.values(Permission)\n  ],\n  \n  [UserRole.GAME_MASTER]: [\n    // User permissions\n    Permission.VIEW_USERS,\n    \n    // Campaign permissions\n    Permission.VIEW_CAMPAIGNS,\n    Permission.CREATE_CAMPAIGN,\n    Permission.UPDATE_CAMPAIGN,\n    Permission.DELETE_CAMPAIGN,\n    \n    // Session permissions\n    Permission.VIEW_SESSIONS,\n    Permission.CREATE_SESSION,\n    Permission.UPDATE_SESSION,\n    Permission.DELETE_SESSION,\n    \n    // Character permissions\n    Permission.VIEW_CHARACTERS,\n    Permission.CREATE_CHARACTER,\n    Permission.UPDATE_CHARACTER,\n    Permission.DELETE_CHARACTER,\n    \n    // Location permissions\n    Permission.VIEW_LOCATIONS,\n    Permission.CREATE_LOCATION,\n    Permission.UPDATE_LOCATION,\n    Permission.DELETE_LOCATION,\n    \n    // Transcription permissions\n    Permission.VIEW_TRANSCRIPTIONS,\n    Permission.CREATE_TRANSCRIPTION,\n    Permission.UPDATE_TRANSCRIPTION,\n    Permission.DELETE_TRANSCRIPTION,\n    \n    // RPG World permissions\n    Permission.VIEW_RPG_WORLDS,\n    Permission.CREATE_RPG_WORLD,\n    Permission.UPDATE_RPG_WORLD\n  ],\n  \n  [UserRole.PLAYER]: [\n    // User permissions\n    Permission.VIEW_USERS,\n    \n    // Campaign permissions (only campaigns they are part of)\n    Permission.VIEW_CAMPAIGNS,\n    \n    // Session permissions (only sessions they are part of)\n    Permission.VIEW_SESSIONS,\n    \n    // Character permissions (only their own characters)\n    Permission.VIEW_CHARACTERS,\n    Permission.CREATE_CHARACTER,\n    Permission.UPDATE_CHARACTER,\n    \n    // Location permissions\n    Permission.VIEW_LOCATIONS,\n    \n    // Transcription permissions (only transcriptions from sessions they are part of)\n    Permission.VIEW_TRANSCRIPTIONS,\n    \n    // RPG World permissions\n    Permission.VIEW_RPG_WORLDS\n  ],\n  \n  [UserRole.VIEWER]: [\n    // User permissions\n    Permission.VIEW_USERS,\n    \n    // Campaign permissions (only campaigns they have access to)\n    Permission.VIEW_CAMPAIGNS,\n    \n    // Session permissions (only sessions they have access to)\n    Permission.VIEW_SESSIONS,\n    \n    // Character permissions\n    Permission.VIEW_CHARACTERS,\n    \n    // Location permissions\n    Permission.VIEW_LOCATIONS,\n    \n    // Transcription permissions (only transcriptions from sessions they have access to)\n    Permission.VIEW_TRANSCRIPTIONS,\n    \n    // RPG World permissions\n    Permission.VIEW_RPG_WORLDS\n  ]\n};
+/**
+ * Permission model
+ */
+
+import { UserRole } from './user.model';
+
+/**
+ * Permission enum
+ */
+export enum Permission {
+  // User permissions
+  VIEW_USERS = 'VIEW_USERS',
+  CREATE_USER = 'CREATE_USER',
+  UPDATE_USER = 'UPDATE_USER',
+  DELETE_USER = 'DELETE_USER',
+
+  // Campaign permissions
+  VIEW_CAMPAIGNS = 'VIEW_CAMPAIGNS',
+  CREATE_CAMPAIGN = 'CREATE_CAMPAIGN',
+  UPDATE_CAMPAIGN = 'UPDATE_CAMPAIGN',
+  DELETE_CAMPAIGN = 'DELETE_CAMPAIGN',
+
+  // Session permissions
+  VIEW_SESSIONS = 'VIEW_SESSIONS',
+  CREATE_SESSION = 'CREATE_SESSION',
+  UPDATE_SESSION = 'UPDATE_SESSION',
+  DELETE_SESSION = 'DELETE_SESSION',
+
+  // Character permissions
+  VIEW_CHARACTERS = 'VIEW_CHARACTERS',
+  CREATE_CHARACTER = 'CREATE_CHARACTER',
+  UPDATE_CHARACTER = 'UPDATE_CHARACTER',
+  DELETE_CHARACTER = 'DELETE_CHARACTER',
+
+  // Location permissions
+  VIEW_LOCATIONS = 'VIEW_LOCATIONS',
+  CREATE_LOCATION = 'CREATE_LOCATION',
+  UPDATE_LOCATION = 'UPDATE_LOCATION',
+  DELETE_LOCATION = 'DELETE_LOCATION',
+
+  // Transcription permissions
+  VIEW_TRANSCRIPTIONS = 'VIEW_TRANSCRIPTIONS',
+  CREATE_TRANSCRIPTION = 'CREATE_TRANSCRIPTION',
+  UPDATE_TRANSCRIPTION = 'UPDATE_TRANSCRIPTION',
+  DELETE_TRANSCRIPTION = 'DELETE_TRANSCRIPTION',
+
+  // RPG World permissions
+  VIEW_RPG_WORLDS = 'VIEW_RPG_WORLDS',
+  CREATE_RPG_WORLD = 'CREATE_RPG_WORLD',
+  UPDATE_RPG_WORLD = 'UPDATE_RPG_WORLD',
+  DELETE_RPG_WORLD = 'DELETE_RPG_WORLD',
+
+  // System permissions
+  MANAGE_SYSTEM = 'MANAGE_SYSTEM',
+  VIEW_LOGS = 'VIEW_LOGS',
+  MANAGE_SETTINGS = 'MANAGE_SETTINGS'
+}
+
+/**
+ * Role permissions map
+ */
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  [UserRole.ADMIN]: [
+    // Admin has all permissions
+    ...Object.values(Permission)
+  ],
+
+  [UserRole.GAME_MASTER]: [
+    // User permissions
+    Permission.VIEW_USERS,
+
+    // Campaign permissions
+    Permission.VIEW_CAMPAIGNS,
+    Permission.CREATE_CAMPAIGN,
+    Permission.UPDATE_CAMPAIGN,
+    Permission.DELETE_CAMPAIGN,
+
+    // Session permissions
+    Permission.VIEW_SESSIONS,
+    Permission.CREATE_SESSION,
+    Permission.UPDATE_SESSION,
+    Permission.DELETE_SESSION,
+
+    // Character permissions
+    Permission.VIEW_CHARACTERS,
+    Permission.CREATE_CHARACTER,
+    Permission.UPDATE_CHARACTER,
+    Permission.DELETE_CHARACTER,
+
+    // Location permissions
+    Permission.VIEW_LOCATIONS,
+    Permission.CREATE_LOCATION,
+    Permission.UPDATE_LOCATION,
+    Permission.DELETE_LOCATION,
+
+    // Transcription permissions
+    Permission.VIEW_TRANSCRIPTIONS,
+    Permission.CREATE_TRANSCRIPTION,
+    Permission.UPDATE_TRANSCRIPTION,
+    Permission.DELETE_TRANSCRIPTION,
+
+    // RPG World permissions
+    Permission.VIEW_RPG_WORLDS,
+    Permission.CREATE_RPG_WORLD,
+    Permission.UPDATE_RPG_WORLD
+  ],
+
+  [UserRole.PLAYER]: [
+    // User permissions
+    Permission.VIEW_USERS,
+
+    // Campaign permissions (only campaigns they are part of)
+    Permission.VIEW_CAMPAIGNS,
+
+    // Session permissions (only sessions they are part of)
+    Permission.VIEW_SESSIONS,
+
+    // Character permissions (only their own characters)
+    Permission.VIEW_CHARACTERS,
+    Permission.CREATE_CHARACTER,
+    Permission.UPDATE_CHARACTER,
+
+    // Location permissions
+    Permission.VIEW_LOCATIONS,
+
+    // Transcription permissions (only transcriptions from sessions they are part of)
+    Permission.VIEW_TRANSCRIPTIONS,
+
+    // RPG World permissions
+    Permission.VIEW_RPG_WORLDS
+  ],
+
+  [UserRole.VIEWER]: [
+    // User permissions
+    Permission.VIEW_USERS,
+
+    // Campaign permissions (only campaigns they have access to)
+    Permission.VIEW_CAMPAIGNS,
+
+    // Session permissions (only sessions they have access to)
+    Permission.VIEW_SESSIONS,
+
+    // Character permissions
+    Permission.VIEW_CHARACTERS,
+
+    // Location permissions
+    Permission.VIEW_LOCATIONS,
+
+    // Transcription permissions (only transcriptions from sessions they have access to)
+    Permission.VIEW_TRANSCRIPTIONS,
+
+    // RPG World permissions
+    Permission.VIEW_RPG_WORLDS
+  ]
+};

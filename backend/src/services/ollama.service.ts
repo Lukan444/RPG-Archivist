@@ -37,10 +37,10 @@ export class OllamaService {
             type: 'api_error',
             details: error.response.data
           };
-          
+
           throw ollamaError;
         }
-        
+
         throw error;
       }
     );
@@ -69,10 +69,10 @@ export class OllamaService {
   public async chat(messages: LLMMessage[], options: LLMRequestOptions = {}): Promise<LLMResponse> {
     try {
       const model = options.model || this.defaultModel;
-      
+
       // Convert messages to Ollama format
       const formattedMessages = this.formatMessages(messages);
-      
+
       const requestBody: any = {
         model,
         messages: formattedMessages,
@@ -86,9 +86,9 @@ export class OllamaService {
       };
 
       const response = await this.client.post('/api/chat', requestBody);
-      
+
       const responseData = response.data;
-      
+
       // Convert to standardized LLM response
       const llmResponse: LLMResponse = {
         id: `ollama-${Date.now()}`,
@@ -126,10 +126,10 @@ export class OllamaService {
   ): Promise<void> {
     try {
       const model = options.model || this.defaultModel;
-      
+
       // Convert messages to Ollama format
       const formattedMessages = this.formatMessages(messages);
-      
+
       const requestBody: any = {
         model,
         messages: formattedMessages,
@@ -149,14 +149,14 @@ export class OllamaService {
 
       const stream = response.data;
       let content = '';
-      
+
       stream.on('data', (chunk: Buffer) => {
         try {
           const data = JSON.parse(chunk.toString());
-          
+
           if (data.message) {
             content += data.message.content || '';
-            
+
             // Convert to standardized LLM response chunk
             const responseChunk: Partial<LLMResponse> = {
               id: `ollama-${Date.now()}`,
@@ -166,9 +166,9 @@ export class OllamaService {
                 role: LLMMessageRole.ASSISTANT,
                 content: data.message.content || ''
               },
-              finishReason: data.done ? 'stop' : null
+              finishReason: data.done ? 'stop' : 'length'
             };
-            
+
             callback(responseChunk);
           }
         } catch (error) {

@@ -7,6 +7,14 @@ import {
   PromptTemplateVariables
 } from '../models/llm.model';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
+
 /**
  * Controller for LLM-related endpoints
  */
@@ -36,20 +44,32 @@ export class LLMController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get LLM configuration
    * @param req Request
    * @param res Response
    */
-  public async getConfig(req: Request, res: Response): Promise<void> {
+  public async getConfig(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const config = await this.llmService.getConfig();
-      
+
       // Remove sensitive information
       const safeConfig = {
         ...config,
         apiKey: config.apiKey ? '********' : undefined
       };
-      
+
       res.status(200).json({
         success: true,
         data: safeConfig
@@ -60,7 +80,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get LLM configuration',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -71,10 +91,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async updateConfig(req: Request, res: Response): Promise<void> {
+  public async updateConfig(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const config = req.body;
-      
+
       // Validate request
       if (!config) {
         res.status(400).json({
@@ -85,15 +105,15 @@ export class LLMController {
         });
         return;
       }
-      
+
       const updatedConfig = await this.llmService.updateConfig(config);
-      
+
       // Remove sensitive information
       const safeConfig = {
         ...updatedConfig,
         apiKey: updatedConfig.apiKey ? '********' : undefined
       };
-      
+
       res.status(200).json({
         success: true,
         data: safeConfig
@@ -104,7 +124,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to update LLM configuration',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -115,10 +135,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async getModels(req: Request, res: Response): Promise<void> {
+  public async getModels(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const models = await this.llmService.getModels();
-      
+
       res.status(200).json({
         success: true,
         data: models
@@ -129,7 +149,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get LLM models',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -140,12 +160,12 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async getModel(req: Request, res: Response): Promise<void> {
+  public async getModel(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const model = await this.llmService.getModel(id);
-      
+
       if (!model) {
         res.status(404).json({
           success: false,
@@ -155,7 +175,7 @@ export class LLMController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: model
@@ -166,7 +186,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get LLM model',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -177,10 +197,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async chat(req: Request, res: Response): Promise<void> {
+  public async chat(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { messages, options } = req.body;
-      
+
       // Validate request
       if (!messages || !Array.isArray(messages)) {
         res.status(400).json({
@@ -191,13 +211,13 @@ export class LLMController {
         });
         return;
       }
-      
+
       // Add user ID to system message if not present
-      const userId = req.user?.id;
-      
+      const userId = req.user?.user_id;
+
       if (userId) {
         const hasSystemMessage = messages.some(msg => msg.role === LLMMessageRole.SYSTEM);
-        
+
         if (!hasSystemMessage) {
           messages.unshift({
             role: LLMMessageRole.SYSTEM,
@@ -205,9 +225,9 @@ export class LLMController {
           });
         }
       }
-      
+
       const response = await this.llmService.chat(messages, options);
-      
+
       res.status(200).json({
         success: true,
         data: response
@@ -218,7 +238,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to send chat completion request',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -229,10 +249,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async chatStream(req: Request, res: Response): Promise<void> {
+  public async chatStream(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { messages, options } = req.body;
-      
+
       // Validate request
       if (!messages || !Array.isArray(messages)) {
         res.status(400).json({
@@ -243,13 +263,13 @@ export class LLMController {
         });
         return;
       }
-      
+
       // Add user ID to system message if not present
-      const userId = req.user?.id;
-      
+      const userId = req.user?.user_id;
+
       if (userId) {
         const hasSystemMessage = messages.some(msg => msg.role === LLMMessageRole.SYSTEM);
-        
+
         if (!hasSystemMessage) {
           messages.unshift({
             role: LLMMessageRole.SYSTEM,
@@ -257,12 +277,12 @@ export class LLMController {
           });
         }
       }
-      
+
       // Set headers for streaming response
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
-      
+
       // Send streaming response
       await this.llmService.chatStream(
         messages,
@@ -271,22 +291,22 @@ export class LLMController {
         },
         { ...options, stream: true }
       );
-      
+
       // End response
       res.write('data: [DONE]\n\n');
       res.end();
     } catch (error) {
       console.error('Error sending streaming chat completion request:', error);
-      
+
       // Send error response
       res.write(`data: ${JSON.stringify({
         success: false,
         error: {
           message: 'Failed to send streaming chat completion request',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       })}\n\n`);
-      
+
       res.end();
     }
   }
@@ -296,10 +316,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async getPromptTemplates(req: Request, res: Response): Promise<void> {
+  public async getPromptTemplates(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const templates = await this.llmService.getPromptTemplates();
-      
+
       res.status(200).json({
         success: true,
         data: templates
@@ -310,7 +330,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get prompt templates',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -321,12 +341,12 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async getPromptTemplate(req: Request, res: Response): Promise<void> {
+  public async getPromptTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const template = await this.llmService.getPromptTemplate(id);
-      
+
       if (!template) {
         res.status(404).json({
           success: false,
@@ -336,7 +356,7 @@ export class LLMController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: template
@@ -347,7 +367,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get prompt template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -358,10 +378,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async createPromptTemplate(req: Request, res: Response): Promise<void> {
+  public async createPromptTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const template = req.body;
-      
+
       // Validate request
       if (!template || !template.name || !template.template) {
         res.status(400).json({
@@ -372,9 +392,9 @@ export class LLMController {
         });
         return;
       }
-      
+
       const createdTemplate = await this.llmService.createPromptTemplate(template);
-      
+
       res.status(201).json({
         success: true,
         data: createdTemplate
@@ -385,7 +405,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to create prompt template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -396,11 +416,11 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async updatePromptTemplate(req: Request, res: Response): Promise<void> {
+  public async updatePromptTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const template = req.body;
-      
+
       // Validate request
       if (!template) {
         res.status(400).json({
@@ -411,9 +431,9 @@ export class LLMController {
         });
         return;
       }
-      
+
       const updatedTemplate = await this.llmService.updatePromptTemplate(id, template);
-      
+
       res.status(200).json({
         success: true,
         data: updatedTemplate
@@ -424,7 +444,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to update prompt template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -435,12 +455,12 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async deletePromptTemplate(req: Request, res: Response): Promise<void> {
+  public async deletePromptTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const deleted = await this.llmService.deletePromptTemplate(id);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -450,7 +470,7 @@ export class LLMController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -463,7 +483,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to delete prompt template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -474,11 +494,11 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async renderPromptTemplate(req: Request, res: Response): Promise<void> {
+  public async renderPromptTemplate(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const variables: PromptTemplateVariables = req.body;
-      
+
       // Validate request
       if (!variables) {
         res.status(400).json({
@@ -489,9 +509,9 @@ export class LLMController {
         });
         return;
       }
-      
+
       const renderedPrompt = await this.llmService.renderPromptTemplate(id, variables);
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -504,7 +524,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to render prompt template',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -515,12 +535,12 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async getContext(req: Request, res: Response): Promise<void> {
+  public async getContext(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
-      
+
       const context = await this.llmService.getContext(sessionId);
-      
+
       if (!context) {
         res.status(404).json({
           success: false,
@@ -530,7 +550,7 @@ export class LLMController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: context
@@ -541,7 +561,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to get LLM context',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -552,11 +572,11 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async saveContext(req: Request, res: Response): Promise<void> {
+  public async saveContext(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
       const context = req.body;
-      
+
       // Validate request
       if (!context || !context.messages) {
         res.status(400).json({
@@ -567,13 +587,13 @@ export class LLMController {
         });
         return;
       }
-      
+
       // Add session ID and user ID
       context.sessionId = sessionId;
-      context.userId = req.user?.id;
-      
+      context.userId = req.user?.user_id;
+
       const savedContext = await this.llmService.saveContext(context);
-      
+
       res.status(200).json({
         success: true,
         data: savedContext
@@ -584,7 +604,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to save LLM context',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -595,12 +615,12 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async deleteContext(req: Request, res: Response): Promise<void> {
+  public async deleteContext(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { sessionId } = req.params;
-      
+
       const deleted = await this.llmService.deleteContext(sessionId);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -610,7 +630,7 @@ export class LLMController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -623,7 +643,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to delete LLM context',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -634,10 +654,10 @@ export class LLMController {
    * @param req Request
    * @param res Response
    */
-  public async clearCache(req: Request, res: Response): Promise<void> {
+  public async clearCache(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       await this.llmService.clearCache();
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -650,7 +670,7 @@ export class LLMController {
         success: false,
         error: {
           message: 'Failed to clear LLM cache',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }

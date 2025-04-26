@@ -14,6 +14,8 @@ export function rpgWorldRoutes(repositoryFactory: RepositoryFactory): Router {
   const router = Router();
   const controller = new RPGWorldController(repositoryFactory);
 
+  // No need to initialize auth middleware
+
   // Get all RPG Worlds
   router.get(
     '/',

@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import { RepositoryFactory } from '../repositories/repository.factory';
-import { RPGWorld } from '../repositories/rpg-world.repository';
+import { RPGWorld } from '../models/rpg-world.model';
 import { validationResult } from 'express-validator';
+
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
 
 /**
  * RPG World controller for handling RPG World-related requests
@@ -14,9 +22,21 @@ export class RPGWorldController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all RPG Worlds
    */
-  public async getAllRPGWorlds(req: Request, res: Response): Promise<void> {
+  public async getAllRPGWorlds(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const rpgWorlds = await this.repositoryFactory.getRPGWorldRepository().findAll();
       res.status(200).json({
@@ -29,7 +49,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting RPG Worlds'
+          message: 'An error occurred while getting RPG Worlds',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -38,11 +59,11 @@ export class RPGWorldController {
   /**
    * Get RPG World by ID
    */
-  public async getRPGWorldById(req: Request, res: Response): Promise<void> {
+  public async getRPGWorldById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const rpgWorldId = req.params.id;
       const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(rpgWorldId);
-      
+
       if (!rpgWorld) {
         res.status(404).json({
           success: false,
@@ -64,7 +85,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting RPG World'
+          message: 'An error occurred while getting RPG World',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -73,7 +95,7 @@ export class RPGWorldController {
   /**
    * Create RPG World
    */
-  public async createRPGWorld(req: Request, res: Response): Promise<void> {
+  public async createRPGWorld(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -103,7 +125,7 @@ export class RPGWorldController {
       const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().create({
         name: req.body.name,
         description: req.body.description,
-        system_version: req.body.system_version
+        system: req.body.system_version // Map system_version to system
       });
 
       res.status(201).json({
@@ -116,7 +138,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating RPG World'
+          message: 'An error occurred while creating RPG World',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -125,7 +148,7 @@ export class RPGWorldController {
   /**
    * Update RPG World
    */
-  public async updateRPGWorld(req: Request, res: Response): Promise<void> {
+  public async updateRPGWorld(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -156,7 +179,7 @@ export class RPGWorldController {
 
       if (req.body.name && req.body.name !== rpgWorld.name) {
         const existingRPGWorld = await this.repositoryFactory.getRPGWorldRepository().findByName(req.body.name);
-        if (existingRPGWorld && existingRPGWorld.rpg_world_id !== rpgWorldId) {
+        if (existingRPGWorld && existingRPGWorld.world_id !== rpgWorldId) {
           res.status(400).json({
             success: false,
             error: {
@@ -171,7 +194,7 @@ export class RPGWorldController {
       const updatedRPGWorld = await this.repositoryFactory.getRPGWorldRepository().update(rpgWorldId, {
         name: req.body.name,
         description: req.body.description,
-        system_version: req.body.system_version
+        system: req.body.system_version // Map system_version to system
       });
 
       res.status(200).json({
@@ -184,7 +207,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating RPG World'
+          message: 'An error occurred while updating RPG World',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -193,7 +217,7 @@ export class RPGWorldController {
   /**
    * Delete RPG World
    */
-  public async deleteRPGWorld(req: Request, res: Response): Promise<void> {
+  public async deleteRPGWorld(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const rpgWorldId = req.params.id;
       const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(rpgWorldId);
@@ -235,7 +259,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting RPG World'
+          message: 'An error occurred while deleting RPG World',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -244,7 +269,7 @@ export class RPGWorldController {
   /**
    * Get campaigns for RPG World
    */
-  public async getCampaignsForRPGWorld(req: Request, res: Response): Promise<void> {
+  public async getCampaignsForRPGWorld(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const rpgWorldId = req.params.id;
       const rpgWorld = await this.repositoryFactory.getRPGWorldRepository().findById(rpgWorldId);
@@ -272,7 +297,8 @@ export class RPGWorldController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting campaigns for RPG World'
+          message: 'An error occurred while getting campaigns for RPG World',
+          details: this.getErrorMessage(error)
         }
       });
     }

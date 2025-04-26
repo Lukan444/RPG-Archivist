@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400px" height="400px" viewBox="0 0 400 400" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Default Item</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="itemGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="url(#itemGradient)" x="0" y="0" width="400" height="400"></rect>
+        
+        <!-- Item Circle -->
+        <circle fill="#FFFFFF" cx="200" cy="200" r="150" opacity="0.1"></circle>
+        <circle fill="#FFFFFF" cx="200" cy="200" r="120" opacity="0.1"></circle>
+        
+        <!-- Sword -->
+        <rect fill="url(#goldGradient)" x="150" y="100" width="100" height="20" rx="5"></rect>
+        <rect fill="#CCCCCC" x="150" y="120" width="100" height="180" rx="5"></rect>
+        <rect fill="url(#goldGradient)" x="175" y="300" width="50" height="20" rx="5"></rect>
+        <rect fill="url(#goldGradient)" x="195" y="80" width="10" height="20" rx="5"></rect>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="100" cy="100" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="300" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="150" cy="300" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="250" cy="250" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Title -->
+        <text x="200" y="350" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Magical Sword</text>
+    </g>
+</svg>

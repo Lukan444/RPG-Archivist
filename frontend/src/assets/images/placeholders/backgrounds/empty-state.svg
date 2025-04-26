@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600px" height="400px" viewBox="0 0 600 400" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Empty State</title>
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="emptyGradient">
+            <stop stop-color="#1a9b9b" offset="0%"></stop>
+            <stop stop-color="#0d4b6e" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="goldGradient">
+            <stop stop-color="#cd9b4a" offset="0%"></stop>
+            <stop stop-color="#996d1d" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Background -->
+        <rect fill="#FFFFFF" x="0" y="0" width="600" height="400"></rect>
+        
+        <!-- Decorative Elements -->
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="100" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="80" opacity="0.1"></circle>
+        <circle fill="url(#emptyGradient)" cx="300" cy="150" r="60" opacity="0.1"></circle>
+        
+        <!-- Scroll -->
+        <rect fill="#f5f5f5" x="200" y="100" width="200" height="200" rx="10"></rect>
+        <rect fill="#FFFFFF" x="220" y="120" width="160" height="160" rx="5"></rect>
+        
+        <!-- Quill -->
+        <path d="M350,120 C370,100 390,90 400,80 C380,100 360,120 350,150 Z" fill="url(#emptyGradient)" opacity="0.8"></path>
+        <rect fill="url(#goldGradient)" x="350" y="150" width="5" height="30" rx="2.5"></rect>
+        
+        <!-- Glowing Dots -->
+        <circle fill="#4ecdc4" cx="150" cy="100" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="450" cy="150" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="200" cy="300" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle fill="#4ecdc4" cx="400" cy="250" r="5" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <!-- Text Lines -->
+        <rect fill="#EEEEEE" x="240" y="140" width="120" height="10" rx="5"></rect>
+        <rect fill="#EEEEEE" x="240" y="160" width="100" height="10" rx="5"></rect>
+        <rect fill="#EEEEEE" x="240" y="180" width="80" height="10" rx="5"></rect>
+        <rect fill="#EEEEEE" x="240" y="200" width="110" height="10" rx="5"></rect>
+        <rect fill="#EEEEEE" x="240" y="220" width="90" height="10" rx="5"></rect>
+        
+        <!-- Message -->
+        <text x="300" y="300" font-family="Arial" font-size="18" fill="#1a9b9b" text-anchor="middle">No items found</text>
+        <text x="300" y="325" font-family="Arial" font-size="14" fill="#666666" text-anchor="middle">Click the button below to create one</text>
+    </g>
+</svg>

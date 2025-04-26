@@ -94,10 +94,10 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
     try {
       // Start with the base URL
       const url = new URL(currentUrl);
-      
+
       // Clear existing query parameters
       url.search = '';
-      
+
       // Add entity ID parameters
       if (graphParams.worldId) url.searchParams.append('worldId', graphParams.worldId);
       if (graphParams.campaignId) url.searchParams.append('campaignId', graphParams.campaignId);
@@ -107,15 +107,16 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
       if (graphParams.itemId) url.searchParams.append('itemId', graphParams.itemId);
       if (graphParams.eventId) url.searchParams.append('eventId', graphParams.eventId);
       if (graphParams.powerId) url.searchParams.append('powerId', graphParams.powerId);
-      
+
       // Add filter parameters if includeFilters is true
       if (includeFilters) {
         if (graphParams.depth) url.searchParams.append('depth', graphParams.depth.toString());
         if (graphParams.nodeTypes) url.searchParams.append('nodeTypes', graphParams.nodeTypes.join(','));
         if (graphParams.edgeTypes) url.searchParams.append('edgeTypes', graphParams.edgeTypes.join(','));
         if (graphParams.layout) url.searchParams.append('layout', graphParams.layout);
+        if (graphParams.includeImages !== undefined) url.searchParams.append('includeImages', graphParams.includeImages.toString());
       }
-      
+
       // Set the share URL
       setShareUrl(url.toString());
     } catch (error) {
@@ -151,23 +152,23 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
   // Share via social media
   const handleSocialShare = (platform: 'facebook' | 'twitter' | 'linkedin') => {
     try {
-      let shareUrl: string;
-      
+      let socialShareUrl: string;
+
       switch (platform) {
         case 'facebook':
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+          socialShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
           break;
         case 'twitter':
-          shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('Check out this Mind Map from RPG Archivist')}`;
+          socialShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('Check out this Mind Map from RPG Archivist')}`;
           break;
         case 'linkedin':
-          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+          socialShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
           break;
         default:
           throw new Error('Invalid platform');
       }
-      
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+
+      window.open(socialShareUrl, '_blank', 'width=600,height=400');
     } catch (error) {
       console.error(`Error sharing via ${platform}:`, error);
       setError(`Failed to share via ${platform}. Please try again.`);
@@ -187,28 +188,28 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
           </IconButton>
         </Box>
       </DialogTitle>
-      
+
       <Divider />
-      
+
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
-        
+
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="share tabs">
           <Tab label="Link" id="share-tab-0" aria-controls="share-tabpanel-0" />
           <Tab label="Email" id="share-tab-1" aria-controls="share-tabpanel-1" />
           <Tab label="Social" id="share-tab-2" aria-controls="share-tabpanel-2" />
         </Tabs>
-        
+
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" gutterBottom>
               Share this link to give others access to this mind map
             </Typography>
-            
+
             <TextField
               fullWidth
               variant="outlined"
@@ -225,7 +226,7 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
               }}
               sx={{ mb: 2 }}
             />
-            
+
             <FormControlLabel
               control={
                 <Switch
@@ -238,7 +239,7 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
             />
           </Box>
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={1}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -285,12 +286,12 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
             </Grid>
           </Grid>
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={2}>
           <Typography variant="subtitle1" gutterBottom>
             Share on social media
           </Typography>
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <Button
@@ -331,13 +332,13 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
           </Grid>
         </TabPanel>
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={onClose} color="primary">
           Close
         </Button>
       </DialogActions>
-      
+
       <Snackbar
         open={copySuccess}
         autoHideDuration={3000}

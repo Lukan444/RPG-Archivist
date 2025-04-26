@@ -8,6 +8,14 @@ import {
   ContentAnalysisRequest
 } from '../models/content-analysis.model';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
+
 /**
  * Controller for content analysis endpoints
  */
@@ -32,16 +40,28 @@ export class ContentAnalysisController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get content suggestion by ID
    * @param req Request
    * @param res Response
    */
-  public async getSuggestion(req: Request, res: Response): Promise<void> {
+  public async getSuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const suggestion = await this.contentAnalysisService.getSuggestion(id);
-      
+
       if (!suggestion) {
         res.status(404).json({
           success: false,
@@ -51,7 +71,7 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: suggestion
@@ -62,7 +82,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to get content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -73,55 +93,55 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async getSuggestions(req: Request, res: Response): Promise<void> {
+  public async getSuggestions(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const filter: ContentAnalysisFilterOptions = {};
-      
+
       // Parse filter options from query parameters
       if (req.query.types) {
         filter.types = (req.query.types as string).split(',') as SuggestionType[];
       }
-      
+
       if (req.query.status) {
         filter.status = (req.query.status as string).split(',') as SuggestionStatus[];
       }
-      
+
       if (req.query.confidence) {
         filter.confidence = (req.query.confidence as string).split(',') as ConfidenceLevel[];
       }
-      
+
       if (req.query.sourceId) {
         filter.sourceId = req.query.sourceId as string;
       }
-      
+
       if (req.query.sourceType) {
         filter.sourceType = req.query.sourceType as string;
       }
-      
+
       if (req.query.contextId) {
         filter.contextId = req.query.contextId as string;
       }
-      
+
       if (req.query.contextType) {
         filter.contextType = req.query.contextType as string;
       }
-      
+
       if (req.query.createdAfter) {
         filter.createdAfter = parseInt(req.query.createdAfter as string);
       }
-      
+
       if (req.query.createdBefore) {
         filter.createdBefore = parseInt(req.query.createdBefore as string);
       }
-      
+
       if (req.query.search) {
         filter.search = req.query.search as string;
       }
-      
+
       const suggestions = await this.contentAnalysisService.getSuggestions(
         Object.keys(filter).length > 0 ? filter : undefined
       );
-      
+
       res.status(200).json({
         success: true,
         data: suggestions
@@ -132,7 +152,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to get content suggestions',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -143,13 +163,13 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async updateSuggestion(req: Request, res: Response): Promise<void> {
+  public async updateSuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const suggestion = req.body;
-      
+
       const updatedSuggestion = await this.contentAnalysisService.updateSuggestion(id, suggestion);
-      
+
       res.status(200).json({
         success: true,
         data: updatedSuggestion
@@ -160,7 +180,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to update content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -171,12 +191,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async deleteSuggestion(req: Request, res: Response): Promise<void> {
+  public async deleteSuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const deleted = await this.contentAnalysisService.deleteSuggestion(id);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -186,7 +206,7 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -199,7 +219,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to delete content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -210,12 +230,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async acceptSuggestion(req: Request, res: Response): Promise<void> {
+  public async acceptSuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const updatedSuggestion = await this.contentAnalysisService.acceptSuggestion(id);
-      
+
       res.status(200).json({
         success: true,
         data: updatedSuggestion
@@ -226,7 +246,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to accept content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -237,12 +257,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async rejectSuggestion(req: Request, res: Response): Promise<void> {
+  public async rejectSuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const updatedSuggestion = await this.contentAnalysisService.rejectSuggestion(id);
-      
+
       res.status(200).json({
         success: true,
         data: updatedSuggestion
@@ -253,7 +273,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to reject content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -264,13 +284,13 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async modifySuggestion(req: Request, res: Response): Promise<void> {
+  public async modifySuggestion(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const suggestion = req.body;
-      
+
       const updatedSuggestion = await this.contentAnalysisService.modifySuggestion(id, suggestion);
-      
+
       res.status(200).json({
         success: true,
         data: updatedSuggestion
@@ -281,7 +301,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to modify content suggestion',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -292,12 +312,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async getAnalysisResult(req: Request, res: Response): Promise<void> {
+  public async getAnalysisResult(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const result = await this.contentAnalysisService.getAnalysisResult(id);
-      
+
       if (!result) {
         res.status(404).json({
           success: false,
@@ -307,7 +327,7 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: result
@@ -318,7 +338,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to get content analysis result',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -329,12 +349,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async getAnalysisResults(req: Request, res: Response): Promise<void> {
+  public async getAnalysisResults(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const contextId = req.query.contextId as string | undefined;
-      
+
       const results = await this.contentAnalysisService.getAnalysisResults(contextId);
-      
+
       res.status(200).json({
         success: true,
         data: results
@@ -345,7 +365,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to get content analysis results',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -356,12 +376,12 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async deleteAnalysisResult(req: Request, res: Response): Promise<void> {
+  public async deleteAnalysisResult(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const deleted = await this.contentAnalysisService.deleteAnalysisResult(id);
-      
+
       if (!deleted) {
         res.status(404).json({
           success: false,
@@ -371,7 +391,7 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -384,7 +404,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to delete content analysis result',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -395,10 +415,10 @@ export class ContentAnalysisController {
    * @param req Request
    * @param res Response
    */
-  public async analyzeContent(req: Request, res: Response): Promise<void> {
+  public async analyzeContent(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const request: ContentAnalysisRequest = req.body;
-      
+
       if (!request.analysisTypes || request.analysisTypes.length === 0) {
         res.status(400).json({
           success: false,
@@ -408,7 +428,7 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       if (!request.content && !request.transcriptionId && !request.sessionId) {
         res.status(400).json({
           success: false,
@@ -418,9 +438,9 @@ export class ContentAnalysisController {
         });
         return;
       }
-      
+
       const result = await this.contentAnalysisService.analyzeContent(request);
-      
+
       res.status(200).json({
         success: true,
         data: result
@@ -431,7 +451,7 @@ export class ContentAnalysisController {
         success: false,
         error: {
           message: 'Failed to analyze content',
-          details: error.message
+          details: this.getErrorMessage(error)
         }
       });
     }

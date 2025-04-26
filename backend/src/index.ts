@@ -9,8 +9,8 @@ import { campaignRoutes } from './routes/campaign.routes';
 import { sessionRoutes } from './routes/session.routes';
 import { characterRoutes } from './routes/character.routes';
 import { locationRoutes } from './routes/location.routes';
-import { userRoutes } from './routes/user.routes';
-import { authRoutes } from './routes/auth.routes';
+import { createUserRouter } from './routes/user.routes';
+import { createAuthRouter } from './routes/auth.routes';
 import { powerRoutes } from './routes/power.routes';
 import { itemRoutes } from './routes/item.routes';
 import { eventRoutes } from './routes/event.routes';
@@ -42,8 +42,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
-app.use('/api/auth', authRoutes(repositoryFactory));
-app.use('/api/users', userRoutes(repositoryFactory));
+app.use('/api/auth', createAuthRouter());
+app.use('/api/users', createUserRouter());
 app.use('/api/rpg-worlds', rpgWorldRoutes(repositoryFactory));
 app.use('/api/campaigns', campaignRoutes(repositoryFactory));
 app.use('/api/sessions', sessionRoutes(repositoryFactory));
@@ -57,6 +57,9 @@ app.use('/api/transcriptions', transcriptionRoutes(repositoryFactory));
 app.use('/api/session-analyses', sessionAnalysisRoutes(repositoryFactory));
 app.use('/api/graph', graphRoutes(repositoryFactory));
 app.use('/api/llm', llmRoutes(repositoryFactory));
+
+// Import LLM service
+import { LLMService } from './services/llm.service';
 
 // Create LLM service for change proposal routes
 const llmRepository = repositoryFactory.getLLMRepository();

@@ -3,6 +3,14 @@ import { RepositoryFactory } from '../repositories/repository.factory';
 import { EntityType, Relationship } from '../models/relationship.model';
 import { validationResult } from 'express-validator';
 
+// Extend the Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    user_id: string;
+    role?: string;
+  };
+};
+
 /**
  * Relationship controller for handling relationship-related requests
  */
@@ -14,11 +22,23 @@ export class RelationshipController {
   }
 
   /**
+   * Get error message from error object
+   * @param error Error object
+   * @returns Error message
+   */
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  /**
    * Get all relationships
    * @param req Express request
    * @param res Express response
    */
-  public async getAllRelationships(req: Request, res: Response): Promise<void> {
+  public async getAllRelationships(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get query parameters
       const page = parseInt(req.query.page as string) || 1;
@@ -46,7 +66,7 @@ export class RelationshipController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(campaignId, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -93,7 +113,8 @@ export class RelationshipController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting relationships'
+          message: 'An error occurred while getting relationships',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -104,7 +125,7 @@ export class RelationshipController {
    * @param req Express request
    * @param res Express response
    */
-  public async getRelationshipById(req: Request, res: Response): Promise<void> {
+  public async getRelationshipById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get relationship ID from request parameters
       const relationshipId = req.params.id;
@@ -126,7 +147,7 @@ export class RelationshipController {
 
       // Check if user is participant in campaign
       const userId = req.user?.user_id;
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -149,7 +170,8 @@ export class RelationshipController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while getting relationship'
+          message: 'An error occurred while getting relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -160,7 +182,7 @@ export class RelationshipController {
    * @param req Express request
    * @param res Express response
    */
-  public async createRelationship(req: Request, res: Response): Promise<void> {
+  public async createRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -193,7 +215,7 @@ export class RelationshipController {
       }
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(req.body.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -216,7 +238,7 @@ export class RelationshipController {
           success: false,
           error: {
             code: 'SOURCE_ENTITY_NOT_FOUND',
-            message: Source  not found
+            message: 'Source not found'
           }
         });
         return;
@@ -233,7 +255,7 @@ export class RelationshipController {
           success: false,
           error: {
             code: 'TARGET_ENTITY_NOT_FOUND',
-            message: Target  not found
+            message: 'Target not found'
           }
         });
         return;
@@ -247,8 +269,9 @@ export class RelationshipController {
         target_entity_id: req.body.target_entity_id,
         target_entity_type: req.body.target_entity_type,
         relationship_type: req.body.relationship_type,
-        description: req.body.description
-      }, userId);
+        description: req.body.description,
+        created_by: userId || ''
+      }, userId || '');
 
       // Return response
       res.status(201).json({
@@ -261,7 +284,8 @@ export class RelationshipController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while creating relationship'
+          message: 'An error occurred while creating relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -272,7 +296,7 @@ export class RelationshipController {
    * @param req Express request
    * @param res Express response
    */
-  public async updateRelationship(req: Request, res: Response): Promise<void> {
+  public async updateRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Validate request
       const errors = validationResult(req);
@@ -310,7 +334,7 @@ export class RelationshipController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -339,7 +363,8 @@ export class RelationshipController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while updating relationship'
+          message: 'An error occurred while updating relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }
@@ -350,7 +375,7 @@ export class RelationshipController {
    * @param req Express request
    * @param res Express response
    */
-  public async deleteRelationship(req: Request, res: Response): Promise<void> {
+  public async deleteRelationship(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Get relationship ID from request parameters
       const relationshipId = req.params.id;
@@ -374,7 +399,7 @@ export class RelationshipController {
       const userId = req.user?.user_id;
 
       // Check if user is participant in campaign
-      const isParticipant = await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId);
+      const isParticipant = userId ? await this.repositoryFactory.getCampaignRepository().isParticipant(relationship.campaign_id, userId) : false;
       if (!isParticipant) {
         res.status(403).json({
           success: false,
@@ -402,7 +427,8 @@ export class RelationshipController {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'An error occurred while deleting relationship'
+          message: 'An error occurred while deleting relationship',
+          details: this.getErrorMessage(error)
         }
       });
     }

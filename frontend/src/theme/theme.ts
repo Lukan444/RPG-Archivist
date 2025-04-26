@@ -9,15 +9,15 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
     palette: {
       mode,
       primary: {
-        main: '#90caf9',
-        light: '#e3f2fd',
-        dark: '#42a5f5',
-        contrastText: isDark ? '#000000' : '#ffffff',
+        main: isDark ? '#4ecdc4' : '#1a9b9b', // Teal from the D20 die (lighter for dark mode)
+        light: '#4ecdc4', // Lighter teal for highlights
+        dark: '#00696b', // Darker teal for contrast
+        contrastText: '#ffffff',
       },
       secondary: {
-        main: '#f48fb1',
-        light: '#f8bbd0',
-        dark: '#c2185b',
+        main: isDark ? '#ffcb77' : '#cd9b4a', // Gold/bronze (lighter for dark mode)
+        light: '#ffcb77', // Lighter gold
+        dark: '#996d1d', // Darker gold
         contrastText: isDark ? '#000000' : '#ffffff',
       },
       background: {
@@ -25,27 +25,36 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
         paper: isDark ? '#1e1e1e' : '#ffffff',
       },
       text: {
-        primary: isDark ? '#ffffff' : '#000000',
-        secondary: isDark ? '#b0b0b0' : '#555555',
+        primary: isDark ? '#ffffff' : '#333333',
+        secondary: isDark ? '#b0b0b0' : '#666666',
       },
       error: {
         main: '#f44336',
+        light: '#e57373',
+        dark: '#d32f2f',
+        contrastText: '#ffffff',
       },
       warning: {
         main: '#ff9800',
+        light: '#ffb74d',
+        dark: '#f57c00',
+        contrastText: isDark ? '#000000' : '#ffffff',
       },
       info: {
-        main: '#2196f3',
+        main: isDark ? '#64b5f6' : '#0d4b6e', // Dark blue from the feather base (lighter for dark mode)
+        light: '#4fc3f7',
+        dark: '#0288d1',
+        contrastText: '#ffffff',
       },
       success: {
         main: '#4caf50',
+        light: '#81c784',
+        dark: '#388e3c',
+        contrastText: '#ffffff',
       },
     },
     typography: {
       fontFamily: [
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
         'Roboto',
         '"Helvetica Neue"',
         'Arial',
@@ -56,19 +65,19 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
       ].join(','),
       h1: {
         fontSize: '2.5rem',
-        fontWeight: 500,
+        fontWeight: 700,
       },
       h2: {
         fontSize: '2rem',
-        fontWeight: 500,
+        fontWeight: 700,
       },
       h3: {
         fontSize: '1.75rem',
-        fontWeight: 500,
+        fontWeight: 600,
       },
       h4: {
         fontSize: '1.5rem',
-        fontWeight: 500,
+        fontWeight: 600,
       },
       h5: {
         fontSize: '1.25rem',
@@ -78,19 +87,55 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
         fontSize: '1rem',
         fontWeight: 500,
       },
+      subtitle1: {
+        fontWeight: 500,
+      },
+      subtitle2: {
+        fontWeight: 500,
+      },
+      button: {
+        fontWeight: 500,
+        textTransform: 'none', // Avoid all-caps buttons
+      },
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
-            textTransform: 'none',
             borderRadius: 8,
             padding: '8px 16px',
-          },
-          contained: {
-            boxShadow: 'none',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            transition: 'all 0.2s ease-in-out',
             '&:hover': {
-              boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            },
+          },
+          containedPrimary: {
+            background: isDark
+              ? `linear-gradient(135deg, #4ecdc4 0%, #26a69a 100%)`
+              : `linear-gradient(135deg, #1a9b9b 0%, #00696b 100%)`,
+          },
+          containedSecondary: {
+            background: isDark
+              ? `linear-gradient(135deg, #ffcb77 0%, #dda74a 100%)`
+              : `linear-gradient(135deg, #cd9b4a 0%, #996d1d 100%)`,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
+            boxShadow: isDark
+              ? '0 4px 12px rgba(0,0,0,0.5)'
+              : '0 4px 12px rgba(0,0,0,0.1)',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease-in-out',
+            '&:hover': {
+              boxShadow: isDark
+                ? '0 8px 24px rgba(0,0,0,0.6)'
+                : '0 8px 24px rgba(0,0,0,0.15)',
             },
           },
         },
@@ -100,15 +145,25 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
           root: {
             borderRadius: 8,
           },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
+          elevation1: {
             boxShadow: isDark
-              ? '0px 3px 5px rgba(0, 0, 0, 0.5)'
-              : '0px 2px 4px rgba(0, 0, 0, 0.1)',
+              ? '0 2px 8px rgba(0,0,0,0.3)'
+              : '0 2px 8px rgba(0,0,0,0.08)',
+          },
+          elevation2: {
+            boxShadow: isDark
+              ? '0 4px 12px rgba(0,0,0,0.4)'
+              : '0 4px 12px rgba(0,0,0,0.1)',
+          },
+          elevation3: {
+            boxShadow: isDark
+              ? '0 6px 16px rgba(0,0,0,0.5)'
+              : '0 6px 16px rgba(0,0,0,0.12)',
+          },
+          elevation4: {
+            boxShadow: isDark
+              ? '0 8px 24px rgba(0,0,0,0.6)'
+              : '0 8px 24px rgba(0,0,0,0.14)',
           },
         },
       },
@@ -116,14 +171,18 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
         styleOverrides: {
           root: {
             boxShadow: isDark
-              ? '0px 3px 5px rgba(0, 0, 0, 0.5)'
-              : '0px 2px 4px rgba(0, 0, 0, 0.1)',
+              ? '0 2px 10px rgba(0,0,0,0.5)'
+              : '0 2px 10px rgba(0,0,0,0.1)',
           },
         },
       },
       MuiDrawer: {
         styleOverrides: {
           paper: {
+            borderRight: 'none',
+            boxShadow: isDark
+              ? '2px 0 10px rgba(0,0,0,0.5)'
+              : '2px 0 10px rgba(0,0,0,0.1)',
             backgroundColor: isDark ? '#1e1e1e' : '#ffffff',
           },
         },
@@ -133,7 +192,44 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
           root: {
             '& .MuiOutlinedInput-root': {
               borderRadius: 8,
+              '&.Mui-focused fieldset': {
+                borderColor: isDark ? '#4ecdc4' : '#1a9b9b',
+                borderWidth: 2,
+              },
             },
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 16,
+          },
+        },
+      },
+      MuiListItem: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            '&.Mui-selected': {
+              backgroundColor: isDark
+                ? 'rgba(78, 205, 196, 0.2)'
+                : 'rgba(26, 155, 155, 0.1)',
+              '&:hover': {
+                backgroundColor: isDark
+                  ? 'rgba(78, 205, 196, 0.3)'
+                  : 'rgba(26, 155, 155, 0.2)',
+              },
+            },
+          },
+        },
+      },
+      MuiAvatar: {
+        styleOverrides: {
+          root: {
+            boxShadow: isDark
+              ? '0 2px 6px rgba(0,0,0,0.3)'
+              : '0 2px 6px rgba(0,0,0,0.15)',
           },
         },
       },
@@ -144,7 +240,9 @@ const getThemeOptions = (mode: PaletteMode): ThemeOptions => {
           },
           head: {
             fontWeight: 600,
-            backgroundColor: isDark ? '#333333' : '#f5f5f5',
+            backgroundColor: isDark
+              ? 'rgba(78, 205, 196, 0.2)'
+              : 'rgba(26, 155, 155, 0.1)',
           },
         },
       },
