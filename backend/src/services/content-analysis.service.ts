@@ -160,46 +160,46 @@ export class ContentAnalysisService {
     try {
       const startTime = Date.now();
       const requestId = uuidv4();
-      
+
       // Get content to analyze
       let content = request.content || '';
-      
+
       // If transcription ID is provided, get transcription content
       if (request.transcriptionId) {
-        const transcription = await this.transcriptionService.getTranscriptionById(request.transcriptionId);
-        
+        const transcription = await this.transcriptionService.getById(request.transcriptionId);
+
         if (transcription) {
-          content = transcription.segments.map(segment => 
+          content = transcription.segments.map((segment: any) =>
             `${segment.speaker ? segment.speaker + ': ' : ''}${segment.text}`
           ).join('\n\n');
         }
       }
-      
+
       // If session ID is provided, get session analysis
       if (request.sessionId) {
-        const sessionAnalysis = await this.sessionAnalysisService.getSessionAnalysis(request.sessionId);
-        
+        const sessionAnalysis = await this.sessionAnalysisService.getSessionAnalysisById(request.sessionId);
+
         if (sessionAnalysis) {
           content += '\n\n' + sessionAnalysis.summary;
-          
-          if (sessionAnalysis.keyPoints) {
-            content += '\n\nKey Points:\n' + sessionAnalysis.keyPoints.map(point => 
+
+          if (sessionAnalysis.key_points) {
+            content += '\n\nKey Points:\n' + sessionAnalysis.key_points.map((point: any) =>
               `- ${point.text}`
             ).join('\n');
           }
         }
       }
-      
+
       // Get context data
       let contextData: any = null;
-      
+
       if (request.contextId && request.contextType) {
         contextData = await this.getContextData(request.contextId, request.contextType);
       }
-      
+
       // Generate suggestions for each requested type
       const suggestions: ContentSuggestion[] = [];
-      
+
       for (const analysisType of request.analysisTypes) {
         const typeSuggestions = await this.generateSuggestionsForType(
           analysisType,
@@ -207,10 +207,10 @@ export class ContentAnalysisService {
           contextData,
           request
         );
-        
+
         suggestions.push(...typeSuggestions);
       }
-      
+
       // Create analysis result
       const result: Omit<ContentAnalysisResult, 'id' | 'createdAt'> = {
         requestId,
@@ -220,7 +220,7 @@ export class ContentAnalysisService {
           model: request.options?.model
         }
       };
-      
+
       return this.contentAnalysisRepository.createAnalysisResult(result);
     } catch (error) {
       console.error('Error analyzing content:', error);
@@ -240,16 +240,16 @@ export class ContentAnalysisService {
         case 'campaign':
           const campaignRepository = this.repositoryFactory.getCampaignRepository();
           return campaignRepository.getById(contextId);
-        
+
         case 'session':
           const sessionRepository = this.repositoryFactory.getSessionRepository();
           const session = await sessionRepository.getById(contextId);
-          
+
           // If session has campaign ID, get campaign data too
-          if (session && session.campaignId) {
+          if (session && session.campaign_id) {
             const campaignRepository = this.repositoryFactory.getCampaignRepository();
-            const campaign = await campaignRepository.getById(session.campaignId);
-            
+            const campaign = await campaignRepository.getById(session.campaign_id);
+
             if (campaign) {
               return {
                 ...session,
@@ -257,13 +257,13 @@ export class ContentAnalysisService {
               };
             }
           }
-          
+
           return session;
-        
+
         case 'world':
           const worldRepository = this.repositoryFactory.getRPGWorldRepository();
           return worldRepository.getById(contextId);
-        
+
         default:
           return null;
       }
@@ -290,10 +290,10 @@ export class ContentAnalysisService {
     try {
       // Get prompt for analysis type
       const prompt = this.getPromptForAnalysisType(analysisType, content, contextData);
-      
+
       // Use custom prompt if provided
       const finalPrompt = request.options?.customPrompt || prompt;
-      
+
       // Prepare messages for LLM
       const messages: LLMMessage[] = [
         {
@@ -305,14 +305,14 @@ export class ContentAnalysisService {
           content: finalPrompt
         }
       ];
-      
+
       // Call LLM
       const response = await this.llmService.chat(messages, {
         model: request.options?.model,
         temperature: 0.7,
         maxTokens: 2000
       });
-      
+
       // Parse LLM response to create suggestions
       return this.parseSuggestionsFromLLMResponse(
         response.message.content,
@@ -320,7 +320,7 @@ export class ContentAnalysisService {
         request
       );
     } catch (error) {
-      console.error(`Error generating ${analysisType} suggestions:`, error);
+      console.error('Error generating suggestions for type:', analysisType, error);
       return [];
     }
   }
@@ -517,33 +517,33 @@ Respond in JSON format with an array of suggestions.`;
     contextData: any
   ): string {
     let contextDescription = '';
-    
+
     if (contextData) {
       contextDescription = `\n\nContext Information:\n${JSON.stringify(contextData, null, 2)}`;
     }
-    
+
     switch (analysisType) {
       case SuggestionType.CHARACTER:
         return `Analyze the following RPG campaign content and identify characters that are mentioned or implied but not yet fully defined. Also suggest new characters that would fit well in this context.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide character suggestions in the required JSON format. Focus on characters that seem important to the story or would add interesting elements to the campaign. For each character, include as much detail as you can reasonably infer from the content.`;
-      
+
       case SuggestionType.LOCATION:
         return `Analyze the following RPG campaign content and identify locations that are mentioned or implied but not yet fully defined. Also suggest new locations that would fit well in this context.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide location suggestions in the required JSON format. Focus on locations that seem important to the story or would add interesting elements to the campaign. For each location, include as much detail as you can reasonably infer from the content.`;
-      
+
       case SuggestionType.RELATIONSHIP:
         return `Analyze the following RPG campaign content and identify relationships between entities (characters, locations, etc.) that are mentioned or implied.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide relationship suggestions in the required JSON format. Focus on relationships that seem important to the story or would add interesting dynamics to the campaign. For each relationship, include as much detail as you can reasonably infer from the content.`;
-      
+
       case SuggestionType.LORE:
         return `Analyze the following RPG campaign content and extract lore elements (history, legends, customs, etc.) that are mentioned or implied.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide lore suggestions in the required JSON format. Focus on lore elements that seem important to the story or would add depth to the campaign world. For each lore element, include as much detail as you can reasonably infer from the content.`;
-      
+
       case SuggestionType.DIALOG:
         return `Analyze the following RPG campaign content and suggest dialog options for NPCs based on their character and the context.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide dialog suggestions in the required JSON format. Focus on dialog that would be useful for the game master to have prepared for important NPCs. Include alternative phrasings for flexibility.`;
-      
+
       case SuggestionType.EVENT:
         return `Analyze the following RPG campaign content and identify events that have occurred or might occur in the future.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide event suggestions in the required JSON format. Focus on events that seem important to the story or would add interesting developments to the campaign. For each event, include as much detail as you can reasonably infer from the content.`;
-      
+
       case SuggestionType.NOTE:
         return `Analyze the following RPG campaign content and suggest notes that the game master might want to keep.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide note suggestions in the required JSON format. Focus on information that would be useful for the game master to remember for future sessions. These could be plot points, character details, location information, quest ideas, etc.`;
-      
+
       default:
         return `Analyze the following RPG campaign content and provide helpful suggestions.${contextDescription}\n\nContent to analyze:\n${content}\n\nProvide suggestions in JSON format.`;
     }
@@ -563,21 +563,21 @@ Respond in JSON format with an array of suggestions.`;
   ): ContentSuggestion[] {
     try {
       // Extract JSON from response
-      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) || 
+      const jsonMatch = response.match(/```json\n([\s\S]*?)\n```/) ||
                         response.match(/```\n([\s\S]*?)\n```/) ||
                         response.match(/({[\s\S]*})/);
-      
+
       let jsonStr = jsonMatch ? jsonMatch[1] : response;
-      
+
       // Clean up the JSON string
       jsonStr = jsonStr.trim();
-      
+
       // Parse JSON
       let parsedData = JSON.parse(jsonStr);
-      
+
       // Handle both array and single object responses
       const suggestions = Array.isArray(parsedData) ? parsedData : [parsedData];
-      
+
       // Process each suggestion
       return suggestions.map(suggestion => {
         // Set common fields
@@ -596,7 +596,7 @@ Respond in JSON format with an array of suggestions.`;
           updatedAt: Date.now(),
           metadata: suggestion.metadata || {}
         };
-        
+
         // Return appropriate suggestion type
         switch (suggestion.type || analysisType) {
           case SuggestionType.CHARACTER:
@@ -608,7 +608,7 @@ Respond in JSON format with an array of suggestions.`;
                 description: suggestion.description || ''
               }
             } as CharacterSuggestion;
-          
+
           case SuggestionType.LOCATION:
             return {
               ...commonFields,
@@ -618,7 +618,7 @@ Respond in JSON format with an array of suggestions.`;
                 description: suggestion.description || ''
               }
             } as LocationSuggestion;
-          
+
           case SuggestionType.RELATIONSHIP:
             return {
               ...commonFields,
@@ -630,7 +630,7 @@ Respond in JSON format with an array of suggestions.`;
                 description: suggestion.description || ''
               }
             } as RelationshipSuggestion;
-          
+
           case SuggestionType.LORE:
             return {
               ...commonFields,
@@ -640,7 +640,7 @@ Respond in JSON format with an array of suggestions.`;
                 content: suggestion.description || ''
               }
             } as LoreSuggestion;
-          
+
           case SuggestionType.DIALOG:
             return {
               ...commonFields,
@@ -650,7 +650,7 @@ Respond in JSON format with an array of suggestions.`;
                 content: suggestion.description || ''
               }
             } as DialogSuggestion;
-          
+
           case SuggestionType.EVENT:
             return {
               ...commonFields,
@@ -660,7 +660,7 @@ Respond in JSON format with an array of suggestions.`;
                 description: suggestion.description || ''
               }
             } as EventSuggestion;
-          
+
           case SuggestionType.NOTE:
             return {
               ...commonFields,
@@ -670,14 +670,14 @@ Respond in JSON format with an array of suggestions.`;
                 content: suggestion.description || ''
               }
             } as NoteSuggestion;
-          
+
           default:
             return commonFields as ContentSuggestion;
         }
       });
     } catch (error) {
       console.error('Error parsing suggestions from LLM response:', error);
-      
+
       // Create a fallback suggestion
       return [{
         id: uuidv4(),
@@ -693,7 +693,7 @@ Respond in JSON format with an array of suggestions.`;
         createdAt: Date.now(),
         updatedAt: Date.now(),
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           rawResponse: response
         }
       }];

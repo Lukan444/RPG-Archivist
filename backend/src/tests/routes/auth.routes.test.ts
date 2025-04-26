@@ -8,6 +8,7 @@ import { UserRole } from '../../models/user.model';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { generateToken, verifyToken } from '../../utils/auth';
+import { TEST_TOKENS } from '../constants/test-tokens';
 
 // Mock repositories
 jest.mock('../../repositories/user.repository');
@@ -33,11 +34,11 @@ describe('Auth Routes', () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
 
     // Mock jwt
-    (jwt.sign as jest.Mock).mockReturnValue('mock_token');
+    (jwt.sign as jest.Mock).mockReturnValue(TEST_TOKENS.VALID_TOKEN);
     (jwt.verify as jest.Mock).mockReturnValue({ user_id: 'user_id' });
 
     // Mock auth utils
-    (generateToken as jest.Mock).mockReturnValue('mock_token');
+    (generateToken as jest.Mock).mockReturnValue(TEST_TOKENS.VALID_TOKEN);
     (verifyToken as jest.Mock).mockReturnValue({ user_id: 'user_id' });
   });
 
@@ -79,7 +80,7 @@ describe('Auth Routes', () => {
         username: 'testuser',
         email: 'test@example.com'
       }));
-      expect(response.body.data.token).toBe('mock_token');
+      expect(response.body.data.token).toBe(TEST_TOKENS.VALID_TOKEN);
     });
 
     it('should return 400 if passwords do not match', async () => {
@@ -193,7 +194,7 @@ describe('Auth Routes', () => {
         username: 'testuser',
         email: 'test@example.com'
       }));
-      expect(response.body.data.token).toBe('mock_token');
+      expect(response.body.data.token).toBe(TEST_TOKENS.VALID_TOKEN);
     });
 
     it('should login a user with username', async () => {
@@ -230,7 +231,7 @@ describe('Auth Routes', () => {
         username: 'testuser',
         email: 'test@example.com'
       }));
-      expect(response.body.data.token).toBe('mock_token');
+      expect(response.body.data.token).toBe(TEST_TOKENS.VALID_TOKEN);
     });
 
     it('should return 401 if user not found', async () => {
@@ -337,12 +338,12 @@ describe('Auth Routes', () => {
       // Make request
       const response = await request(app)
         .post('/api/v1/auth/refresh')
-        .set('Authorization', 'Bearer mock_token');
+        .set('Authorization', `Bearer ${TEST_TOKENS.VALID_TOKEN}`);
 
       // Check response
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.token).toBe('mock_token');
+      expect(response.body.data.token).toBe(TEST_TOKENS.VALID_TOKEN);
     });
 
     it('should return 401 if token is not provided', async () => {
@@ -365,7 +366,7 @@ describe('Auth Routes', () => {
       // Make request
       const response = await request(app)
         .post('/api/v1/auth/refresh')
-        .set('Authorization', 'Bearer invalid_token');
+        .set('Authorization', `Bearer ${TEST_TOKENS.INVALID_TOKEN}`);
 
       // Check response
       expect(response.status).toBe(401);
@@ -380,7 +381,7 @@ describe('Auth Routes', () => {
       // Make request
       const response = await request(app)
         .post('/api/v1/auth/refresh')
-        .set('Authorization', 'Bearer mock_token');
+        .set('Authorization', `Bearer ${TEST_TOKENS.VALID_TOKEN}`);
 
       // Check response
       expect(response.status).toBe(404);
