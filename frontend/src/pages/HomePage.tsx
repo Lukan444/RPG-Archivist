@@ -53,7 +53,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  Logo,
+  RpgLogo,
+  RpgLettersLogo,
   HeroBackground,
   WorldsImage,
   CampaignsImage,
@@ -310,8 +311,9 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <Box
         sx={{
-          background: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${HeroBackground}) no-repeat center center`,
+          background: `linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), url(${HeroBackground}) no-repeat center center`,
           backgroundSize: 'cover',
+          backgroundPosition: 'center',
           color: 'white',
           pt: { xs: 8, md: 12 },
           pb: { xs: 10, md: 16 },
@@ -324,7 +326,7 @@ const HomePage: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(135deg, rgba(63, 81, 181, 0.4) 0%, rgba(156, 39, 176, 0.4) 100%)',
+            background: 'linear-gradient(135deg, rgba(63, 81, 181, 0.6) 0%, rgba(156, 39, 176, 0.6) 100%)',
             zIndex: 0,
           }
         }}
@@ -335,31 +337,13 @@ const HomePage: React.FC = () => {
               <Grid item xs={12} md={7}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                   <Zoom in={true} timeout={800}>
-                    <Box component="img" src={Logo} alt="RPG Archivist Logo" sx={{
-                      width: { xs: 50, md: 70 },
-                      height: { xs: 50, md: 70 },
-                      mr: 2,
-                      filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.5))'
+                    <Box component="img" src={RpgLettersLogo} alt="RPG Archivist Logo" sx={{
+                      width: { xs: 280, md: 400 },
+                      height: 'auto',
+                      filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.7))',
+                      padding: 1,
                     }} />
                   </Zoom>
-                  <Typography
-                    component="h1"
-                    variant="h2"
-                    gutterBottom
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: { xs: '2.5rem', md: '3.75rem' },
-                      m: 0,
-                      background: 'linear-gradient(90deg, #ffffff 0%, #e0e0ff 100%)',
-                      backgroundClip: 'text',
-                      textFillColor: 'transparent',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      textShadow: '0 0 20px rgba(63, 81, 181, 0.5)',
-                    }}
-                  >
-                    RPG Archivist
-                  </Typography>
                 </Box>
                 <Typography
                   variant="h5"
