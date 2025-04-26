@@ -4,7 +4,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import SessionAnalysisPage from '../SessionAnalysisPage';
 import { sessionAnalysisService } from '../../services/sessionAnalysisService';
-import { sessionService } from '../../services/sessionService';
+import sessionService from '../../services/sessionService';
 import { transcriptionService } from '../../services/transcriptionService';
 
 // Mock the services
@@ -106,33 +106,33 @@ describe('SessionAnalysisPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock service responses
     (sessionService.getById as jest.Mock).mockResolvedValue({
       success: true,
       data: { name: 'Test Session' }
     });
-    
+
     (sessionAnalysisService.getBySessionId as jest.Mock).mockResolvedValue({
       success: true,
       data: mockSessionAnalysis
     });
-    
+
     (sessionAnalysisService.getByTranscriptionId as jest.Mock).mockResolvedValue({
       success: true,
       data: mockSessionAnalysis
     });
-    
+
     (sessionAnalysisService.create as jest.Mock).mockResolvedValue({
       success: true,
       data: mockSessionAnalysis
     });
-    
+
     (sessionAnalysisService.process as jest.Mock).mockResolvedValue({
       success: true,
       data: mockSessionAnalysis
     });
-    
+
     (transcriptionService.getById as jest.Mock).mockResolvedValue({
       success: true,
       data: { recording_id: 'recording-123' }
@@ -142,12 +142,12 @@ describe('SessionAnalysisPage', () => {
   it('renders the session analysis page with data', async () => {
     // Arrange & Act
     renderWithThemeAndRouter(<SessionAnalysisPage />);
-    
+
     // Assert
     await waitFor(() => {
       expect(screen.getByText('Test Session - Analysis')).toBeInTheDocument();
     });
-    
+
     // Check tabs
     expect(screen.getByText('Summary')).toBeInTheDocument();
     expect(screen.getByText('Key Points')).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe('SessionAnalysisPage', () => {
     expect(screen.getByText('Plot')).toBeInTheDocument();
     expect(screen.getByText('Sentiment')).toBeInTheDocument();
     expect(screen.getByText('Topics')).toBeInTheDocument();
-    
+
     // Check summary content (default tab)
     expect(screen.getByText('This is a test summary of the session.')).toBeInTheDocument();
   });
@@ -163,27 +163,27 @@ describe('SessionAnalysisPage', () => {
   it('switches between tabs correctly', async () => {
     // Arrange
     renderWithThemeAndRouter(<SessionAnalysisPage />);
-    
+
     // Wait for page to load
     await waitFor(() => {
       expect(screen.getByText('Test Session - Analysis')).toBeInTheDocument();
     });
-    
+
     // Act - click on Key Points tab
     fireEvent.click(screen.getByText('Key Points'));
-    
+
     // Assert - check key points content
     expect(screen.getByText('Key point 1')).toBeInTheDocument();
-    
+
     // Act - click on Characters tab
     fireEvent.click(screen.getByText('Characters'));
-    
+
     // Assert - check characters content
     expect(screen.getByText('Character 1')).toBeInTheDocument();
-    
+
     // Act - click on Plot tab
     fireEvent.click(screen.getByText('Plot'));
-    
+
     // Assert - check plot content
     expect(screen.getByText('Plot development 1')).toBeInTheDocument();
   });
@@ -192,15 +192,15 @@ describe('SessionAnalysisPage', () => {
     // Arrange
     (sessionAnalysisService.getBySessionId as jest.Mock).mockRejectedValueOnce(new Error('No analysis found'));
     (sessionAnalysisService.getByTranscriptionId as jest.Mock).mockRejectedValueOnce(new Error('No analysis found'));
-    
+
     // Act
     renderWithThemeAndRouter(<SessionAnalysisPage />, { route: '/sessions/123/analysis/456' });
-    
+
     // Assert
     await waitFor(() => {
       expect(sessionAnalysisService.create).toHaveBeenCalledWith('123', '456');
     });
-    
+
     await waitFor(() => {
       expect(sessionAnalysisService.process).toHaveBeenCalled();
     });
@@ -211,10 +211,10 @@ describe('SessionAnalysisPage', () => {
     (sessionAnalysisService.getBySessionId as jest.Mock).mockRejectedValue(new Error('Failed to load'));
     (sessionAnalysisService.getByTranscriptionId as jest.Mock).mockRejectedValue(new Error('Failed to load'));
     (sessionAnalysisService.create as jest.Mock).mockRejectedValue(new Error('Failed to create'));
-    
+
     // Act
     renderWithThemeAndRouter(<SessionAnalysisPage />);
-    
+
     // Assert
     await waitFor(() => {
       expect(screen.getByText('Failed to load session analysis. Please try again.')).toBeInTheDocument();
@@ -224,15 +224,15 @@ describe('SessionAnalysisPage', () => {
   it('refreshes analysis when refresh button is clicked', async () => {
     // Arrange
     renderWithThemeAndRouter(<SessionAnalysisPage />);
-    
+
     // Wait for page to load
     await waitFor(() => {
       expect(screen.getByText('Test Session - Analysis')).toBeInTheDocument();
     });
-    
+
     // Act - click refresh button
     fireEvent.click(screen.getByText('Refresh'));
-    
+
     // Assert
     await waitFor(() => {
       expect(sessionAnalysisService.process).toHaveBeenCalled();

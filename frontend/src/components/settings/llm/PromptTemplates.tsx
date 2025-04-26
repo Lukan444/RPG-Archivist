@@ -20,6 +20,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  SelectChangeEvent,
   MenuItem,
   Grid,
   CircularProgress,
@@ -100,12 +101,12 @@ const PromptTemplates: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [templatesData, modelsData] = await Promise.all([
         LLMService.getPromptTemplates(),
         LLMService.getModels()
       ]);
-      
+
       setTemplates(templatesData);
       setModels(modelsData);
     } catch (error) {
@@ -158,23 +159,37 @@ const PromptTemplates: React.FC = () => {
     setViewingTemplate(null);
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  // Handle TextField changes
+  const handleTextFieldChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    setFormValues({
-      ...formValues,
-      [name as string]: value
-    });
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
+  };
+
+  // Handle Select changes
+  const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    if (name) {
+      setFormValues({
+        ...formValues,
+        [name]: value
+      });
+    }
   };
 
   const handleVariablesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setVariablesInput(event.target.value);
-    
+
     // Parse variables
     const variables = event.target.value
       .split(',')
       .map(v => v.trim())
       .filter(v => v);
-    
+
     setFormValues({
       ...formValues,
       variables
@@ -186,7 +201,7 @@ const PromptTemplates: React.FC = () => {
     const newCapabilities = capabilities.includes(capability)
       ? capabilities.filter(c => c !== capability)
       : [...capabilities, capability];
-    
+
     setFormValues({
       ...formValues,
       requiredCapabilities: newCapabilities
@@ -196,7 +211,7 @@ const PromptTemplates: React.FC = () => {
   const handleSaveTemplate = async () => {
     try {
       setLoading(true);
-      
+
       if (!formValues.name || !formValues.template) {
         setSnackbar({
           open: true,
@@ -205,18 +220,18 @@ const PromptTemplates: React.FC = () => {
         });
         return;
       }
-      
+
       if (editingTemplate) {
         // Update existing template
         const updatedTemplate = await LLMService.updatePromptTemplate(
           editingTemplate.id,
           formValues
         );
-        
-        setTemplates(templates.map(t => 
+
+        setTemplates(templates.map(t =>
           t.id === updatedTemplate.id ? updatedTemplate : t
         ));
-        
+
         setSnackbar({
           open: true,
           message: 'Template updated successfully',
@@ -226,14 +241,14 @@ const PromptTemplates: React.FC = () => {
         // Create new template
         const newTemplate = await LLMService.createPromptTemplate(formValues as Omit<PromptTemplate, 'id'>);
         setTemplates([...templates, newTemplate]);
-        
+
         setSnackbar({
           open: true,
           message: 'Template created successfully',
           severity: 'success'
         });
       }
-      
+
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving template:', error);
@@ -252,7 +267,7 @@ const PromptTemplates: React.FC = () => {
       setLoading(true);
       await LLMService.deletePromptTemplate(templateId);
       setTemplates(templates.filter(t => t.id !== templateId));
-      
+
       setSnackbar({
         open: true,
         message: 'Template deleted successfully',
@@ -276,8 +291,13 @@ const PromptTemplates: React.FC = () => {
       name: `${template.name} (Copy)`,
       id: undefined
     };
-    
-    handleOpenDialog(duplicatedTemplate as PromptTemplate);
+
+    // Generate a temporary ID for the duplicated template
+    const tempId = `temp-${Date.now()}`;
+    handleOpenDialog({
+      ...duplicatedTemplate,
+      id: tempId
+    });
   };
 
   const handleCloseSnackbar = () => {
@@ -451,7 +471,7 @@ const PromptTemplates: React.FC = () => {
                   label="Name"
                   name="name"
                   value={formValues.name || ''}
-                  onChange={handleChange}
+                  onChange={handleTextFieldChange}
                   required
                 />
               </Grid>
@@ -461,7 +481,7 @@ const PromptTemplates: React.FC = () => {
                   label="Description"
                   name="description"
                   value={formValues.description || ''}
-                  onChange={handleChange}
+                  onChange={handleTextFieldChange}
                   multiline
                   rows={2}
                 />
@@ -504,7 +524,7 @@ const PromptTemplates: React.FC = () => {
                   label="System Prompt (Optional)"
                   name="systemPrompt"
                   value={formValues.systemPrompt || ''}
-                  onChange={handleChange}
+                  onChange={handleTextFieldChange}
                   multiline
                   rows={3}
                   helperText="System instructions to set the context for the LLM"
@@ -516,7 +536,7 @@ const PromptTemplates: React.FC = () => {
                   label="Template"
                   name="template"
                   value={formValues.template || ''}
-                  onChange={handleChange}
+                  onChange={handleTextFieldChange}
                   multiline
                   rows={10}
                   required
@@ -534,7 +554,7 @@ const PromptTemplates: React.FC = () => {
                   <Select
                     name="defaultModel"
                     value={formValues.defaultModel || ''}
-                    onChange={handleChange}
+                    onChange={handleSelectChange}
                     label="Default Model (Optional)"
                   >
                     <MenuItem value="">

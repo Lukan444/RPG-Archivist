@@ -1,25 +1,27 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
+import { isProduction, isDevelopment, getSentryDsn, getEnvironment, getVersion } from './environment';
 
 /**
  * Initialize Sentry error reporting
  */
 export const initErrorReporting = (): void => {
   // Only initialize in production
-  if (process.env.NODE_ENV !== 'production' || !process.env.REACT_APP_SENTRY_DSN) {
+  const dsn = getSentryDsn();
+  if (!isProduction() || !dsn) {
     console.log('Error reporting disabled in development mode or missing DSN');
     return;
   }
 
   Sentry.init({
-    dsn: process.env.REACT_APP_SENTRY_DSN,
+    dsn,
     integrations: [new BrowserTracing()],
     tracesSampleRate: 0.2,
-    environment: process.env.REACT_APP_ENV || 'production',
-    release: process.env.REACT_APP_VERSION || 'unknown',
+    environment: getEnvironment(),
+    release: getVersion(),
     beforeSend(event) {
       // Don't send events in development
-      if (process.env.NODE_ENV !== 'production') {
+      if (isDevelopment()) {
         return null;
       }
       return event;
@@ -33,7 +35,7 @@ export const initErrorReporting = (): void => {
  * @param context Additional context information
  */
 export const reportError = (error: Error, context?: Record<string, any>): void => {
-  if (process.env.NODE_ENV !== 'production') {
+  if (isDevelopment()) {
     console.error('Error:', error, 'Context:', context);
     return;
   }
